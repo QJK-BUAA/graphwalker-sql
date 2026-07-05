@@ -42,8 +42,13 @@ def main():
     print(f"Linked tables: {res.linked_tables}")
     print(f"Chosen path  : {' -> '.join(res.chosen_path) or '(single/none)'}")
     print(f"Join conds   : {res.join_conditions}")
-    print(f"Belief H     : {res.belief_entropy}  | probes={res.n_probes} "
+    print(f"Belief H     : {res.belief_entropy}  | path_probes={res.n_probes} "
+          f"| column_probes={res.n_column_probes} "
           f"| propose={res.propose_verdict} | repaired={res.repaired}")
+    if res.column_hints:
+        print("Column hints :")
+        for h in res.column_hints[:8]:
+            print(f"  {h}")
     print("-" * 80)
     print("Trace:")
     for line in res.trace:

@@ -33,6 +33,7 @@ class AblationConfig:
     use_belief_walk: bool = True      # belief-guided exploration vs greedy shortest
     use_topk: bool = True             # top-k paths vs single shortest
     use_probes: bool = True           # conditional execution probes
+    use_column_probes: bool = True    # active column/value SQL probes in Explore
     use_entropy_stop: bool = True     # cost-gated early stop
     use_propose: bool = True          # evidence checkpoint before generation
     # Optional variant: require join evidence for Propose-added tables. BIRD n=100
@@ -56,8 +57,8 @@ class AblationConfig:
         # Propose-gating and column-alignment are opt-in variants reported as
         # suffixes because full-run evidence did not support making them default.
         core_full = all([self.use_inferred_graph, self.use_belief_walk,
-                         self.use_topk, self.use_probes, self.use_entropy_stop,
-                         self.use_propose])
+                         self.use_topk, self.use_probes, self.use_column_probes,
+                         self.use_entropy_stop, self.use_propose])
         variants = []
         if self.use_evidence_injection: variants.append("evidenceblock")
         if self.use_propose_evidence_gate: variants.append("propgate")
@@ -69,6 +70,7 @@ class AblationConfig:
         if not self.use_belief_walk: off.append("nowalk")
         if not self.use_topk: off.append("notopk")
         if not self.use_probes: off.append("noprobe")
+        if not self.use_column_probes: off.append("nocolprobe")
         if not self.use_entropy_stop: off.append("nostop")
         if not self.use_propose: off.append("nopropose")
         return "+".join(off + variants) if (off or variants) else "full"
@@ -87,6 +89,8 @@ class GWSResult:
     join_conditions: list[str] = field(default_factory=list)
     chosen_path: list[str] = field(default_factory=list)
     n_probes: int = 0
+    n_column_probes: int = 0
+    column_hints: list[str] = field(default_factory=list)
     propose_verdict: str = ""
     missing_added: list[str] = field(default_factory=list)
     missing_rejected: list[str] = field(default_factory=list)
@@ -140,8 +144,10 @@ def run_pipeline(
     # ----------------------------------------------------------------- Explore
     ex_res = explore(question, schema, graph_obj, anchors.sources,
                      anchors.destinations, belief, sqlite_path, llm,
+                     literals=anchors.literals,
                      use_belief_walk=ab.use_belief_walk, use_topk=ab.use_topk,
-                     use_probes=ab.use_probes, use_entropy_stop=ab.use_entropy_stop)
+                     use_probes=ab.use_probes, use_entropy_stop=ab.use_entropy_stop,
+                     use_column_probes=ab.use_column_probes)
     trace.extend(f"explore: {s}" for s in ex_res.steps)
 
     # ------------------------------------------------------------------ Commit
@@ -168,7 +174,8 @@ def run_pipeline(
         destinations=anchors.destinations, literals=anchors.literals,
         linked_tables=cm.linked_tables, join_conditions=cm.join_conditions,
         chosen_path=ex_res.chosen_path.tables if ex_res.chosen_path else [],
-        n_probes=ex_res.n_probes, propose_verdict=cm.propose_verdict,
+        n_probes=ex_res.n_probes, n_column_probes=ex_res.n_column_probes,
+        column_hints=ex_res.column_hints, propose_verdict=cm.propose_verdict,
         missing_added=cm.missing_added, missing_rejected=cm.missing_rejected,
         repaired=cm.repaired, sql=cm.sql, execution=cm.execution,
         belief_entropy={

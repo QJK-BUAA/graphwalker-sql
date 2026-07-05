@@ -299,6 +299,9 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
 
     # 2) Generate exactly one SQL -------------------------------------------- #
     hints = _belief_hints(schema, belief, linked, evidence=ev)
+    if explore_res.column_hints:
+        hints += "\n\nColumn probe evidence (from low-cost SQL probes):\n" + \
+            "\n".join(explore_res.column_hints)
     ctx = schema_context if schema_context else schema.to_ddl_text(linked)
     sql = generate_sql(question, schema, linked, joins, hints, llm,
                        dialect=dialect, schema_context=ctx, evidence=ev)

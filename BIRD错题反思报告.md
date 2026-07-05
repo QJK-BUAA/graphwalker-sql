@@ -124,3 +124,13 @@ BIRD 的 `california_schools` 库里，`frpm` 和 `schools` **都含** District/
 重跑结果（BIRD n=100, seed=42）：`propgate` **47.0**，默认/无门控 **48.0**。逐题 diff：gate 拒绝 11 题的表，直接负向影响 1 题（`bird_1526`），没有直接正向修复；其余 gain/loss 主要是 LLM run-to-run 波动。因此该想法**保留为可消融变体，不作为默认主方法**。
 
 > 注意：这不是对所有列级语义错误的修复，而是修正 Propose 的过度加表风险。当前证据不足以支持默认开启；历史 55.48% 仍是主基线。
+
+---
+
+## 八、后续实现：Column/Value Belief Walk
+
+基于根因 1/2 的结论，代码已补充 Explore 阶段的列/值级主动探索：在路径/linked tables 选定后，对候选列执行低成本 SQL 探针（非空率、distinct 数、样例值、literal hit），把结果写回 `BeliefState.columns` / `BeliefState.values`，并作为 `Column probe evidence` 传给 Commit 阶段的 SQL 生成提示。
+
+该模块对应原始 HTML 中“当 `Student.Sex` 与 `Faculty.Sex` 都可能相关时，系统主动查看表语境、值分布与列统计”的设想。它不生成多条候选 SQL，也不增加 LLM 调用；只增加受上限约束的本地 SQLite probe。当前默认开启，并提供 `--ablation nocolprobe` 关闭，用于验证 Column/Value Belief Walk 的真实收益。
+
+> 注意：本报告前文的错题统计基于旧主结果；新增模块需要重新跑 BIRD n=100/full 后再更新错误归因和主结果表。

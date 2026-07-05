@@ -82,6 +82,7 @@ def main():
                     ("nowalk", dict(use_belief_walk=False)),
                     ("notopk", dict(use_topk=False)),
                     ("noprobe", dict(use_probes=False)),
+                    ("nocolprobe", dict(use_column_probes=False)),
                     ("nostop", dict(use_entropy_stop=False)),
                     ("nopropose", dict(use_propose=False)),
                     ("propgate", dict(use_propose_evidence_gate=True)),

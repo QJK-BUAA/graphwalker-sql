@@ -74,6 +74,14 @@ PROBE_LIMIT = 1000              # LIMIT used inside lightweight join probes.
 LAMBDA_COST = 0.15              # R = info_gain - lambda * call_cost (exploration gate).
 MAX_EXPLORE_STEPS = 4           # hard cap on explore iterations.
 
+# Column/value belief walk. These probes are local SQLite reads, not LLM calls.
+COLUMN_ENTROPY_PROBE = 1.00     # trigger column probes above this column entropy.
+COLUMN_PROBE_MAX_COLUMNS = 24   # bounded candidate columns per question.
+COLUMN_PROBE_MAX_LITERALS = 4   # bounded literal hits per question.
+COLUMN_PROBE_MAX_SQL = 48       # hard cap on local SQL probes per question.
+COLUMN_PROBE_SAMPLE_VALUES = 5  # distinct sample values shown to the generator.
+COLUMN_PROBE_TIMEOUT = 5.0      # timeout per cheap column probe.
+
 # Commit phase.
 MAX_REPAIRS = 1                 # at most one targeted repair (kept minimal by design).
 

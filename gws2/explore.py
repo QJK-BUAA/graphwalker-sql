@@ -16,6 +16,7 @@ worth it, and entropy decides when to stop (HTML section 2, R and the stop rule)
 from __future__ import annotations
 
 import itertools
+import re
 from dataclasses import dataclass, field
 
 import networkx as nx
@@ -49,7 +50,150 @@ class ExploreResult:
     chosen_path: PathCandidate | None
     candidates: list[PathCandidate] = field(default_factory=list)
     n_probes: int = 0
+    n_column_probes: int = 0
+    column_hints: list[str] = field(default_factory=list)
     steps: list[str] = field(default_factory=list)
+
+
+_STOP = {"the", "a", "an", "of", "in", "on", "for", "to", "and", "or", "with",
+         "what", "which", "who", "how", "many", "list", "show", "find", "all",
+         "is", "are", "was", "were", "give", "me", "number", "count", "name",
+         "names", "please", "that", "have", "has", "by", "from", "each", "their"}
+
+
+def _tokens(text: str) -> list[str]:
+    toks = re.findall(r"[A-Za-z_][A-Za-z0-9_]+", text.lower())
+    return [t for t in toks if t not in _STOP and len(t) > 2]
+
+
+def _q(name: str) -> str:
+    return '"' + name.replace('"', '""') + '"'
+
+
+def _is_text_type(tp: str) -> bool:
+    t = (tp or "").upper()
+    return any(k in t for k in ("CHAR", "TEXT", "CLOB", "STRING", "VARCHAR"))
+
+
+def _column_candidates(question: str, schema: Schema, linked_tables: list[str],
+                       belief: BeliefState, literals: list[str]) -> list[tuple[str, str]]:
+    """Pick a bounded set of columns whose semantics are worth probing.
+
+    Preference order: columns already believed relevant, name-overlap columns,
+    and text columns when the question contains filter literals. This keeps the
+    probe cheap while targeting the BIRD failure mode: same concept across
+    multiple tables/columns.
+    """
+    qtokens = set(_tokens(question))
+    out: list[tuple[float, str, str]] = []
+    seen = set()
+    for t in linked_tables:
+        for c in schema.tables.get(t, []):
+            key = f"{t}.{c.name}"
+            if key in seen:
+                continue
+            seen.add(key)
+            ctoks = set(re.split(r"[_\s]+", c.name.lower()))
+            name_hit = bool(qtokens & ctoks or any(tok in c.name.lower()
+                                                   for tok in qtokens))
+            bscore = belief.columns.get(key).score if key in belief.columns else 0.0
+            text_bonus = 0.75 if literals and _is_text_type(c.type) else 0.0
+            score = bscore + (2.0 if name_hit else 0.0) + text_bonus
+            if score > 0:
+                out.append((score, t, c.name))
+    out.sort(key=lambda x: x[0], reverse=True)
+    return [(t, c) for _s, t, c in out[:config.COLUMN_PROBE_MAX_COLUMNS]]
+
+
+def _column_profile(sqlite_path: str, table: str, column: str) -> dict:
+    col = _q(column)
+    tab = _q(table)
+    stats_sql = (f"SELECT COUNT(*) AS n_rows, COUNT({col}) AS n_nonnull, "
+                 f"COUNT(DISTINCT {col}) AS n_distinct FROM {tab}")
+    stats = run_query(sqlite_path, stats_sql, max_rows=1,
+                      timeout=config.COLUMN_PROBE_TIMEOUT)
+    if not stats.get("ok") or not stats.get("rows"):
+        return {"ok": False, "error": stats.get("error", "empty stats")}
+    n_rows, n_nonnull, n_distinct = stats["rows"][0]
+    sample_sql = (f"SELECT DISTINCT {col} FROM {tab} WHERE {col} IS NOT NULL "
+                  f"LIMIT {config.COLUMN_PROBE_SAMPLE_VALUES}")
+    sample = run_query(sqlite_path, sample_sql,
+                       max_rows=config.COLUMN_PROBE_SAMPLE_VALUES,
+                       timeout=config.COLUMN_PROBE_TIMEOUT)
+    samples = [str(r[0]) for r in sample.get("rows", [])] if sample.get("ok") else []
+    return {"ok": True, "n_rows": n_rows, "n_nonnull": n_nonnull,
+            "n_distinct": n_distinct, "samples": samples}
+
+
+def _literal_hit(sqlite_path: str, table: str, column: str, literal: str) -> bool:
+    v = literal.replace("'", "''")
+    col = _q(column)
+    tab = _q(table)
+    sql = (f"SELECT 1 FROM {tab} WHERE {col} = '{v}' "
+           f"OR CAST({col} AS TEXT) LIKE '%{v}%' LIMIT 1")
+    res = run_query(sqlite_path, sql, max_rows=1,
+                    timeout=config.COLUMN_PROBE_TIMEOUT)
+    return bool(res.get("ok") and res.get("rows"))
+
+
+def _probe_columns(question: str, schema: Schema, linked_tables: list[str],
+                   belief: BeliefState, sqlite_path: str,
+                   literals: list[str]) -> tuple[int, list[str], list[str]]:
+    """Actively refine column/value belief using cheap SQL observations."""
+    if not linked_tables:
+        return 0, [], ["column walk skipped: no linked tables"]
+    col_ent = belief.family_entropy("column")
+    candidates = _column_candidates(question, schema, linked_tables, belief, literals)
+    if not candidates:
+        return 0, [], ["column walk skipped: no candidate columns"]
+    if col_ent < config.COLUMN_ENTROPY_PROBE and not literals:
+        return 0, [], [f"column walk skipped: col entropy {col_ent:.3f} below threshold"]
+
+    hints: list[str] = []
+    steps: list[str] = [f"column walk: {len(candidates)} candidates "
+                        f"col_entropy={col_ent:.3f}"]
+    n_probes = 0
+    literal_subset = literals[:config.COLUMN_PROBE_MAX_LITERALS]
+    for table, column in candidates:
+        if n_probes >= config.COLUMN_PROBE_MAX_SQL:
+            steps.append(f"column walk stopped: reached SQL probe cap "
+                         f"{config.COLUMN_PROBE_MAX_SQL}")
+            break
+        key = f"{table}.{column}"
+        prof = _column_profile(sqlite_path, table, column)
+        n_probes += 1
+        if not prof.get("ok"):
+            steps.append(f"column probe {key}: failed {prof.get('error')}")
+            continue
+        nonnull = prof.get("n_nonnull") or 0
+        nrows = prof.get("n_rows") or 0
+        distinct = prof.get("n_distinct") or 0
+        samples = prof.get("samples") or []
+        if nrows and nonnull:
+            # A small positive observation: the column is populated and usable.
+            belief.observe("column", key, "column_profile", 0.5,
+                           detail=f"nonnull={nonnull}/{nrows} distinct={distinct}")
+
+        hit_literals = []
+        for lit in literal_subset:
+            if n_probes >= config.COLUMN_PROBE_MAX_SQL:
+                break
+            n_probes += 1
+            if _literal_hit(sqlite_path, table, column, lit):
+                hit_literals.append(lit)
+                belief.observe("value", f"{lit}@{key}", "column_probe_value_hit",
+                               3.0, detail=f"literal found during Explore")
+                belief.observe("column", key, "column_probe_value_hit",
+                               3.0, detail=f"hosts literal '{lit}'")
+        if hit_literals:
+            hints.append(f"- Prefer {key} for literal filter(s) {hit_literals}; "
+                         f"profile nonnull={nonnull}/{nrows}, distinct={distinct}, "
+                         f"samples={samples[:3]}")
+        else:
+            hints.append(f"- {key}: nonnull={nonnull}/{nrows}, distinct={distinct}, "
+                         f"samples={samples[:3]}")
+    steps.append(f"column walk finished: sql_probes={n_probes} hints={len(hints)}")
+    return n_probes, hints[:12], steps
 
 
 def _edges_of(graph: nx.Graph, tables: list[str]) -> list[tuple]:
@@ -119,10 +263,12 @@ def _probe_join(sqlite_path: str, cand: PathCandidate) -> dict:
 def explore(question: str, schema: Schema, graph_obj: SchemaGraph,
             sources: list[str], destinations: list[str],
             belief: BeliefState, sqlite_path: str, llm: LLM,
+            literals: list[str] | None = None,
             use_belief_walk: bool = True,
             use_topk: bool = True,
             use_probes: bool = True,
-            use_entropy_stop: bool = True) -> ExploreResult:
+            use_entropy_stop: bool = True,
+            use_column_probes: bool = True) -> ExploreResult:
     """Resolve the join path under belief guidance + cost-bounded probing."""
     graph = graph_obj.graph
     steps: list[str] = []
@@ -152,10 +298,16 @@ def explore(question: str, schema: Schema, graph_obj: SchemaGraph,
     if not uniq:
         linked = sorted(set(src_set) | set(dst_set))
         steps.append(f"no path between anchors; union fallback -> {linked}")
+        n_col, col_hints, col_steps = (0, [], [])
+        if use_column_probes:
+            n_col, col_hints, col_steps = _probe_columns(
+                question, schema, linked, belief, sqlite_path, literals or [])
+            steps.extend(col_steps)
         return ExploreResult(linked_tables=linked,
                              join_conditions=[f"{a}.{b} = {c}.{d}"
                                               for (a, b, c, d) in _edges_of(graph, linked)],
-                             chosen_path=None, steps=steps)
+                             chosen_path=None, n_column_probes=n_col,
+                             column_hints=col_hints, steps=steps)
 
     # ---- build candidates + seed path belief from edge confidence ---------- #
     candidates: list[PathCandidate] = []
@@ -220,10 +372,17 @@ def explore(question: str, schema: Schema, graph_obj: SchemaGraph,
         chosen = _llm_pick(question, ranked[:config.TOPK_PATHS], llm) or chosen
         steps.append(f"LLM tie-break -> {chosen.pid} {chosen.tables}")
 
+    n_col, col_hints, col_steps = (0, [], [])
+    if use_column_probes:
+        n_col, col_hints, col_steps = _probe_columns(
+            question, schema, chosen.tables, belief, sqlite_path, literals or [])
+        steps.extend(col_steps)
+
     return ExploreResult(linked_tables=chosen.tables,
                          join_conditions=chosen.join_conditions(),
                          chosen_path=chosen, candidates=candidates,
-                         n_probes=n_probes, steps=steps)
+                         n_probes=n_probes, n_column_probes=n_col,
+                         column_hints=col_hints, steps=steps)
 
 
 def _llm_pick(question: str, cands: list[PathCandidate], llm: LLM) -> PathCandidate | None:
