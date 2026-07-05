@@ -93,10 +93,38 @@ def load_spider2_lite(root: str = config.SPIDER2_ROOT) -> list[Example]:
     return out
 
 
+def load_spider2_lite_local(root: str = config.SPIDER2_ROOT) -> list[Example]:
+    """Load all Spider2-Lite local SQLite examples.
+
+    The official gold/sql folder only contains a 24-question SQL subset, while
+    gold/exec_result contains all 135 local examples. For SQL-mode evaluation,
+    the official evaluator only needs our predicted SQL files and the local
+    SQLite databases, so gold_sql can be empty here.
+    """
+    meta = {json.loads(l)["instance_id"]: json.loads(l)
+            for l in open(config.SPIDER2_JSONL)}
+    map_path = os.path.join(config.SPIDER2_LOCALDB, "local-map.jsonl")
+    local_map = json.loads(open(map_path).read())
+    out: list[Example] = []
+    for iid in sorted(k for k in meta if k.startswith("local")):
+        db = local_map.get(iid) or meta[iid]["db"]
+        sp = os.path.join(config.SPIDER2_LOCALDB, f"{db}.sqlite")
+        if not os.path.exists(sp):
+            continue
+        out.append(Example(
+            idx=len(out), instance_id=iid, db_id=db,
+            question=meta[iid]["question"],
+            evidence=meta[iid].get("external_knowledge", ""),
+            gold_sql="", sqlite_path=sp,
+        ))
+    return out
+
+
 LOADERS = {
     "bird": load_bird,
     "spider1": load_spider1,
     "spider2-lite": load_spider2_lite,
+    "spider2-lite-local": load_spider2_lite_local,
 }
 
 

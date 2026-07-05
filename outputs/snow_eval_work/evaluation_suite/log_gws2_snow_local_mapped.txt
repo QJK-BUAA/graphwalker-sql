@@ -1,0 +1,288 @@
+Evaluating SQL:   0%|          | 0/135 [00:00<?, ?it/s]/Users/bytedance/Library/Python/3.9/lib/python/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+Error occurred while fetching data: Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'FLIGHTS' does not exist or not authorized.
+Error occurred while fetching data:  Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'COLLISIONS' does not exist or not authorized.
+002003 (42S02): SQL compilation error:
+Object 'PLAYER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BATTING' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'AIRPORTS_DATA' does not exist or not authorized. 002003 (42S02): SQL compilation error:
+Object 'ORDERS' does not exist or not authorized.
+
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ORDERS' does not exist or not authorized.
+Evaluating SQL:   1%|          | 1/135 [00:04<09:42,  4.35s/it]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PLAYER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PLAYER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'COLLISIONS' does not exist or not authorized.
+Error occurred while fetching data:  001003 (42000): SQL compilation error:
+syntax error line 27 at position 44 unexpected 'ORDER'.
+syntax error line 27 at position 57 unexpected 'AS'.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PLAYER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BATSMAN_SCORED' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'WICKET_TAKEN' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MATCHES' does not exist or not authorized.
+Evaluating SQL:   7%|▋         | 9/135 [00:07<01:34,  1.34it/s]Evaluating SQL:  10%|█         | 14/135 [00:07<00:51,  2.37it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BALL_BY_BALL' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_ORDERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_CUSTOMERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_ORDERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_ORDERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BALL_BY_BALL' does not exist or not authorized.
+Error occurred while fetching data:  001003 (42000): SQL compilation error:
+syntax error line 11 at position 0 unexpected 'UNION'.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_ORDER_ITEMS' does not exist or not authorized.
+Evaluating SQL:  13%|█▎        | 17/135 [00:09<00:51,  2.31it/s]Evaluating SQL:  16%|█▋        | 22/135 [00:09<00:30,  3.68it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ACTOR' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_ORDERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'TREES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'OLIST_GEOLOCATION' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'TREES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'RENTAL' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'COMPANIES_INDUSTRIES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SALES' does not exist or not authorized.
+Evaluating SQL:  19%|█▊        | 25/135 [00:10<00:34,  3.15it/s]Evaluating SQL:  20%|██        | 27/135 [00:10<00:28,  3.75it/s]Evaluating SQL:  24%|██▎       | 32/135 [00:11<00:17,  5.79it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'HARDWARE_DIM_PRODUCT' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ARTISTS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ARTISTS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SALES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SALES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'HARDWARE_DIM_PRODUCT' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMERS' does not exist or not authorized.
+Evaluating SQL:  25%|██▌       | 34/135 [00:12<00:26,  3.79it/s]Evaluating SQL:  28%|██▊       | 38/135 [00:12<00:17,  5.54it/s]Error occurred while fetching data:  001003 (42000): SQL compilation error:
+syntax error line 15 at position 18 unexpected '('.
+syntax error line 15 at position 19 unexpected ''[''.
+syntax error line 15 at position 56 unexpected '||'.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER_TRANSACTIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CITIES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SALES' does not exist or not authorized.
+Error occurred while fetching data:  001003 (42000): SQL compilation error:
+parse error line 1 at position 6 near '10'.
+syntax error line 1 at position 0 unexpected '``'.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CITIES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CITIES' does not exist or not authorized.
+Evaluating SQL:  30%|███       | 41/135 [00:13<00:23,  3.92it/s]Evaluating SQL:  33%|███▎      | 44/135 [00:14<00:17,  5.11it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER_TRANSACTIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CITIES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SHOPPING_CART_EVENTS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'INTEREST_METRICS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'EMPLOYEES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'INTEREST_METRICS' does not exist or not authorized.
+Error occurred while fetching data:  001003 (42000): SQL compilation error:
+syntax error line 14 at position 9 unexpected 'SELECT'.
+syntax error line 14 at position 29 unexpected 'DISTINCT'.
+syntax error line 14 at position 39 unexpected '.'.
+Evaluating SQL:  36%|███▋      | 49/135 [00:15<00:19,  4.42it/s]Evaluating SQL:  38%|███▊      | 51/135 [00:15<00:16,  5.00it/s]Evaluating SQL:  41%|████▏     | 56/135 [00:15<00:10,  7.70it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MOVIE' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MOVIE' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'WEB_REGION' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BOWLER_SCORES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PERSON' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'STUDENTS' does not exist or not authorized.
+Error occurred while fetching data:  001003 (42000): SQL compilation error:
+syntax error line 7 at position 53 unexpected 'GLOB'.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'M_DIRECTOR' does not exist or not authorized.
+Evaluating SQL:  44%|████▎     | 59/135 [00:17<00:16,  4.56it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MUSICAL_STYLES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ENTERTAINERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SALESPERSON' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MUSICAL_PREFERENCES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'DIRECTOR_MAPPING' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'UNIVERSITY_FACULTY' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BITCOIN_PRICES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BITCOIN_TRANSACTIONS' does not exist or not authorized.
+Evaluating SQL:  48%|████▊     | 65/135 [00:18<00:15,  4.48it/s]Evaluating SQL:  50%|████▉     | 67/135 [00:18<00:13,  5.12it/s]Evaluating SQL:  53%|█████▎    | 72/135 [00:18<00:09,  6.89it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LEGISLATORS_TERMS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PAYMENT' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'JOB_POSTINGS_FACT' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LEGISLATORS_TERMS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LEGISLATORS_TERMS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'FILM' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LEGISLATORS_TERMS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER' does not exist or not authorized.
+Evaluating SQL:  55%|█████▍    | 74/135 [00:20<00:13,  4.46it/s]Evaluating SQL:  57%|█████▋    | 77/135 [00:20<00:10,  5.40it/s]Evaluating SQL:  59%|█████▉    | 80/135 [00:20<00:08,  6.59it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'RENTAL' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'WORD_LIST' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ALIEN_DATA' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'STORES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'HUBS' does not exist or not authorized.
+Evaluating SQL:  61%|██████    | 82/135 [00:21<00:12,  4.30it/s]Evaluating SQL:  63%|██████▎   | 85/135 [00:21<00:09,  5.46it/s]Evaluating SQL:  65%|██████▌   | 88/135 [00:22<00:06,  6.76it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MATCH' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'DRIVERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MATCH' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MATCH' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BALL_BY_BALL' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MATCH' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'BALL_BY_BALL' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'GENRE' does not exist or not authorized.
+Evaluating SQL:  67%|██████▋   | 90/135 [00:23<00:10,  4.14it/s]Evaluating SQL:  69%|██████▉   | 93/135 [00:23<00:07,  5.60it/s]Evaluating SQL:  70%|███████   | 95/135 [00:23<00:06,  6.33it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'WICKET_TAKEN' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PLAYER_MATCH' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'TRACK' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SALARYDATASET' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MODEL_SCORE' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MODEL_SCORE' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MODEL' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PACKAGING_RELATIONS' does not exist or not authorized.
+Evaluating SQL:  72%|███████▏  | 97/135 [00:24<00:10,  3.77it/s]Evaluating SQL:  75%|███████▍  | 101/135 [00:24<00:05,  6.00it/s]Evaluating SQL:  76%|███████▋  | 103/135 [00:24<00:04,  7.07it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ORDERLINES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PACKAGING_RELATIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'PICKING_LINE' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MONTHLY_SALES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'INVENTORY' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MONTHLY_SALES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'INVENTORY' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MATCH' does not exist or not authorized.
+Evaluating SQL:  78%|███████▊  | 105/135 [00:26<00:07,  3.83it/s]Evaluating SQL:  79%|███████▉  | 107/135 [00:26<00:05,  4.80it/s]Evaluating SQL:  83%|████████▎ | 112/135 [00:26<00:03,  7.31it/s]Error occurred while fetching data:  001003 (42000): SQL compilation error:
+syntax error line 3 at position 19 unexpected ')'.
+syntax error line 4 at position 21 unexpected ')'.
+syntax error line 10 at position 23 unexpected '<'.
+syntax error line 11 at position 23 unexpected '>'.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'VEG_WHSLE_DF' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'SELLERS' does not exist or not authorized.
+No data found for the specified query.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER_TRANSACTIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER_TRANSACTIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CUSTOMER_TRANSACTIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CLEANED_WEEKLY_SALES' does not exist or not authorized.
+/Users/bytedance/Library/Python/3.9/lib/python/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+Evaluating SQL:  84%|████████▍ | 114/135 [00:29<00:09,  2.23it/s]Evaluating SQL:  86%|████████▌ | 116/135 [00:29<00:06,  2.82it/s]Evaluating SQL:  89%|████████▉ | 120/135 [00:30<00:03,  4.04it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'FORM_LOG' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CONSTRUCTORS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ACCESS_LOG' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ACTIVITY_LOG' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'RESULTS' does not exist or not authorized.
+Evaluating SQL:  90%|█████████ | 122/135 [00:32<00:05,  2.36it/s]Evaluating SQL:  92%|█████████▏| 124/135 [00:32<00:03,  2.93it/s]Evaluating SQL:  93%|█████████▎| 125/135 [00:32<00:03,  3.14it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'CLEANED_WEEKLY_SALES' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'DRIVER_STANDINGS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'RESULTS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LAP_POSITIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LAP_POSITIONS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'DRIVERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'RACES' does not exist or not authorized.
+Evaluating SQL:  93%|█████████▎| 126/135 [00:33<00:03,  2.35it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'LAP_POSITIONS' does not exist or not authorized.
+Evaluating SQL:  96%|█████████▌| 129/135 [00:33<00:01,  3.70it/s]Evaluating SQL:  98%|█████████▊| 132/135 [00:33<00:00,  5.08it/s]Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'MST_USERS' does not exist or not authorized.
+Error occurred while fetching data:  002003 (42S02): SQL compilation error:
+Object 'ACTIVITY_LOG' does not exist or not authorized.
+Evaluating SQL:  99%|█████████▉| 134/135 [00:35<00:00,  3.45it/s]Evaluating SQL: 100%|██████████| 135/135 [00:35<00:00,  3.85it/s]
+{'sf_local008': 0, 'sf_local004': 0, 'sf_local009': 0, 'sf_local007': 0, 'sf_local002': 0, 'sf_local015': 0, 'sf_local010': 0, 'sf_local003': 0, 'sf_local024': 0, 'sf_local022': 0, 'sf_local023': 0, 'sf_local018': 0, 'sf_local017': 0, 'sf_local021': 0, 'sf_local020': 0, 'sf_local019': 0, 'sf_local029': 0, 'sf_local030': 0, 'sf_local028': 0, 'sf_local025': 0, 'sf_local031': 0, 'sf_local032': 0, 'sf_local026': 0, 'sf_local034': 0, 'sf_local038': 0, 'sf_local037': 0, 'sf_local049': 0, 'sf_local041': 0, 'sf_local040': 0, 'sf_local035': 0, 'sf_local039': 0, 'sf_local050': 0, 'sf_local059': 0, 'sf_local055': 0, 'sf_local054': 0, 'sf_local060': 0, 'sf_local061': 0, 'sf_local058': 0, 'sf_local056': 0, 'sf_local062': 0, 'sf_local066': 0, 'sf_local064': 0, 'sf_local067': 0, 'sf_local068': 0, 'sf_local070': 0, 'sf_local071': 0, 'sf_local063': 0, 'sf_local065': 0, 'sf_local074': 0, 'sf_local078': 0, 'sf_local075': 0, 'sf_local085': 0, 'sf_local072': 0, 'sf_local081': 0, 'sf_local077': 0, 'sf_local073': 0, 'sf_local096': 0, 'sf_local097': 0, 'sf_local114': 0, 'sf_local130': 0, 'sf_local128': 0, 'sf_local099': 0, 'sf_local100': 0, 'sf_local098': 0, 'sf_local131': 0, 'sf_local152': 0, 'sf_local133': 0, 'sf_local141': 0, 'sf_local156': 0, 'sf_local157': 0, 'sf_local132': 0, 'sf_local163': 0, 'sf_local193': 0, 'sf_local171': 0, 'sf_local168': 0, 'sf_local169': 0, 'sf_local194': 0, 'sf_local167': 0, 'sf_local195': 0, 'sf_local170': 0, 'sf_local196': 0, 'sf_local198': 0, 'sf_local199': 0, 'sf_local197': 0, 'sf_local201': 0, 'sf_local202': 0, 'sf_local209': 0, 'sf_local210': 0, 'sf_local220': 0, 'sf_local219': 0, 'sf_local218': 0, 'sf_local212': 0, 'sf_local228': 0, 'sf_local221': 0, 'sf_local229': 0, 'sf_local230': 0, 'sf_local258': 0, 'sf_local259': 0, 'sf_local253': 0, 'sf_local244': 0, 'sf_local262': 0, 'sf_local263': 0, 'sf_local264': 0, 'sf_local269': 0, 'sf_local272': 0, 'sf_local270': 0, 'sf_local277': 0, 'sf_local274': 0, 'sf_local275': 0, 'sf_local273': 0, 'sf_local279': 0, 'sf_local283': 0, 'sf_local284': 0, 'sf_local285': 0, 'sf_local286': 0, 'sf_local298': 0, 'sf_local300': 0, 'sf_local297': 0, 'sf_local299': 0, 'sf_local301': 0, 'sf_local329': 0, 'sf_local311': 0, 'sf_local331': 0, 'sf_local330': 0, 'sf_local335': 0, 'sf_local309': 0, 'sf_local302': 0, 'sf_local310': 0, 'sf_local344': 0, 'sf_local336': 0, 'sf_local354': 0, 'sf_local355': 0, 'sf_local356': 0, 'sf_local358': 0, 'sf_local360': 0}
+Final score: 0.0, Correct examples: 0, Total examples: 135
+Real score: 0.0, Correct examples: 0, Total examples: 547
+Execution results saved to: /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/snow_local_mapped_csv
+Correct IDs saved to: /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/snow_local_mapped.csv

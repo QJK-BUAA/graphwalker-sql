@@ -61,7 +61,7 @@ def build_ablation(name: str) -> AblationConfig:
 def main():
     ap = argparse.ArgumentParser(description="GraphWalker-SQL 2.0 runner")
     ap.add_argument("--dataset", required=True,
-                    choices=["bird", "spider1", "spider2-lite"])
+                    choices=["bird", "spider1", "spider2-lite", "spider2-lite-local"])
     ap.add_argument("--limit", type=int, default=20,
                     help="number of questions (<=0 or 'full' via --full for all)")
     ap.add_argument("--full", action="store_true",

@@ -1,0 +1,11 @@
+[spider2-lite-local_full_deepseek-chat_local135_colwalk_seed42] 135 questions | model=deepseek-chat seed=42 ablation=full workers=8
+  [25/135] latest=local032 exec=ERR  (36s)
+  [50/135] latest=local060 exec=ok  (69s)
+  [75/135] latest=local195 exec=ok  (96s)
+  [100/135] latest=local264 exec=ok  (146s)
+  [125/135] latest=local331 exec=ok  (175s)
+  [135/135] latest=local356 exec=ok  (188s)
+[spider2-lite-local_full_deepseek-chat_local135_colwalk_seed42] running official spider2-lite-local evaluator ...
+[spider2-lite-local_full_deepseek-chat_local135_colwalk_seed42] EX = 22.962962962962962  (n=135)
+[spider2-lite-local_full_deepseek-chat_local135_colwalk_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider2-lite-local_full_deepseek-chat_local135_colwalk_seed42.json
+[spider2-lite-local_full_deepseek-chat_local135_colwalk_seed42] LLM: {'num_calls': 548, 'input_tokens': 478852, 'output_tokens': 110051} | 188.2s

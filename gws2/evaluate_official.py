@@ -151,6 +151,7 @@ EVALUATORS = {
     "bird": evaluate_bird,
     "spider1": evaluate_spider1,
     "spider2-lite": evaluate_spider2_lite,
+    "spider2-lite-local": evaluate_spider2_lite,
 }
 
 
