@@ -1,0 +1,10 @@
+===== RUN bird nocolprobe_n100 =====
+[bird_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=nocolprobe workers=6
+  [25/100] latest=bird_265 exec=ok  (16s)
+  [50/100] latest=bird_810 exec=ok  (59s)
+  [75/100] latest=bird_1080 exec=ok  (131s)
+  [100/100] latest=bird_1526 exec=ok  (146s)
+[bird_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] running official bird evaluator ...
+[bird_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] EX = 48.0  (n=100)
+[bird_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_nocolprobe_deepseek-chat_nocolprobe_n100_seed42.json
+[bird_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] LLM: {'num_calls': 305, 'input_tokens': 178471, 'output_tokens': 11004} | 145.9s

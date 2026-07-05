@@ -1,0 +1,7 @@
+===== RUN spider2-lite colwalk_n100 =====
+[spider2-lite_full_deepseek-chat_colwalk_n100_seed42] 24 questions | model=deepseek-chat seed=42 ablation=full workers=6
+  [24/24] latest=local019 exec=ERR  (72s)
+[spider2-lite_full_deepseek-chat_colwalk_n100_seed42] running official spider2-lite evaluator ...
+[spider2-lite_full_deepseek-chat_colwalk_n100_seed42] EX = 45.83333333333333  (n=24)
+[spider2-lite_full_deepseek-chat_colwalk_n100_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider2-lite_full_deepseek-chat_colwalk_n100_seed42.json
+[spider2-lite_full_deepseek-chat_colwalk_n100_seed42] LLM: {'num_calls': 97, 'input_tokens': 76174, 'output_tokens': 11983} | 71.7s

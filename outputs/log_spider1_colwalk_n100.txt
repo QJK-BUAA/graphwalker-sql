@@ -1,0 +1,10 @@
+===== RUN spider1 colwalk_n100 =====
+[spider1_full_deepseek-chat_colwalk_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=full workers=6
+  [25/100] latest=spider1_304 exec=ok  (15s)
+  [50/100] latest=spider1_500 exec=ok  (25s)
+  [75/100] latest=spider1_774 exec=ok  (35s)
+  [100/100] latest=spider1_1033 exec=ok  (46s)
+[spider1_full_deepseek-chat_colwalk_n100_seed42] running official spider1 evaluator ...
+[spider1_full_deepseek-chat_colwalk_n100_seed42] EX = 84.0  (n=100)
+[spider1_full_deepseek-chat_colwalk_n100_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider1_full_deepseek-chat_colwalk_n100_seed42.json
+[spider1_full_deepseek-chat_colwalk_n100_seed42] LLM: {'num_calls': 307, 'input_tokens': 127713, 'output_tokens': 6151} | 45.8s

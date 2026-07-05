@@ -1,0 +1,10 @@
+===== RUN spider1 nocolprobe_n100 =====
+[spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=nocolprobe workers=6
+  [25/100] latest=spider1_362 exec=ok  (44s)
+  [50/100] latest=spider1_558 exec=ok  (76s)
+  [75/100] latest=spider1_729 exec=ok  (102s)
+  [100/100] latest=spider1_305 exec=ok  (134s)
+[spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] running official spider1 evaluator ...
+[spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] EX = 85.0  (n=100)
+[spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42.json
+[spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42] LLM: {'num_calls': 310, 'input_tokens': 107225, 'output_tokens': 6324} | 133.7s

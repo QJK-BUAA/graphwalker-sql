@@ -144,6 +144,18 @@ schema grounding 与 join-path 消歧，尤其在无外键 / 大 schema / 多路
 
 Propose 连通性证据门已实现为实验变体 `--ablation propgate`：LLM 提名缺表后，只有与当前 grounded subgraph 存在 schema 图 join 边的表才会被加入；孤立表进入 `missing_rejected` 和 trace。该改动对齐方案 §7 的“不要让 LLM 猜测变成硬事实”，但 BIRD n=100 重跑为 **47.0 vs 默认 48.0**，所以暂不作为默认主方法。
 
+### Column/Value Belief Walk 初步验证（n=100 / Spider2-lite=24）
+
+新增的列/值级主动探索默认开启，并用 `--ablation nocolprobe` 做同批对照。它只增加本地 SQL profile / literal-hit 探针，不增加 LLM 调用。
+
+| 数据集 | colwalk EX | nocolprobe EX | ΔEX | 平均列探针 | 结论 |
+|--------|------------|---------------|-----|------------|------|
+| BIRD-Dev | **51.0** | 48.0 | **+3.0** | 26.38/题 | 正向，符合“冗余 schema 下列/值 grounding 是瓶颈”的错题分析 |
+| Spider 1.0-Dev | 84.0 | **85.0** | -1.0 | 9.73/题 | clean schema 上轻微负向，可能是额外列样例对 prompt 的干扰 |
+| Spider 2.0-Lite local | **45.83** | 29.17 | **+16.67** | 15.50/题 | 强正向，说明弱 schema/无外键环境下列值 profile 有帮助 |
+
+这组结果支持将 Column/Value Belief Walk 作为主线补强模块，但仍需 BIRD/Spider1 全量复核：它在复杂/弱 schema 上明显更有价值，在 clean schema 上可能需要更强触发门控。
+
 **关键观察（与方案 claim 一致）**：
 - **成本随难度自适应**：干净外键的 Spider1 仅 `0.23` 探针/题，而无外键、多歧义的 Spider2-lite 达 `0.96` 探针/题——
   正是方案「简单问题退化为 Interactive-T2S 级成本，困难问题才按需多花探针」的设计目标。

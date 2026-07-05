@@ -1,0 +1,10 @@
+===== RUN bird colwalk_n100 =====
+[bird_full_deepseek-chat_colwalk_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=full workers=6
+  [25/100] latest=bird_325 exec=ok  (40s)
+  [50/100] latest=bird_829 exec=ok  (112s)
+  [75/100] latest=bird_1154 exec=ok  (176s)
+  [100/100] latest=bird_1481 exec=ok  (192s)
+[bird_full_deepseek-chat_colwalk_n100_seed42] running official bird evaluator ...
+[bird_full_deepseek-chat_colwalk_n100_seed42] EX = 51.0  (n=100)
+[bird_full_deepseek-chat_colwalk_n100_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_full_deepseek-chat_colwalk_n100_seed42.json
+[bird_full_deepseek-chat_colwalk_n100_seed42] LLM: {'num_calls': 305, 'input_tokens': 213418, 'output_tokens': 11503} | 192.0s

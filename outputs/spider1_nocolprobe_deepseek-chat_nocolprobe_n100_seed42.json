@@ -1,0 +1,4697 @@
+{
+  "run_id": "spider1_nocolprobe_deepseek-chat_nocolprobe_n100_seed42",
+  "timestamp": "2026-07-05T11:22:14",
+  "args": {
+    "dataset": "spider1",
+    "limit": 100,
+    "full": false,
+    "seed": 42,
+    "model": "deepseek-chat",
+    "ablation": "nocolprobe",
+    "workers": 6,
+    "outdir": "outputs",
+    "no_eval": false,
+    "with_snapshot": false,
+    "tag": "nocolprobe_n100"
+  },
+  "model": "deepseek-chat",
+  "seed": 42,
+  "ablation": "nocolprobe",
+  "ablation_config": {
+    "use_inferred_graph": true,
+    "use_belief_walk": true,
+    "use_topk": true,
+    "use_probes": true,
+    "use_column_probes": false,
+    "use_entropy_stop": true,
+    "use_propose": true,
+    "use_propose_evidence_gate": false,
+    "value_verify": true,
+    "value_probe": true,
+    "max_repairs": 1,
+    "repair_on_empty": true,
+    "use_evidence_injection": false,
+    "use_column_align": false
+  },
+  "dataset": "spider1",
+  "n_questions": 100,
+  "elapsed_sec": 133.7,
+  "llm_stats": {
+    "num_calls": 310,
+    "input_tokens": 107225,
+    "output_tokens": 6324
+  },
+  "official_eval": {
+    "n": 100,
+    "raw_tail": "                     easy                 medium               hard                 extra                all                 \ncount                27                   43                   20                   10                   100                 \n=====================   EXECUTION ACCURACY     =====================\nexecution            0.963                0.860                0.750                0.700                0.850               \n\n",
+    "ex": 85.0
+  },
+  "records": [
+    {
+      "instance_id": "spider1_1",
+      "db_id": "concert_singer",
+      "difficulty": "",
+      "question": "What is the total number of singers?",
+      "gold_sql": "SELECT count(*) FROM singer",
+      "pred_sql": "SELECT COUNT(*) AS total_singers FROM singer",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.8383,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['singer'] literals=[]",
+        "belief0: colH=3.838 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_7",
+      "db_id": "concert_singer",
+      "difficulty": "",
+      "question": "What are the names and release years for all the songs of the youngest singer?",
+      "gold_sql": "SELECT song_name ,  song_release_year FROM singer ORDER BY age LIMIT 1",
+      "pred_sql": "SELECT Name, Song_release_year\nFROM singer\nWHERE Age = (SELECT MIN(Age) FROM singer)",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "singer"
+      ],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.5479,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['singer'] dst=['singer'] literals=[]",
+        "belief0: colH=2.548 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_15",
+      "db_id": "concert_singer",
+      "difficulty": "",
+      "question": "What are the locations and names of all stations with capacity between 5000 and 10000?",
+      "gold_sql": "SELECT LOCATION ,  name FROM stadium WHERE capacity BETWEEN 5000 AND 10000",
+      "pred_sql": "SELECT Location, Name\nFROM stadium\nWHERE Capacity BETWEEN 5000 AND 10000",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "stadium"
+      ],
+      "destinations": [
+        "stadium"
+      ],
+      "linked_tables": [
+        "stadium"
+      ],
+      "chosen_path": [
+        "stadium"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.2535,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['stadium'] dst=['stadium'] literals=['5000', '10000']",
+        "belief0: colH=3.254 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_17",
+      "db_id": "concert_singer",
+      "difficulty": "",
+      "question": "What is the average and maximum capacities for all stadiums ?",
+      "gold_sql": "select avg(capacity) ,  max(capacity) from stadium",
+      "pred_sql": "SELECT AVG(Capacity) AS average_capacity, MAX(Capacity) AS maximum_capacity\nFROM stadium",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "stadium"
+      ],
+      "linked_tables": [
+        "stadium"
+      ],
+      "chosen_path": [
+        "stadium"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.2535,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['stadium'] literals=[]",
+        "belief0: colH=3.254 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_40",
+      "db_id": "concert_singer",
+      "difficulty": "",
+      "question": "What is the name and country of origin of every singer who has a song with the word 'Hey' in its title?",
+      "gold_sql": "SELECT name ,  country FROM singer WHERE song_name LIKE '%Hey%'",
+      "pred_sql": "SELECT Name, Country\nFROM singer\nWHERE Song_Name LIKE '%Hey%'",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "singer"
+      ],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.2806,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['singer'] dst=['singer'] literals=['Hey']",
+        "belief0: colH=1.281 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_47",
+      "db_id": "pets_1",
+      "difficulty": "",
+      "question": "Find the weight of the youngest dog.",
+      "gold_sql": "SELECT weight FROM pets ORDER BY pet_age LIMIT 1",
+      "pred_sql": "SELECT Pets.weight \nFROM Pets \nJOIN Has_Pet ON Has_Pet.PetID = Pets.PetID \nWHERE Pets.PetType = 'dog' \nORDER BY Pets.pet_age ASC \nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Has_Pet",
+        "Pets"
+      ],
+      "destinations": [
+        "Pets"
+      ],
+      "linked_tables": [
+        "Has_Pet",
+        "Pets"
+      ],
+      "chosen_path": [
+        "Has_Pet",
+        "Pets"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.1906,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Has_Pet', 'Pets'] dst=['Pets'] literals=['dog']",
+        "belief0: colH=2.191 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Has_Pet', 'Pets']: {'ok': True, 'nonempty': True, 'count': 3}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_52",
+      "db_id": "pets_1",
+      "difficulty": "",
+      "question": "How many pets are owned by students that have an age greater than 20?",
+      "gold_sql": "SELECT count(*) FROM student AS T1 JOIN has_pet AS T2 ON T1.stuid  =  T2.stuid WHERE T1.age  >  20",
+      "pred_sql": "SELECT COUNT(*) \nFROM Has_Pet \nJOIN Student ON Has_Pet.StuID = Student.StuID \nWHERE Student.Age > 20",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Student"
+      ],
+      "destinations": [
+        "Pets"
+      ],
+      "linked_tables": [
+        "Student",
+        "Has_Pet",
+        "Pets"
+      ],
+      "chosen_path": [
+        "Student",
+        "Has_Pet",
+        "Pets"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.0725,
+        "values": 2.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Student'] dst=['Pets'] literals=['20']",
+        "belief0: colH=2.072 valH=2.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_69",
+      "db_id": "pets_1",
+      "difficulty": "",
+      "question": "Find the id and weight of all pets whose age is older than 1.",
+      "gold_sql": "SELECT petid ,  weight FROM pets WHERE pet_age  >  1",
+      "pred_sql": "SELECT PetID, weight\nFROM Pets\nWHERE pet_age > 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "Pets"
+      ],
+      "linked_tables": [
+        "Pets"
+      ],
+      "chosen_path": [
+        "Pets"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 1.4698,
+        "values": 1.585,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['Pets'] literals=['1']",
+        "belief0: colH=1.470 valH=1.585",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_74",
+      "db_id": "pets_1",
+      "difficulty": "",
+      "question": "What is the average weight for each type of pet?",
+      "gold_sql": "SELECT avg(weight) ,  pettype FROM pets GROUP BY pettype",
+      "pred_sql": "SELECT PetType, AVG(weight) AS avg_weight\nFROM Pets\nGROUP BY PetType",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "Pets"
+      ],
+      "linked_tables": [
+        "Pets"
+      ],
+      "chosen_path": [
+        "Pets"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 2.1514,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['Pets'] literals=[]",
+        "belief0: colH=2.151 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_79",
+      "db_id": "pets_1",
+      "difficulty": "",
+      "question": "Find the number of pets for each student who has any pet and student id.",
+      "gold_sql": "SELECT count(*) ,  T1.stuid FROM student AS T1 JOIN has_pet AS T2 ON T1.stuid  =  T2.stuid GROUP BY T1.stuid",
+      "pred_sql": "SELECT \n    s.StuID,\n    COUNT(hp.PetID) AS pet_count\nFROM Student s\nJOIN Has_Pet hp ON s.StuID = hp.StuID\nGROUP BY s.StuID",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Has_Pet"
+      ],
+      "destinations": [
+        "Student",
+        "Has_Pet"
+      ],
+      "linked_tables": [
+        "Has_Pet",
+        "Student"
+      ],
+      "chosen_path": [
+        "Has_Pet",
+        "Student"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 1.7914,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Has_Pet'] dst=['Student', 'Has_Pet'] literals=[]",
+        "belief0: colH=1.791 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Has_Pet', 'Student']: {'ok': True, 'nonempty': True, 'count': 3}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_91",
+      "db_id": "car_1",
+      "difficulty": "",
+      "question": "How many countries are listed?",
+      "gold_sql": "SELECT count(*) FROM COUNTRIES;",
+      "pred_sql": "SELECT COUNT(*) FROM countries",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [],
+      "destinations": [
+        "countries"
+      ],
+      "linked_tables": [
+        "countries"
+      ],
+      "chosen_path": [
+        "countries"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.5701,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=[] dst=['countries'] literals=[]",
+        "belief0: colH=3.570 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_94",
+      "db_id": "car_1",
+      "difficulty": "",
+      "question": "What is the full name of each car maker, along with its id and how many models it produces?",
+      "gold_sql": "SELECT T1.FullName ,  T1.Id ,  count(*) FROM CAR_MAKERS AS T1 JOIN MODEL_LIST AS T2 ON T1.Id  =  T2.Maker GROUP BY T1.Id;",
+      "pred_sql": "SELECT \n    cm.FullName,\n    cm.Id,\n    COUNT(ml.ModelId) AS model_count\nFROM car_makers cm\nLEFT JOIN model_list ml ON cm.Id = ml.Maker\nGROUP BY cm.Id, cm.FullName\nORDER BY cm.Id",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [
+        "model_list"
+      ],
+      "destinations": [
+        "car_makers",
+        "model_list"
+      ],
+      "linked_tables": [
+        "model_list",
+        "car_makers"
+      ],
+      "chosen_path": [
+        "model_list",
+        "car_makers"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 22,
+      "belief_entropy": {
+        "columns": 3.1961,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=['model_list'] dst=['car_makers', 'model_list'] literals=[]",
+        "belief0: colH=3.196 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['model_list', 'car_makers']: {'ok': True, 'nonempty': True, 'count': 35}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=22"
+      ]
+    },
+    {
+      "instance_id": "spider1_116",
+      "db_id": "car_1",
+      "difficulty": "",
+      "question": "What is the count of the car models produced in the United States?",
+      "gold_sql": "SELECT count(*) FROM MODEL_LIST AS T1 JOIN CAR_MAKERS AS T2 ON T1.Maker  =  T2.Id JOIN COUNTRIES AS T3 ON T2.Country  =  T3.CountryId WHERE T3.CountryName  =  'usa';",
+      "pred_sql": "SELECT COUNT(*) \nFROM model_list \nJOIN car_makers ON model_list.Maker = car_makers.Id \nJOIN countries ON car_makers.Country = countries.CountryId \nWHERE countries.CountryName = 'United States'",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [
+        "car_makers"
+      ],
+      "destinations": [
+        "model_list"
+      ],
+      "linked_tables": [
+        "car_makers",
+        "continents",
+        "countries",
+        "model_list"
+      ],
+      "chosen_path": [
+        "car_makers",
+        "model_list"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "continents",
+        "countries"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.5701,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=['car_makers'] dst=['model_list'] literals=['United States']",
+        "belief0: colH=3.570 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['continents', 'countries'] -> ['car_makers', 'continents', 'countries', 'model_list']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_128",
+      "db_id": "car_1",
+      "difficulty": "",
+      "question": "What is the average weight and year for each year?",
+      "gold_sql": "SELECT avg(Weight) ,  YEAR FROM CARS_DATA GROUP BY YEAR;",
+      "pred_sql": "SELECT \n    Year,\n    AVG(CAST(Weight AS REAL)) AS avg_weight,\n    AVG(CAST(Year AS REAL)) AS avg_year\nFROM cars_data\nGROUP BY Year",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [
+        "cars_data"
+      ],
+      "destinations": [
+        "cars_data"
+      ],
+      "linked_tables": [
+        "cars_data"
+      ],
+      "chosen_path": [
+        "cars_data"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 13,
+      "belief_entropy": {
+        "columns": 3.7927,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=['cars_data'] dst=['cars_data'] literals=[]",
+        "belief0: colH=3.793 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=13"
+      ]
+    },
+    {
+      "instance_id": "spider1_174",
+      "db_id": "car_1",
+      "difficulty": "",
+      "question": "What are the names of the countries with no car makers?",
+      "gold_sql": "SELECT CountryName FROM countries EXCEPT SELECT T1.CountryName FROM countries AS T1 JOIN CAR_MAKERS AS T2 ON T1.countryId  =  T2.Country;",
+      "pred_sql": "SELECT c.CountryName\nFROM countries c\nLEFT JOIN car_makers cm ON c.CountryId = cm.Country\nWHERE cm.Id IS NULL",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [
+        "car_makers"
+      ],
+      "destinations": [
+        "countries"
+      ],
+      "linked_tables": [
+        "car_makers",
+        "countries"
+      ],
+      "chosen_path": [
+        "car_makers",
+        "countries"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 7,
+      "belief_entropy": {
+        "columns": 3.5701,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=['car_makers'] dst=['countries'] literals=[]",
+        "belief0: colH=3.570 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=7"
+      ]
+    },
+    {
+      "instance_id": "spider1_187",
+      "db_id": "flight_2",
+      "difficulty": "",
+      "question": "How many airlines do we have?",
+      "gold_sql": "SELECT count(*) FROM AIRLINES",
+      "pred_sql": "SELECT COUNT(*) AS airline_count FROM airlines",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [],
+      "destinations": [
+        "airlines"
+      ],
+      "linked_tables": [
+        "airlines"
+      ],
+      "chosen_path": [
+        "airlines"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6547,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=[] dst=['airlines'] literals=[]",
+        "belief0: colH=1.655 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_195",
+      "db_id": "flight_2",
+      "difficulty": "",
+      "question": "How many airlines are from USA?",
+      "gold_sql": "SELECT count(*) FROM AIRLINES WHERE Country  =  \"USA\"",
+      "pred_sql": "SELECT COUNT(*) FROM airlines WHERE Country = 'USA'",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "airlines"
+      ],
+      "destinations": [
+        "airlines"
+      ],
+      "linked_tables": [
+        "airlines"
+      ],
+      "chosen_path": [
+        "airlines"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6669,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['airlines'] dst=['airlines'] literals=['USA']",
+        "belief0: colH=1.667 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_239",
+      "db_id": "flight_2",
+      "difficulty": "",
+      "question": "Find all airlines that have flights from airport 'CVO' but not from 'APG'.",
+      "gold_sql": "SELECT T1.Airline FROM AIRLINES AS T1 JOIN FLIGHTS AS T2 ON T1.uid  =  T2.Airline WHERE T2.SourceAirport  =  \"CVO\" EXCEPT SELECT T1.Airline FROM AIRLINES AS T1 JOIN FLIGHTS AS T2 ON T1.uid  =  T2.Airline WHERE T2.SourceAirport  =  \"APG\"",
+      "pred_sql": "SELECT DISTINCT a.Airline\nFROM airlines a\nJOIN flights f ON a.uid = f.Airline\nWHERE f.SourceAirport = 'CVO'\n  AND a.uid NOT IN (\n    SELECT f2.Airline\n    FROM flights f2\n    WHERE f2.SourceAirport = 'APG'\n  )",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "flights"
+      ],
+      "destinations": [
+        "airlines"
+      ],
+      "linked_tables": [
+        "airlines",
+        "flights"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 1.6804,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['flights'] dst=['airlines'] literals=['CVO', 'APG']",
+        "belief0: colH=1.680 valH=1.000",
+        "explore: no path between anchors; union fallback -> ['airlines', 'flights']",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_247",
+      "db_id": "flight_2",
+      "difficulty": "",
+      "question": "What are flight numbers of flights departing from Airport \"APG\"?",
+      "gold_sql": "SELECT FlightNo FROM FLIGHTS WHERE SourceAirport  =  \"APG\"",
+      "pred_sql": "SELECT FlightNo \nFROM flights \nWHERE SourceAirport = 'APG'",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "airports"
+      ],
+      "destinations": [
+        "flights"
+      ],
+      "linked_tables": [
+        "airports",
+        "flights"
+      ],
+      "chosen_path": [
+        "airports",
+        "flights"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 0.5652,
+        "values": 1.585,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['airports'] dst=['flights'] literals=['APG']",
+        "belief0: colH=0.565 valH=1.585",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_256",
+      "db_id": "flight_2",
+      "difficulty": "",
+      "question": "How many flights land in Aberdeen or Abilene?",
+      "gold_sql": "SELECT count(*) FROM Flights AS T1 JOIN Airports AS T2 ON T1.DestAirport  =  T2.AirportCode WHERE T2.city  =  \"Aberdeen\" OR T2.city  =  \"Abilene\"",
+      "pred_sql": "SELECT COUNT(*) \nFROM flights \nJOIN airports ON flights.DestAirport = airports.AirportCode \nWHERE airports.City IN ('Aberdeen', 'Abilene')",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "airports"
+      ],
+      "destinations": [
+        "flights"
+      ],
+      "linked_tables": [
+        "airports",
+        "flights"
+      ],
+      "chosen_path": [
+        "airports",
+        "flights"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.9361,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['airports'] dst=['flights'] literals=['Aberdeen', 'Abilene']",
+        "belief0: colH=0.936 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_259",
+      "db_id": "employee_hire_evaluation",
+      "difficulty": "",
+      "question": "How many employees are there?",
+      "gold_sql": "SELECT count(*) FROM employee",
+      "pred_sql": "SELECT COUNT(*) AS employee_count\nFROM employee",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "employee"
+      ],
+      "linked_tables": [
+        "employee"
+      ],
+      "chosen_path": [
+        "employee"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.9951,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['employee'] literals=[]",
+        "belief0: colH=2.995 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_262",
+      "db_id": "employee_hire_evaluation",
+      "difficulty": "",
+      "question": "List the names of employees and sort in ascending order of age.",
+      "gold_sql": "SELECT name FROM employee ORDER BY age",
+      "pred_sql": "SELECT Name\nFROM employee\nORDER BY Age ASC",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "employee"
+      ],
+      "linked_tables": [
+        "employee"
+      ],
+      "chosen_path": [
+        "employee"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 10,
+      "belief_entropy": {
+        "columns": 3.0682,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['employee'] literals=[]",
+        "belief0: colH=3.068 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=10"
+      ]
+    },
+    {
+      "instance_id": "spider1_264",
+      "db_id": "employee_hire_evaluation",
+      "difficulty": "",
+      "question": "Count the number of employees for each city.",
+      "gold_sql": "SELECT count(*) ,  city FROM employee GROUP BY city",
+      "pred_sql": "SELECT City, COUNT(*) AS employee_count\nFROM employee\nGROUP BY City",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "employee"
+      ],
+      "destinations": [
+        "employee"
+      ],
+      "linked_tables": [
+        "employee",
+        "shop"
+      ],
+      "chosen_path": [
+        "employee"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "shop"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 3.1543,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['employee'] dst=['employee'] literals=[]",
+        "belief0: colH=3.154 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['shop'] -> ['employee', 'shop']",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "spider1_274",
+      "db_id": "employee_hire_evaluation",
+      "difficulty": "",
+      "question": "Sort all the shops by number products in descending order, and return the name, location and district of each shop.",
+      "gold_sql": "SELECT name ,  LOCATION ,  district FROM shop ORDER BY number_products DESC",
+      "pred_sql": "SELECT Name, Location, District\nFROM shop\nORDER BY Number_products DESC",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "shop"
+      ],
+      "linked_tables": [
+        "shop"
+      ],
+      "chosen_path": [
+        "shop"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 9,
+      "belief_entropy": {
+        "columns": 2.6681,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['shop'] literals=[]",
+        "belief0: colH=2.668 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=9"
+      ]
+    },
+    {
+      "instance_id": "spider1_293",
+      "db_id": "employee_hire_evaluation",
+      "difficulty": "",
+      "question": "Which district has both stores with less than 3000 products and stores with more than 10000 products?",
+      "gold_sql": "SELECT district FROM shop WHERE Number_products  <  3000 INTERSECT SELECT district FROM shop WHERE Number_products  >  10000",
+      "pred_sql": "SELECT DISTINCT s1.District\nFROM shop s1\nJOIN shop s2 ON s1.District = s2.District\nWHERE s1.Number_products < 3000\n  AND s2.Number_products > 10000",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "shop"
+      ],
+      "destinations": [
+        "shop"
+      ],
+      "linked_tables": [
+        "shop"
+      ],
+      "chosen_path": [
+        "shop"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 0.7949,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['shop'] dst=['shop'] literals=['3000', '10000']",
+        "belief0: colH=0.795 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_304",
+      "db_id": "cre_Doc_Template_Mgt",
+      "difficulty": "",
+      "question": "Return the document id, template id, and description for the document with the name Robbin CV.",
+      "gold_sql": "SELECT document_id ,  template_id ,  Document_Description FROM Documents WHERE document_name  =  \"Robbin CV\"",
+      "pred_sql": "SELECT \n    d.Document_ID,\n    d.Template_ID,\n    d.Document_Description\nFROM Documents d\nWHERE d.Document_Name = 'Robbin CV'",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "Documents"
+      ],
+      "destinations": [
+        "Documents"
+      ],
+      "linked_tables": [
+        "Documents",
+        "Paragraphs",
+        "Ref_Template_Types",
+        "Templates"
+      ],
+      "chosen_path": [
+        "Documents"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Ref_Template_Types",
+        "Templates",
+        "Paragraphs"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6006,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['Documents'] dst=['Documents'] literals=['Robbin CV']",
+        "belief0: colH=1.601 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Ref_Template_Types', 'Templates', 'Paragraphs'] -> ['Documents', 'Paragraphs', 'Ref_Template_Types', 'Templates']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_305",
+      "db_id": "cre_Doc_Template_Mgt",
+      "difficulty": "",
+      "question": "How many different templates do all document use?",
+      "gold_sql": "SELECT count(DISTINCT template_id) FROM Documents",
+      "pred_sql": "SELECT COUNT(DISTINCT Templates.Template_ID) AS template_count\nFROM Documents\nJOIN Templates ON Documents.Template_ID = Templates.Template_ID",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "Templates"
+      ],
+      "linked_tables": [
+        "Documents",
+        "Templates"
+      ],
+      "chosen_path": [
+        "Templates"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Documents"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.4946,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['Templates'] literals=[]",
+        "belief0: colH=2.495 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Documents'] -> ['Documents', 'Templates']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_307",
+      "db_id": "cre_Doc_Template_Mgt",
+      "difficulty": "",
+      "question": "How many documents are using the template with type code 'PPT'?",
+      "gold_sql": "SELECT count(*) FROM Documents AS T1 JOIN Templates AS T2 ON T1.Template_ID  =  T2.Template_ID WHERE T2.Template_Type_Code  =  'PPT'",
+      "pred_sql": "SELECT COUNT(*) \nFROM Documents \nJOIN Templates ON Documents.Template_ID = Templates.Template_ID \nWHERE Templates.Template_Type_Code = 'PPT'",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "Ref_Template_Types",
+        "Templates"
+      ],
+      "destinations": [
+        "Documents"
+      ],
+      "linked_tables": [
+        "Templates",
+        "Documents"
+      ],
+      "chosen_path": [
+        "Templates",
+        "Documents"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.0073,
+        "values": 1.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['Ref_Template_Types', 'Templates'] dst=['Documents'] literals=['PPT']",
+        "belief0: colH=1.007 valH=1.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Ref_Template_Types', 'Templates', 'Documents']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: Ref_Template_Types.Template_Type_Code'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_320",
+      "db_id": "cre_Doc_Template_Mgt",
+      "difficulty": "",
+      "question": "What are the ids, version numbers, and type codes for each template?",
+      "gold_sql": "SELECT template_id ,  version_number ,  template_type_code FROM Templates",
+      "pred_sql": "SELECT \n    t.Template_ID,\n    t.Version_Number,\n    t.Template_Type_Code\nFROM Templates t",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "Templates"
+      ],
+      "linked_tables": [
+        "Ref_Template_Types",
+        "Templates"
+      ],
+      "chosen_path": [
+        "Templates"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Ref_Template_Types"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 20,
+      "belief_entropy": {
+        "columns": 2.5168,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['Templates'] literals=[]",
+        "belief0: colH=2.517 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Ref_Template_Types'] -> ['Ref_Template_Types', 'Templates']",
+        "commit: generate -> ok=True rows=20"
+      ]
+    },
+    {
+      "instance_id": "spider1_362",
+      "db_id": "cre_Doc_Template_Mgt",
+      "difficulty": "",
+      "question": "What are the details for the paragraph that includes the text 'Korea ' ?",
+      "gold_sql": "select other_details from paragraphs where paragraph_text like 'korea'",
+      "pred_sql": "SELECT Other_Details \nFROM Paragraphs \nWHERE Paragraph_Text LIKE '%Korea%'",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "Paragraphs"
+      ],
+      "destinations": [
+        "Paragraphs"
+      ],
+      "linked_tables": [
+        "Paragraphs"
+      ],
+      "chosen_path": [
+        "Paragraphs"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 2.3818,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['Paragraphs'] dst=['Paragraphs'] literals=['Korea']",
+        "belief0: colH=2.382 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_381",
+      "db_id": "course_teach",
+      "difficulty": "",
+      "question": "How many teachers are there?",
+      "gold_sql": "SELECT count(*) FROM teacher",
+      "pred_sql": "SELECT COUNT(*) FROM teacher",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "teacher"
+      ],
+      "linked_tables": [
+        "teacher"
+      ],
+      "chosen_path": [
+        "teacher"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.8748,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['teacher'] literals=[]",
+        "belief0: colH=2.875 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_394",
+      "db_id": "course_teach",
+      "difficulty": "",
+      "question": "For each hometown, how many teachers are there?",
+      "gold_sql": "SELECT Hometown ,  COUNT(*) FROM teacher GROUP BY Hometown",
+      "pred_sql": "SELECT Hometown, COUNT(*) AS teacher_count\nFROM teacher\nGROUP BY Hometown",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "teacher"
+      ],
+      "linked_tables": [
+        "teacher"
+      ],
+      "chosen_path": [
+        "teacher"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 7,
+      "belief_entropy": {
+        "columns": 2.2136,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['teacher'] literals=[]",
+        "belief0: colH=2.214 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=7"
+      ]
+    },
+    {
+      "instance_id": "spider1_398",
+      "db_id": "course_teach",
+      "difficulty": "",
+      "question": "What are the towns from which at least two teachers come from?",
+      "gold_sql": "SELECT Hometown FROM teacher GROUP BY Hometown HAVING COUNT(*)  >=  2",
+      "pred_sql": "SELECT t.Hometown\nFROM teacher t\nGROUP BY t.Hometown\nHAVING COUNT(t.Teacher_ID) >= 2",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "teacher"
+      ],
+      "destinations": [
+        "teacher"
+      ],
+      "linked_tables": [
+        "course",
+        "course_arrange",
+        "teacher"
+      ],
+      "chosen_path": [
+        "teacher"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "course",
+        "course_arrange"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 2.8748,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['teacher'] dst=['teacher'] literals=[]",
+        "belief0: colH=2.875 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['course', 'course_arrange'] -> ['course', 'course_arrange', 'teacher']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_403",
+      "db_id": "course_teach",
+      "difficulty": "",
+      "question": "Show the name of the teacher for the math course.",
+      "gold_sql": "SELECT T3.Name FROM course_arrange AS T1 JOIN course AS T2 ON T1.Course_ID  =  T2.Course_ID JOIN teacher AS T3 ON T1.Teacher_ID  =  T3.Teacher_ID WHERE T2.Course  =  \"Math\"",
+      "pred_sql": "SELECT t.Name\nFROM teacher t\nJOIN course_arrange ca ON t.Teacher_ID = ca.Teacher_ID\nJOIN course c ON ca.Course_ID = c.Course_ID\nWHERE c.Course LIKE '%math%'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "course"
+      ],
+      "destinations": [
+        "teacher"
+      ],
+      "linked_tables": [
+        "course",
+        "course_arrange",
+        "teacher"
+      ],
+      "chosen_path": [
+        "course",
+        "course_arrange",
+        "teacher"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 1.1945,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['course'] dst=['teacher'] literals=['math']",
+        "belief0: colH=1.194 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_410",
+      "db_id": "course_teach",
+      "difficulty": "",
+      "question": "What are the names of the teachers whose courses have not been arranged?",
+      "gold_sql": "SELECT Name FROM teacher WHERE Teacher_id NOT IN (SELECT Teacher_id FROM course_arrange)",
+      "pred_sql": "SELECT t.Name\nFROM teacher t\nWHERE t.Teacher_ID NOT IN (\n    SELECT ca.Teacher_ID\n    FROM course_arrange ca\n)",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "course_arrange"
+      ],
+      "destinations": [
+        "teacher"
+      ],
+      "linked_tables": [
+        "course",
+        "course_arrange",
+        "teacher"
+      ],
+      "chosen_path": [
+        "course_arrange",
+        "teacher"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "course"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 2.8748,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['course_arrange'] dst=['teacher'] literals=[]",
+        "belief0: colH=2.875 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['course'] -> ['course', 'course_arrange', 'teacher']",
+        "commit: generate -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_416",
+      "db_id": "museum_visit",
+      "difficulty": "",
+      "question": "Find the average number of staff working for the museums that were open before 2009.",
+      "gold_sql": "SELECT avg(num_of_staff) FROM museum WHERE open_year  <  2009",
+      "pred_sql": "SELECT AVG(CAST(Num_of_Staff AS REAL))\nFROM museum\nWHERE Open_Year < '2009'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "museum"
+      ],
+      "destinations": [
+        "museum"
+      ],
+      "linked_tables": [
+        "museum"
+      ],
+      "chosen_path": [
+        "museum"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.7079,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['museum'] dst=['museum'] literals=['2009']",
+        "belief0: colH=1.708 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_417",
+      "db_id": "museum_visit",
+      "difficulty": "",
+      "question": "What are the opening year and staff number of the museum named Plaza Museum?",
+      "gold_sql": "SELECT Num_of_Staff ,  Open_Year FROM museum WHERE name  =  'Plaza Museum'",
+      "pred_sql": "SELECT Open_Year, Num_of_Staff\nFROM museum\nWHERE Name = 'Plaza Museum'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "museum"
+      ],
+      "destinations": [
+        "museum"
+      ],
+      "linked_tables": [
+        "museum"
+      ],
+      "chosen_path": [
+        "museum"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.0717,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['museum'] dst=['museum'] literals=['Plaza Museum']",
+        "belief0: colH=2.072 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_418",
+      "db_id": "museum_visit",
+      "difficulty": "",
+      "question": "find the names of museums which have more staff than the minimum staff number of all museums opened after 2010.",
+      "gold_sql": "SELECT name FROM museum WHERE num_of_staff  >  (SELECT min(num_of_staff) FROM museum WHERE open_year  >  2010)",
+      "pred_sql": "SELECT Name\nFROM museum\nWHERE Num_of_Staff > (\n    SELECT MIN(Num_of_Staff)\n    FROM museum\n    WHERE Open_Year = '2010'\n)",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "museum"
+      ],
+      "destinations": [
+        "museum"
+      ],
+      "linked_tables": [
+        "museum"
+      ],
+      "chosen_path": [
+        "museum"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 6,
+      "belief_entropy": {
+        "columns": 3.1925,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['museum'] dst=['museum'] literals=['2010']",
+        "belief0: colH=3.193 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=6"
+      ]
+    },
+    {
+      "instance_id": "spider1_425",
+      "db_id": "museum_visit",
+      "difficulty": "",
+      "question": "What is the total ticket expense of the visitors whose membership level is 1?",
+      "gold_sql": "SELECT sum(t2.Total_spent) FROM visitor AS t1 JOIN visit AS t2 ON t1.id  =  t2.visitor_id WHERE t1.Level_of_membership  =  1",
+      "pred_sql": "SELECT SUM(visit.Total_spent) AS total_ticket_expense\nFROM visit\nJOIN visitor ON visit.visitor_ID = visitor.ID\nWHERE visitor.Level_of_membership = 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "visitor"
+      ],
+      "destinations": [
+        "visit"
+      ],
+      "linked_tables": [
+        "visitor",
+        "visit"
+      ],
+      "chosen_path": [
+        "visitor",
+        "visit"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.7722,
+        "values": 2.3219,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['visitor'] dst=['visit'] literals=['1']",
+        "belief0: colH=1.772 valH=2.322",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_427",
+      "db_id": "museum_visit",
+      "difficulty": "",
+      "question": "Find the number of visitors who did not visit any museum opened after 2010.",
+      "gold_sql": "SELECT count(*) FROM visitor WHERE id NOT IN (SELECT t2.visitor_id FROM museum AS t1 JOIN visit AS t2 ON t1.Museum_ID  =  t2.Museum_ID WHERE t1.open_year  >  2010)",
+      "pred_sql": "SELECT COUNT(DISTINCT v.ID)\nFROM visitor v\nWHERE v.ID NOT IN (\n    SELECT DISTINCT v2.ID\n    FROM visitor v2\n    JOIN visit vi ON v2.ID = vi.visitor_ID\n    JOIN museum m ON vi.Museum_ID = m.Museum_ID\n    WHERE m.Open_Year > '2010'\n)",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "museum"
+      ],
+      "destinations": [
+        "visitor"
+      ],
+      "linked_tables": [
+        "museum",
+        "visit",
+        "visitor"
+      ],
+      "chosen_path": [
+        "museum",
+        "visit",
+        "visitor"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.8808,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['museum'] dst=['visitor'] literals=['2010']",
+        "belief0: colH=1.881 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_441",
+      "db_id": "wta_1",
+      "difficulty": "",
+      "question": "find the number of distinct country codes of all players.",
+      "gold_sql": "SELECT count(DISTINCT country_code) FROM players",
+      "pred_sql": "SELECT COUNT(DISTINCT country_code) AS distinct_country_codes\nFROM players",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "players"
+      ],
+      "destinations": [
+        "players"
+      ],
+      "linked_tables": [
+        "players"
+      ],
+      "chosen_path": [
+        "players"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.7245,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['players'] dst=['players'] literals=[]",
+        "belief0: colH=0.725 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_443",
+      "db_id": "wta_1",
+      "difficulty": "",
+      "question": "Find the number of distinct name of losers.",
+      "gold_sql": "SELECT count(DISTINCT loser_name) FROM matches",
+      "pred_sql": "SELECT COUNT(DISTINCT loser_name) AS distinct_loser_count\nFROM matches",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "matches"
+      ],
+      "destinations": [
+        "matches"
+      ],
+      "linked_tables": [
+        "matches",
+        "players"
+      ],
+      "chosen_path": [
+        "matches"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "players"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.3777,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['matches'] dst=['matches'] literals=[]",
+        "belief0: colH=0.378 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['players'] -> ['matches', 'players']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_458",
+      "db_id": "wta_1",
+      "difficulty": "",
+      "question": "What are the full names of all left handed players, in order of birth date?",
+      "gold_sql": "SELECT first_name ,  last_name FROM players WHERE hand  =  'L' ORDER BY birth_date",
+      "pred_sql": "SELECT first_name || ' ' || last_name AS full_name\nFROM players\nWHERE hand = 'L'\nORDER BY birth_date",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "players"
+      ],
+      "destinations": [
+        "players"
+      ],
+      "linked_tables": [
+        "players"
+      ],
+      "chosen_path": [
+        "players"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 487,
+      "belief_entropy": {
+        "columns": 1.8028,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['players'] dst=['players'] literals=['left']",
+        "belief0: colH=1.803 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=487"
+      ]
+    },
+    {
+      "instance_id": "spider1_481",
+      "db_id": "wta_1",
+      "difficulty": "",
+      "question": "Find the number of matches happened in each year.",
+      "gold_sql": "SELECT count(*) ,  YEAR FROM matches GROUP BY YEAR",
+      "pred_sql": "SELECT year, COUNT(*) AS match_count\nFROM matches\nGROUP BY year\nORDER BY year",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "matches"
+      ],
+      "destinations": [
+        "matches"
+      ],
+      "linked_tables": [
+        "matches"
+      ],
+      "chosen_path": [
+        "matches"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 0.7245,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['matches'] dst=['matches'] literals=[]",
+        "belief0: colH=0.725 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "spider1_487",
+      "db_id": "wta_1",
+      "difficulty": "",
+      "question": "Find the first name, country code and birth date of the winner who has the highest rank points in all matches.",
+      "gold_sql": "SELECT T1.first_name ,  T1.country_code ,  T1.birth_date FROM players AS T1 JOIN matches AS T2 ON T1.player_id  =  T2.winner_id ORDER BY T2.winner_rank_points DESC LIMIT 1",
+      "pred_sql": "SELECT \n    p.first_name,\n    p.country_code,\n    p.birth_date\nFROM players p\nJOIN matches m ON p.player_id = m.winner_id\nWHERE m.winner_rank_points = (\n    SELECT MAX(winner_rank_points) FROM matches\n)\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "matches"
+      ],
+      "destinations": [
+        "players"
+      ],
+      "linked_tables": [
+        "matches",
+        "players"
+      ],
+      "chosen_path": [
+        "matches",
+        "players"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.5904,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['matches'] dst=['players'] literals=[]",
+        "belief0: colH=3.590 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_495",
+      "db_id": "battle_death",
+      "difficulty": "",
+      "question": "What is the average number of injuries caused each time?",
+      "gold_sql": "SELECT avg(injured) FROM death",
+      "pred_sql": "SELECT AVG(CAST(injured AS REAL)) AS avg_injuries\nFROM death",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "death"
+      ],
+      "destinations": [
+        "death"
+      ],
+      "linked_tables": [
+        "death"
+      ],
+      "chosen_path": [
+        "death"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.4515,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['death'] dst=['death'] literals=[]",
+        "belief0: colH=2.451 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_496",
+      "db_id": "battle_death",
+      "difficulty": "",
+      "question": "What are the death and injury situations caused by the ship with tonnage 't'?",
+      "gold_sql": "SELECT T1.killed ,  T1.injured FROM death AS T1 JOIN ship AS t2 ON T1.caused_by_ship_id  =  T2.id WHERE T2.tonnage  =  't'",
+      "pred_sql": "SELECT \n    death.killed,\n    death.injured,\n    death.note\nFROM death\nJOIN ship ON death.caused_by_ship_id = ship.id\nWHERE ship.tonnage = 't'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "ship"
+      ],
+      "destinations": [
+        "death"
+      ],
+      "linked_tables": [
+        "ship",
+        "death"
+      ],
+      "chosen_path": [
+        "ship",
+        "death"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 11,
+      "belief_entropy": {
+        "columns": 2.4904,
+        "values": 2.3219,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['ship'] dst=['death'] literals=['t']",
+        "belief0: colH=2.490 valH=2.322",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=11"
+      ]
+    },
+    {
+      "instance_id": "spider1_497",
+      "db_id": "battle_death",
+      "difficulty": "",
+      "question": "What are the name and results of the battles when the bulgarian commander is not 'Boril'",
+      "gold_sql": "SELECT name ,  RESULT FROM battle WHERE bulgarian_commander != 'Boril'",
+      "pred_sql": "SELECT name, result\nFROM battle\nWHERE bulgarian_commander != 'Boril'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "battle"
+      ],
+      "destinations": [
+        "battle"
+      ],
+      "linked_tables": [
+        "battle"
+      ],
+      "chosen_path": [
+        "battle"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 6,
+      "belief_entropy": {
+        "columns": 1.5913,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['battle'] dst=['battle'] literals=['Boril']",
+        "belief0: colH=1.591 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=6"
+      ]
+    },
+    {
+      "instance_id": "spider1_499",
+      "db_id": "battle_death",
+      "difficulty": "",
+      "question": "What are the ids and names of the battles that led to more than 10 people killed in total.",
+      "gold_sql": "SELECT T1.id ,  T1.name FROM battle AS T1 JOIN ship AS T2 ON T1.id  =  T2.lost_in_battle JOIN death AS T3 ON T2.id  =  T3.caused_by_ship_id GROUP BY T1.id HAVING sum(T3.killed)  >  10",
+      "pred_sql": "SELECT b.id, b.name\nFROM battle b\nJOIN death d ON b.id = d.caused_by_ship_id\nGROUP BY b.id, b.name\nHAVING SUM(d.killed) > 10",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "battle",
+        "death"
+      ],
+      "destinations": [
+        "battle"
+      ],
+      "linked_tables": [
+        "battle",
+        "death"
+      ],
+      "chosen_path": [
+        "battle"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "death"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 1.7291,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['battle', 'death'] dst=['battle'] literals=['10']",
+        "belief0: colH=1.729 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['battle']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['death'] -> ['battle', 'death']",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "spider1_500",
+      "db_id": "battle_death",
+      "difficulty": "",
+      "question": "What is the ship id and name that caused most total injuries?",
+      "gold_sql": "SELECT T2.id ,  T2.name FROM death AS T1 JOIN ship AS t2 ON T1.caused_by_ship_id  =  T2.id GROUP BY T2.id ORDER BY count(*) DESC LIMIT 1",
+      "pred_sql": "SELECT \n    s.id AS ship_id,\n    s.name AS ship_name\nFROM ship s\nJOIN death d ON s.id = d.caused_by_ship_id\nGROUP BY s.id, s.name\nORDER BY SUM(d.injured) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "death"
+      ],
+      "destinations": [
+        "ship"
+      ],
+      "linked_tables": [
+        "death",
+        "ship"
+      ],
+      "chosen_path": [
+        "death",
+        "ship"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.8825,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['death'] dst=['ship'] literals=[]",
+        "belief0: colH=2.882 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_501",
+      "db_id": "battle_death",
+      "difficulty": "",
+      "question": "What are the distinct battle names which are between bulgarian commander 'Kaloyan' and latin commander 'Baldwin I'?",
+      "gold_sql": "SELECT name FROM battle WHERE bulgarian_commander  =  'Kaloyan' AND latin_commander  =  'Baldwin I'",
+      "pred_sql": "SELECT DISTINCT name\nFROM battle\nWHERE bulgarian_commander = 'Kaloyan'\n  AND latin_commander = 'Baldwin I'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "battle"
+      ],
+      "destinations": [
+        "battle"
+      ],
+      "linked_tables": [
+        "battle"
+      ],
+      "chosen_path": [
+        "battle"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.8352,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['battle'] dst=['battle'] literals=['Kaloyan', 'Baldwin I']",
+        "belief0: colH=1.835 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_507",
+      "db_id": "student_transcripts_tracking",
+      "difficulty": "",
+      "question": "what are all the addresses including line 1 and line 2?",
+      "gold_sql": "SELECT line_1 ,  line_2 FROM addresses",
+      "pred_sql": "SELECT line_1, line_2 FROM Addresses",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [],
+      "destinations": [
+        "Addresses"
+      ],
+      "linked_tables": [
+        "Addresses"
+      ],
+      "chosen_path": [
+        "Addresses"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 15,
+      "belief_entropy": {
+        "columns": 4.3998,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=[] dst=['Addresses'] literals=[]",
+        "belief0: colH=4.400 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=15"
+      ]
+    },
+    {
+      "instance_id": "spider1_543",
+      "db_id": "student_transcripts_tracking",
+      "difficulty": "",
+      "question": "Which semesters do not have any student enrolled? List the semester name.",
+      "gold_sql": "SELECT semester_name FROM Semesters WHERE semester_id NOT IN( SELECT semester_id FROM Student_Enrolment )",
+      "pred_sql": "SELECT s.semester_name\nFROM Semesters s\nLEFT JOIN Student_Enrolment se ON s.semester_id = se.semester_id\nWHERE se.semester_id IS NULL",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "Student_Enrolment",
+        "Semesters"
+      ],
+      "destinations": [
+        "Semesters"
+      ],
+      "linked_tables": [
+        "Student_Enrolment",
+        "Semesters"
+      ],
+      "chosen_path": [
+        "Student_Enrolment",
+        "Semesters"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 6,
+      "belief_entropy": {
+        "columns": 3.9066,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['Student_Enrolment', 'Semesters'] dst=['Semesters'] literals=[]",
+        "belief0: colH=3.907 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Student_Enrolment', 'Semesters']: {'ok': True, 'nonempty': True, 'count': 15}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=6"
+      ]
+    },
+    {
+      "instance_id": "spider1_545",
+      "db_id": "student_transcripts_tracking",
+      "difficulty": "",
+      "question": "What are all the course names of the courses which ever have students enrolled in?",
+      "gold_sql": "SELECT DISTINCT T1.course_name FROM Courses AS T1 JOIN Student_Enrolment_Courses AS T2 ON T1.course_id  =  T2.course_id",
+      "pred_sql": "SELECT DISTINCT c.course_name\nFROM Courses c\nJOIN Student_Enrolment_Courses sec ON c.course_id = sec.course_id",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "Student_Enrolment_Courses"
+      ],
+      "destinations": [
+        "Courses"
+      ],
+      "linked_tables": [
+        "Student_Enrolment_Courses",
+        "Courses"
+      ],
+      "chosen_path": [
+        "Student_Enrolment_Courses",
+        "Courses"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 10,
+      "belief_entropy": {
+        "columns": 3.0868,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['Student_Enrolment_Courses'] dst=['Courses'] literals=[]",
+        "belief0: colH=3.087 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=10"
+      ]
+    },
+    {
+      "instance_id": "spider1_558",
+      "db_id": "student_transcripts_tracking",
+      "difficulty": "",
+      "question": "What is the first, middle, and last name of the earliest school graduate?",
+      "gold_sql": "SELECT first_name ,  middle_name ,  last_name FROM Students ORDER BY date_left ASC LIMIT 1",
+      "pred_sql": "SELECT \n    s.first_name,\n    s.middle_name,\n    s.last_name\nFROM Students s\nJOIN Student_Enrolment se ON s.student_id = se.student_id\nJOIN Student_Enrolment_Courses sec ON se.student_enrolment_id = sec.student_enrolment_id\nJOIN Transcript_Contents tc ON sec.student_course_id = tc.student_course_id\nJOIN Transcripts t ON tc.transcript_id = t.transcript_id\nORDER BY t.transcript_date ASC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "Students"
+      ],
+      "destinations": [
+        "Students"
+      ],
+      "linked_tables": [
+        "Student_Enrolment",
+        "Student_Enrolment_Courses",
+        "Students",
+        "Transcript_Contents",
+        "Transcripts"
+      ],
+      "chosen_path": [
+        "Students"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Student_Enrolment",
+        "Student_Enrolment_Courses",
+        "Transcripts",
+        "Transcript_Contents"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.266,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['Students'] dst=['Students'] literals=[]",
+        "belief0: colH=4.266 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Student_Enrolment', 'Student_Enrolment_Courses', 'Transcripts', 'Transcript_Contents'] -> ['Student_Enrolment', 'Student_Enrolment_Courses', 'Students', 'Transcript_Contents', 'Transcripts']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_577",
+      "db_id": "student_transcripts_tracking",
+      "difficulty": "",
+      "question": "How many different addresses do the students currently live?",
+      "gold_sql": "SELECT count(DISTINCT current_address_id) FROM Students",
+      "pred_sql": "SELECT COUNT(DISTINCT Students.current_address_id) AS number_of_different_addresses\nFROM Students\nJOIN Addresses ON Students.current_address_id = Addresses.address_id",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "Students"
+      ],
+      "destinations": [
+        "Addresses"
+      ],
+      "linked_tables": [
+        "Addresses",
+        "Student_Enrolment",
+        "Students"
+      ],
+      "chosen_path": [
+        "Students",
+        "Addresses"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Student_Enrolment"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.6531,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['Students'] dst=['Addresses'] literals=[]",
+        "belief0: colH=4.653 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Student_Enrolment'] -> ['Addresses', 'Student_Enrolment', 'Students']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_595",
+      "db_id": "tvshow",
+      "difficulty": "",
+      "question": "Which country has the most of TV Channels? List the country and number of TV Channels it has.",
+      "gold_sql": "SELECT Country ,  count(*) FROM TV_Channel GROUP BY Country ORDER BY count(*) DESC LIMIT 1;",
+      "pred_sql": "SELECT Country, COUNT(*) AS number_of_channels\nFROM TV_Channel\nGROUP BY Country\nORDER BY number_of_channels DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "TV_Channel"
+      ],
+      "destinations": [
+        "TV_Channel"
+      ],
+      "linked_tables": [
+        "TV_Channel"
+      ],
+      "chosen_path": [
+        "TV_Channel"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.2208,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['TV_Channel'] dst=['TV_Channel'] literals=[]",
+        "belief0: colH=3.221 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_615",
+      "db_id": "tvshow",
+      "difficulty": "",
+      "question": "List top 3 highest Rating  TV series. List the TV series's Episode and Rating.",
+      "gold_sql": "SELECT Episode ,  Rating FROM TV_series ORDER BY Rating DESC LIMIT 3;",
+      "pred_sql": "SELECT \n    TV_series.Episode,\n    TV_series.Rating\nFROM TV_series\nORDER BY CAST(TV_series.Rating AS REAL) DESC\nLIMIT 3",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "TV_series"
+      ],
+      "destinations": [
+        "TV_series"
+      ],
+      "linked_tables": [
+        "TV_Channel",
+        "TV_series"
+      ],
+      "chosen_path": [
+        "TV_series"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "TV_Channel"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 3.0311,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['TV_series'] dst=['TV_series'] literals=[]",
+        "belief0: colH=3.031 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['TV_Channel'] -> ['TV_Channel', 'TV_series']",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "spider1_632",
+      "db_id": "tvshow",
+      "difficulty": "",
+      "question": "What are the package options and the name of the series for the TV Channel that supports high definition TV?",
+      "gold_sql": "SELECT package_option ,  series_name FROM TV_Channel WHERE hight_definition_TV  =  \"yes\"",
+      "pred_sql": "SELECT \n    TV_Channel.Package_Option, \n    TV_Channel.series_name\nFROM TV_Channel\nWHERE TV_Channel.Hight_definition_TV = 'yes'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "TV_Channel"
+      ],
+      "destinations": [
+        "TV_Channel"
+      ],
+      "linked_tables": [
+        "TV_Channel",
+        "TV_series"
+      ],
+      "chosen_path": [
+        "TV_Channel"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "TV_series"
+      ],
+      "missing_rejected": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.198,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['TV_Channel'] dst=['TV_Channel'] literals=['high definition TV']",
+        "belief0: colH=3.198 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['TV_series'] -> ['TV_Channel', 'TV_series']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_640",
+      "db_id": "tvshow",
+      "difficulty": "",
+      "question": "What is the pixel aspect ratio and country of origin for all TV channels that do not use English?",
+      "gold_sql": "SELECT Pixel_aspect_ratio_PAR ,  country FROM tv_channel WHERE LANGUAGE != 'English'",
+      "pred_sql": "SELECT \n    TV_Channel.Pixel_aspect_ratio_PAR, \n    TV_Channel.Country\nFROM TV_Channel\nWHERE TV_Channel.Language != 'English'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "TV_Channel"
+      ],
+      "destinations": [
+        "TV_Channel"
+      ],
+      "linked_tables": [
+        "Cartoon",
+        "TV_Channel",
+        "TV_series"
+      ],
+      "chosen_path": [
+        "TV_Channel"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "TV_series",
+        "Cartoon"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 12,
+      "belief_entropy": {
+        "columns": 3.3638,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['TV_Channel'] dst=['TV_Channel'] literals=['English']",
+        "belief0: colH=3.364 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['TV_series', 'Cartoon'] -> ['Cartoon', 'TV_Channel', 'TV_series']",
+        "commit: generate -> ok=True rows=12"
+      ]
+    },
+    {
+      "instance_id": "spider1_642",
+      "db_id": "tvshow",
+      "difficulty": "",
+      "question": "What are the ids of all tv channels that have more than 2 TV channels?",
+      "gold_sql": "SELECT id FROM tv_channel GROUP BY country HAVING count(*)  >  2",
+      "pred_sql": "SELECT id\nFROM TV_Channel\nGROUP BY id\nHAVING COUNT(*) > 2",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "TV_Channel"
+      ],
+      "destinations": [
+        "TV_Channel"
+      ],
+      "linked_tables": [
+        "TV_Channel"
+      ],
+      "chosen_path": [
+        "TV_Channel"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.0622,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['TV_Channel'] dst=['TV_Channel'] literals=[]",
+        "belief0: colH=3.062 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_648",
+      "db_id": "poker_player",
+      "difficulty": "",
+      "question": "Count the number of poker players.",
+      "gold_sql": "SELECT count(*) FROM poker_player",
+      "pred_sql": "SELECT COUNT(*) FROM poker_player",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [],
+      "destinations": [
+        "poker_player"
+      ],
+      "linked_tables": [
+        "poker_player"
+      ],
+      "chosen_path": [
+        "poker_player"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.3695,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=[] dst=['poker_player'] literals=[]",
+        "belief0: colH=2.369 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_664",
+      "db_id": "poker_player",
+      "difficulty": "",
+      "question": "What are the names of poker players, ordered ascending by the number of final tables they have made?",
+      "gold_sql": "SELECT T1.Name FROM people AS T1 JOIN poker_player AS T2 ON T1.People_ID  =  T2.People_ID ORDER BY T2.Final_Table_Made",
+      "pred_sql": "SELECT p.Name\nFROM poker_player AS pp\nJOIN people AS p ON pp.People_ID = p.People_ID\nORDER BY pp.Final_Table_Made ASC",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "poker_player"
+      ],
+      "destinations": [
+        "people"
+      ],
+      "linked_tables": [
+        "poker_player",
+        "people"
+      ],
+      "chosen_path": [
+        "poker_player",
+        "people"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 2.3706,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['poker_player'] dst=['people'] literals=[]",
+        "belief0: colH=2.371 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "spider1_671",
+      "db_id": "poker_player",
+      "difficulty": "",
+      "question": "What are the names of poker players in descending order of earnings?",
+      "gold_sql": "SELECT T1.Name FROM people AS T1 JOIN poker_player AS T2 ON T1.People_ID  =  T2.People_ID ORDER BY T2.Earnings DESC",
+      "pred_sql": "SELECT p.Name\nFROM people p\nJOIN poker_player pp ON p.People_ID = pp.People_ID\nORDER BY pp.Earnings DESC",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "people"
+      ],
+      "destinations": [
+        "poker_player"
+      ],
+      "linked_tables": [
+        "people",
+        "poker_player"
+      ],
+      "chosen_path": [
+        "people",
+        "poker_player"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 2.3706,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['people'] dst=['poker_player'] literals=[]",
+        "belief0: colH=2.371 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "spider1_674",
+      "db_id": "poker_player",
+      "difficulty": "",
+      "question": "How many people are there of each nationality?",
+      "gold_sql": "SELECT Nationality ,  COUNT(*) FROM people GROUP BY Nationality",
+      "pred_sql": "SELECT Nationality, COUNT(*) AS count\nFROM people\nGROUP BY Nationality",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [],
+      "destinations": [
+        "people"
+      ],
+      "linked_tables": [
+        "people"
+      ],
+      "chosen_path": [
+        "people"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 1.8224,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=[] dst=['people'] literals=[]",
+        "belief0: colH=1.822 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2"
+      ]
+    },
+    {
+      "instance_id": "spider1_678",
+      "db_id": "poker_player",
+      "difficulty": "",
+      "question": "Return the nationalities for which there are two or more people.",
+      "gold_sql": "SELECT Nationality FROM people GROUP BY Nationality HAVING COUNT(*)  >=  2",
+      "pred_sql": "SELECT Nationality\nFROM people\nGROUP BY Nationality\nHAVING COUNT(*) >= 2",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "people"
+      ],
+      "destinations": [
+        "people"
+      ],
+      "linked_tables": [
+        "people"
+      ],
+      "chosen_path": [
+        "people"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6901,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['people'] dst=['people'] literals=[]",
+        "belief0: colH=1.690 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_687",
+      "db_id": "voter_1",
+      "difficulty": "",
+      "question": "How many states are there?",
+      "gold_sql": "SELECT count(*) FROM area_code_state",
+      "pred_sql": "SELECT COUNT(DISTINCT state) AS state_count FROM AREA_CODE_STATE",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "AREA_CODE_STATE"
+      ],
+      "linked_tables": [
+        "AREA_CODE_STATE"
+      ],
+      "chosen_path": [
+        "AREA_CODE_STATE"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.877,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['AREA_CODE_STATE'] literals=[]",
+        "belief0: colH=2.877 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_690",
+      "db_id": "voter_1",
+      "difficulty": "",
+      "question": "What are the maximum and minimum values of area codes?",
+      "gold_sql": "SELECT max(area_code) ,  min(area_code) FROM area_code_state",
+      "pred_sql": "SELECT MAX(area_code) AS max_area_code, MIN(area_code) AS min_area_code FROM AREA_CODE_STATE",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "AREA_CODE_STATE"
+      ],
+      "destinations": [
+        "AREA_CODE_STATE"
+      ],
+      "linked_tables": [
+        "AREA_CODE_STATE"
+      ],
+      "chosen_path": [
+        "AREA_CODE_STATE"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.0093,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['AREA_CODE_STATE'] dst=['AREA_CODE_STATE'] literals=[]",
+        "belief0: colH=2.009 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_692",
+      "db_id": "voter_1",
+      "difficulty": "",
+      "question": "What are the names of the contestants whose names are not 'Jessie Alloway'",
+      "gold_sql": "SELECT contestant_name FROM contestants WHERE contestant_name != 'Jessie Alloway'",
+      "pred_sql": "SELECT contestant_name\nFROM CONTESTANTS\nWHERE contestant_name != 'Jessie Alloway'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "CONTESTANTS"
+      ],
+      "destinations": [
+        "CONTESTANTS"
+      ],
+      "linked_tables": [
+        "CONTESTANTS"
+      ],
+      "chosen_path": [
+        "CONTESTANTS"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 10,
+      "belief_entropy": {
+        "columns": 1.6041,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['CONTESTANTS'] dst=['CONTESTANTS'] literals=['Jessie Alloway']",
+        "belief0: colH=1.604 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=10"
+      ]
+    },
+    {
+      "instance_id": "spider1_695",
+      "db_id": "voter_1",
+      "difficulty": "",
+      "question": "Of all the contestants who got voted, what is the contestant number and name of the contestant who got least votes?",
+      "gold_sql": "SELECT T1.contestant_number , T1.contestant_name FROM contestants AS T1 JOIN votes AS T2 ON T1.contestant_number  =  T2.contestant_number GROUP BY T1.contestant_number ORDER BY count(*) ASC LIMIT 1",
+      "pred_sql": "SELECT c.contestant_number, c.contestant_name\nFROM CONTESTANTS c\nJOIN VOTES v ON c.contestant_number = v.contestant_number\nGROUP BY c.contestant_number, c.contestant_name\nORDER BY COUNT(v.vote_id) ASC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "VOTES"
+      ],
+      "destinations": [
+        "CONTESTANTS"
+      ],
+      "linked_tables": [
+        "VOTES",
+        "CONTESTANTS"
+      ],
+      "chosen_path": [
+        "VOTES",
+        "CONTESTANTS"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.7369,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['VOTES'] dst=['CONTESTANTS'] literals=[]",
+        "belief0: colH=1.737 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_698",
+      "db_id": "voter_1",
+      "difficulty": "",
+      "question": "What is the area code in which the most voters voted?",
+      "gold_sql": "SELECT T1.area_code FROM area_code_state AS T1 JOIN votes AS T2 ON T1.state  =  T2.state GROUP BY T1.area_code ORDER BY count(*) DESC LIMIT 1",
+      "pred_sql": "SELECT AREA_CODE_STATE.area_code\nFROM VOTES\nJOIN AREA_CODE_STATE ON VOTES.state = AREA_CODE_STATE.state\nGROUP BY AREA_CODE_STATE.area_code\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "VOTES"
+      ],
+      "destinations": [
+        "AREA_CODE_STATE"
+      ],
+      "linked_tables": [
+        "AREA_CODE_STATE",
+        "CONTESTANTS",
+        "VOTES"
+      ],
+      "chosen_path": [
+        "VOTES",
+        "AREA_CODE_STATE"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "CONTESTANTS"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.0093,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['VOTES'] dst=['AREA_CODE_STATE'] literals=[]",
+        "belief0: colH=2.009 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['CONTESTANTS'] -> ['AREA_CODE_STATE', 'CONTESTANTS', 'VOTES']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_716",
+      "db_id": "world_1",
+      "difficulty": "",
+      "question": "What are the region and population of Angola?",
+      "gold_sql": "SELECT Population ,  Region FROM country WHERE Name  =  \"Angola\"",
+      "pred_sql": "SELECT Region, Population\nFROM country\nWHERE Name = 'Angola' OR LocalName = 'Angola'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "country"
+      ],
+      "linked_tables": [
+        "country"
+      ],
+      "chosen_path": [
+        "country"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.519,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['country'] literals=['Angola']",
+        "belief0: colH=2.519 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_729",
+      "db_id": "world_1",
+      "difficulty": "",
+      "question": "What is the total population of Gelderland district?",
+      "gold_sql": "SELECT sum(Population) FROM city WHERE District  =  \"Gelderland\"",
+      "pred_sql": "SELECT SUM(city.Population) AS total_population\nFROM city\nWHERE city.District = 'Gelderland'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "city"
+      ],
+      "destinations": [
+        "city"
+      ],
+      "linked_tables": [
+        "city",
+        "country"
+      ],
+      "chosen_path": [
+        "city"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "country"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.0615,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['city'] dst=['city'] literals=['Gelderland']",
+        "belief0: colH=2.061 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['country'] -> ['city', 'country']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_762",
+      "db_id": "world_1",
+      "difficulty": "",
+      "question": "Find the name, population and expected life length of asian country with the largest area?",
+      "gold_sql": "SELECT Name ,  Population ,  LifeExpectancy FROM country WHERE Continent  =  \"Asia\" ORDER BY SurfaceArea DESC LIMIT 1",
+      "pred_sql": "SELECT Name, Population, LifeExpectancy\nFROM country\nWHERE Continent = 'Asia'\nORDER BY SurfaceArea DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "country"
+      ],
+      "destinations": [
+        "country"
+      ],
+      "linked_tables": [
+        "country"
+      ],
+      "chosen_path": [
+        "country"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.3873,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['country'] dst=['country'] literals=['Asia']",
+        "belief0: colH=3.387 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_774",
+      "db_id": "world_1",
+      "difficulty": "",
+      "question": "What are the African countries that have a  population less than any country in Asia?",
+      "gold_sql": "SELECT Name FROM country WHERE Continent  =  \"Africa\"  AND population  <  (SELECT max(population) FROM country WHERE Continent  =  \"Asia\")",
+      "pred_sql": "SELECT c.Name\nFROM country c\nWHERE c.Continent = 'Africa'\n  AND c.Population < (\n    SELECT MIN(c2.Population)\n    FROM country c2\n    WHERE c2.Continent = 'Asia'\n  )",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "country"
+      ],
+      "destinations": [
+        "country"
+      ],
+      "linked_tables": [
+        "country"
+      ],
+      "chosen_path": [
+        "country"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 2.9066,
+        "values": 2.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['country'] dst=['country'] literals=['Africa', 'Asia']",
+        "belief0: colH=2.907 valH=2.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "spider1_787",
+      "db_id": "world_1",
+      "difficulty": "",
+      "question": "Return the different names of cities that are in Asia and for which Chinese is the official language.",
+      "gold_sql": "SELECT DISTINCT T3.Name FROM country AS T1 JOIN countrylanguage AS T2 ON T1.Code  =  T2.CountryCode JOIN city AS T3 ON T1.Code  =  T3.CountryCode WHERE T2.IsOfficial  =  'T' AND T2.Language  =  'Chinese' AND T1.Continent  =  \"Asia\"",
+      "pred_sql": "SELECT DISTINCT city.Name\nFROM city\nJOIN country ON city.CountryCode = country.Code\nJOIN countrylanguage ON country.Code = countrylanguage.CountryCode\nWHERE country.Continent = 'Asia'\n  AND countrylanguage.Language = 'Chinese'\n  AND countrylanguage.IsOfficial = 'T'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "country",
+        "countrylanguage"
+      ],
+      "destinations": [
+        "city"
+      ],
+      "linked_tables": [
+        "countrylanguage",
+        "country",
+        "city"
+      ],
+      "chosen_path": [
+        "countrylanguage",
+        "country",
+        "city"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 359,
+      "belief_entropy": {
+        "columns": 2.327,
+        "values": 1.585,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['country', 'countrylanguage'] dst=['city'] literals=['Asia', 'Chinese']",
+        "belief0: colH=2.327 valH=1.585",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['country', 'city']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: city.CountryCode'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=359"
+      ]
+    },
+    {
+      "instance_id": "spider1_844",
+      "db_id": "orchestra",
+      "difficulty": "",
+      "question": "Show the name of the conductor that has conducted the most number of orchestras.",
+      "gold_sql": "SELECT T1.Name FROM conductor AS T1 JOIN orchestra AS T2 ON T1.Conductor_ID  =  T2.Conductor_ID GROUP BY T2.Conductor_ID ORDER BY COUNT(*) DESC LIMIT 1",
+      "pred_sql": "SELECT c.Name\nFROM conductor c\nJOIN orchestra o ON c.Conductor_ID = o.Conductor_ID\nGROUP BY c.Conductor_ID, c.Name\nORDER BY COUNT(o.Orchestra_ID) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "conductor",
+        "orchestra"
+      ],
+      "destinations": [
+        "conductor"
+      ],
+      "linked_tables": [
+        "conductor",
+        "orchestra"
+      ],
+      "chosen_path": [
+        "conductor"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "orchestra"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.2312,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['conductor', 'orchestra'] dst=['conductor'] literals=[]",
+        "belief0: colH=2.231 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['conductor']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['orchestra'] -> ['conductor', 'orchestra']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_849",
+      "db_id": "orchestra",
+      "difficulty": "",
+      "question": "How many orchestras does each record company manage?",
+      "gold_sql": "SELECT Record_Company ,  COUNT(*) FROM orchestra GROUP BY Record_Company",
+      "pred_sql": "SELECT Record_Company, COUNT(*) AS orchestra_count\nFROM orchestra\nGROUP BY Record_Company",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "orchestra"
+      ],
+      "linked_tables": [
+        "orchestra"
+      ],
+      "chosen_path": [
+        "orchestra"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 11,
+      "belief_entropy": {
+        "columns": 3.76,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['orchestra'] literals=[]",
+        "belief0: colH=3.760 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=11"
+      ]
+    },
+    {
+      "instance_id": "spider1_852",
+      "db_id": "orchestra",
+      "difficulty": "",
+      "question": "List the record company shared by the most number of orchestras.",
+      "gold_sql": "SELECT Record_Company FROM orchestra GROUP BY Record_Company ORDER BY COUNT(*) DESC LIMIT 1",
+      "pred_sql": "SELECT Record_Company\nFROM orchestra\nGROUP BY Record_Company\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [],
+      "destinations": [
+        "orchestra"
+      ],
+      "linked_tables": [
+        "orchestra"
+      ],
+      "chosen_path": [
+        "orchestra"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.76,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=[] dst=['orchestra'] literals=[]",
+        "belief0: colH=3.760 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_855",
+      "db_id": "orchestra",
+      "difficulty": "",
+      "question": "What are the orchestras that do not have any performances?",
+      "gold_sql": "SELECT Orchestra FROM orchestra WHERE Orchestra_ID NOT IN (SELECT Orchestra_ID FROM performance)",
+      "pred_sql": "SELECT o.Orchestra\nFROM orchestra o\nLEFT JOIN performance p ON o.Orchestra_ID = p.Orchestra_ID\nWHERE p.Performance_ID IS NULL",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "performance"
+      ],
+      "destinations": [
+        "orchestra"
+      ],
+      "linked_tables": [
+        "performance",
+        "orchestra"
+      ],
+      "chosen_path": [
+        "performance",
+        "orchestra"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.651,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['performance'] dst=['orchestra'] literals=[]",
+        "belief0: colH=3.651 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_857",
+      "db_id": "orchestra",
+      "difficulty": "",
+      "question": "What are the record companies that are used by both orchestras founded before 2003 and those founded after 2003?",
+      "gold_sql": "SELECT Record_Company FROM orchestra WHERE Year_of_Founded  <  2003 INTERSECT SELECT Record_Company FROM orchestra WHERE Year_of_Founded  >  2003",
+      "pred_sql": "SELECT DISTINCT r1.Record_Company\nFROM orchestra r1\nJOIN orchestra r2 ON r1.Record_Company = r2.Record_Company\nWHERE r1.Year_of_Founded < 2003 AND r2.Year_of_Founded > 2003",
+      "graph_method": "declared",
+      "n_edges": 3,
+      "sources": [
+        "orchestra"
+      ],
+      "destinations": [
+        "orchestra"
+      ],
+      "linked_tables": [
+        "orchestra"
+      ],
+      "chosen_path": [
+        "orchestra"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.3798,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=3",
+        "anchor: src=['orchestra'] dst=['orchestra'] literals=['2003', '2003']",
+        "belief0: colH=0.380 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_865",
+      "db_id": "network_1",
+      "difficulty": "",
+      "question": "What are the names and grades for each high schooler?",
+      "gold_sql": "SELECT name ,  grade FROM Highschooler",
+      "pred_sql": "SELECT name, grade FROM Highschooler",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [],
+      "destinations": [
+        "Highschooler"
+      ],
+      "linked_tables": [
+        "Highschooler"
+      ],
+      "chosen_path": [
+        "Highschooler"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 16,
+      "belief_entropy": {
+        "columns": 0.4353,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=[] dst=['Highschooler'] literals=[]",
+        "belief0: colH=0.435 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=16"
+      ]
+    },
+    {
+      "instance_id": "spider1_870",
+      "db_id": "network_1",
+      "difficulty": "",
+      "question": "Show the names of all high schoolers in grade 10.",
+      "gold_sql": "SELECT name FROM Highschooler WHERE grade  =  10",
+      "pred_sql": "SELECT name \nFROM Highschooler \nWHERE grade = 10",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Highschooler"
+      ],
+      "destinations": [
+        "Highschooler"
+      ],
+      "linked_tables": [
+        "Highschooler"
+      ],
+      "chosen_path": [
+        "Highschooler"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 0.2273,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Highschooler'] dst=['Highschooler'] literals=['10']",
+        "belief0: colH=0.227 valH=1.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "spider1_880",
+      "db_id": "network_1",
+      "difficulty": "",
+      "question": "Show me all grades that have at least 4 students.",
+      "gold_sql": "SELECT grade FROM Highschooler GROUP BY grade HAVING count(*)  >=  4",
+      "pred_sql": "SELECT grade\nFROM Highschooler\nGROUP BY grade\nHAVING COUNT(*) >= 4",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Highschooler"
+      ],
+      "destinations": [
+        "Highschooler"
+      ],
+      "linked_tables": [
+        "Highschooler"
+      ],
+      "chosen_path": [
+        "Highschooler"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 0.4353,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Highschooler'] dst=['Highschooler'] literals=[]",
+        "belief0: colH=0.435 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "spider1_897",
+      "db_id": "network_1",
+      "difficulty": "",
+      "question": "What are the names of students who have no friends?",
+      "gold_sql": "SELECT name FROM Highschooler EXCEPT SELECT T2.name FROM Friend AS T1 JOIN Highschooler AS T2 ON T1.student_id  =  T2.id",
+      "pred_sql": "SELECT name\nFROM Highschooler\nWHERE ID NOT IN (\n    SELECT DISTINCT student_id\n    FROM Friend\n)\nAND ID NOT IN (\n    SELECT DISTINCT friend_id\n    FROM Friend\n)",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Highschooler"
+      ],
+      "destinations": [
+        "Highschooler"
+      ],
+      "linked_tables": [
+        "Friend",
+        "Highschooler"
+      ],
+      "chosen_path": [
+        "Highschooler"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Friend"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 0.4353,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Highschooler'] dst=['Highschooler'] literals=[]",
+        "belief0: colH=0.435 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Friend'] -> ['Friend', 'Highschooler']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "spider1_906",
+      "db_id": "network_1",
+      "difficulty": "",
+      "question": "What is the name of the high schooler who has the greatest number of likes?",
+      "gold_sql": "SELECT T2.name FROM Likes AS T1 JOIN Highschooler AS T2 ON T1.student_id  =  T2.id GROUP BY T1.student_id ORDER BY count(*) DESC LIMIT 1",
+      "pred_sql": "SELECT h.name\nFROM Highschooler h\nJOIN Likes l ON h.ID = l.student_id\nGROUP BY h.ID, h.name\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Highschooler",
+        "Likes"
+      ],
+      "destinations": [
+        "Highschooler"
+      ],
+      "linked_tables": [
+        "Highschooler",
+        "Likes"
+      ],
+      "chosen_path": [
+        "Highschooler"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Likes"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.4353,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Highschooler', 'Likes'] dst=['Highschooler'] literals=[]",
+        "belief0: colH=0.435 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Highschooler']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Likes'] -> ['Highschooler', 'Likes']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_927",
+      "db_id": "dog_kennels",
+      "difficulty": "",
+      "question": "Find the first names that are used for professionals or owners but are not used as dog names.",
+      "gold_sql": "SELECT first_name FROM Professionals UNION SELECT first_name FROM Owners EXCEPT SELECT name FROM Dogs",
+      "pred_sql": "SELECT DISTINCT p.first_name\nFROM Professionals p\nWHERE p.first_name NOT IN (SELECT name FROM Dogs)\nUNION\nSELECT DISTINCT o.first_name\nFROM Owners o\nWHERE o.first_name NOT IN (SELECT name FROM Dogs)",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Professionals",
+        "Owners",
+        "Dogs"
+      ],
+      "destinations": [
+        "Professionals",
+        "Owners"
+      ],
+      "linked_tables": [
+        "Dogs",
+        "Professionals"
+      ],
+      "chosen_path": [
+        "Professionals"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Dogs"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 30,
+      "belief_entropy": {
+        "columns": 4.107,
+        "values": 0.0,
+        "paths": 1.1834
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Professionals', 'Owners', 'Dogs'] dst=['Professionals', 'Owners'] literals=[]",
+        "belief0: colH=4.107 valH=0.000",
+        "explore: path entropy=2.585 top_gap=0.00 (6 candidates)",
+        "explore: probe P0 ['Professionals']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Dogs'] -> ['Dogs', 'Professionals']",
+        "commit: generate -> ok=True rows=30"
+      ]
+    },
+    {
+      "instance_id": "spider1_938",
+      "db_id": "dog_kennels",
+      "difficulty": "",
+      "question": "What is the description of the treatment type that costs the least money in total?",
+      "gold_sql": "SELECT T1.treatment_type_description FROM Treatment_types AS T1 JOIN Treatments AS T2 ON T1.treatment_type_code  =  T2.treatment_type_code GROUP BY T1.treatment_type_code ORDER BY sum(cost_of_treatment) ASC LIMIT 1",
+      "pred_sql": "SELECT t.treatment_type_description\nFROM Treatment_Types t\nJOIN Treatments tr ON t.treatment_type_code = tr.treatment_type_code\nGROUP BY t.treatment_type_code, t.treatment_type_description\nORDER BY SUM(tr.cost_of_treatment) ASC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Treatment_Types",
+        "Treatments"
+      ],
+      "destinations": [
+        "Treatment_Types"
+      ],
+      "linked_tables": [
+        "Charges",
+        "Treatment_Types",
+        "Treatments"
+      ],
+      "chosen_path": [
+        "Treatment_Types"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Treatments",
+        "Charges"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.2684,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Treatment_Types', 'Treatments'] dst=['Treatment_Types'] literals=[]",
+        "belief0: colH=4.268 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Treatment_Types']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Treatments', 'Charges'] -> ['Charges', 'Treatment_Types', 'Treatments']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_940",
+      "db_id": "dog_kennels",
+      "difficulty": "",
+      "question": "Which owner has paid the largest amount of money in total for their dogs? Show the owner id and zip code.",
+      "gold_sql": "SELECT T1.owner_id ,  T1.zip_code FROM Owners AS T1 JOIN Dogs AS T2 ON T1.owner_id  =  T2.owner_id JOIN Treatments AS T3 ON T2.dog_id  =  T3.dog_id GROUP BY T1.owner_id ORDER BY sum(T3.cost_of_treatment) DESC LIMIT 1",
+      "pred_sql": "SELECT o.owner_id, o.zip_code\nFROM Owners o\nJOIN Dogs d ON o.owner_id = d.owner_id\nJOIN Treatments t ON d.dog_id = t.dog_id\nGROUP BY o.owner_id, o.zip_code\nORDER BY SUM(t.cost_of_treatment) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Owners",
+        "Dogs",
+        "Treatments",
+        "Charges"
+      ],
+      "destinations": [
+        "Owners"
+      ],
+      "linked_tables": [
+        "Charges",
+        "Dogs",
+        "Owners",
+        "Treatments"
+      ],
+      "chosen_path": [
+        "Owners"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Charges",
+        "Treatments",
+        "Dogs"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.6647,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Owners', 'Dogs', 'Treatments', 'Charges'] dst=['Owners'] literals=[]",
+        "belief0: colH=3.665 valH=0.000",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['Owners']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Charges', 'Treatments', 'Dogs'] -> ['Charges', 'Dogs', 'Owners', 'Treatments']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_948",
+      "db_id": "dog_kennels",
+      "difficulty": "",
+      "question": "List the cost of each treatment and the corresponding treatment type description.",
+      "gold_sql": "SELECT T1.cost_of_treatment ,  T2.treatment_type_description FROM Treatments AS T1 JOIN treatment_types AS T2 ON T1.treatment_type_code  =  T2.treatment_type_code",
+      "pred_sql": "SELECT \n    t.cost_of_treatment,\n    tt.treatment_type_description\nFROM Treatments t\nJOIN Treatment_Types tt ON t.treatment_type_code = tt.treatment_type_code",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Treatment_Types"
+      ],
+      "destinations": [
+        "Treatments",
+        "Treatment_Types"
+      ],
+      "linked_tables": [
+        "Treatment_Types",
+        "Treatments"
+      ],
+      "chosen_path": [
+        "Treatment_Types"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Treatments"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 15,
+      "belief_entropy": {
+        "columns": 4.2684,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Treatment_Types'] dst=['Treatments', 'Treatment_Types'] literals=[]",
+        "belief0: colH=4.268 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Treatment_Types', 'Treatments']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: Treatments.treatment_type_code'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Treatments'] -> ['Treatment_Types', 'Treatments']",
+        "commit: generate -> ok=True rows=15"
+      ]
+    },
+    {
+      "instance_id": "spider1_988",
+      "db_id": "dog_kennels",
+      "difficulty": "",
+      "question": "What is the age of the oldest dog?",
+      "gold_sql": "SELECT max(age) FROM Dogs",
+      "pred_sql": "SELECT MAX(age) AS oldest_dog_age\nFROM Dogs",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [],
+      "destinations": [
+        "Dogs"
+      ],
+      "linked_tables": [
+        "Dogs"
+      ],
+      "chosen_path": [
+        "Dogs"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.1567,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=[] dst=['Dogs'] literals=[]",
+        "belief0: colH=4.157 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_1003",
+      "db_id": "singer",
+      "difficulty": "",
+      "question": "What are the names of singers ordered by ascending net worth?",
+      "gold_sql": "SELECT Name FROM singer ORDER BY Net_Worth_Millions ASC",
+      "pred_sql": "SELECT Name\nFROM singer\nORDER BY Net_Worth_Millions ASC",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 8,
+      "belief_entropy": {
+        "columns": 2.006,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=[] dst=['singer'] literals=[]",
+        "belief0: colH=2.006 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=8"
+      ]
+    },
+    {
+      "instance_id": "spider1_1010",
+      "db_id": "singer",
+      "difficulty": "",
+      "question": "What is the name of the singer with the largest net worth?",
+      "gold_sql": "SELECT Name FROM singer ORDER BY Net_Worth_Millions DESC LIMIT 1",
+      "pred_sql": "SELECT Name \nFROM singer \nORDER BY Net_Worth_Millions DESC \nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "singer"
+      ],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6716,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['singer'] dst=['singer'] literals=[]",
+        "belief0: colH=1.672 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_1013",
+      "db_id": "singer",
+      "difficulty": "",
+      "question": "For each citizenship, how many singers are from that country?",
+      "gold_sql": "SELECT Citizenship ,  COUNT(*) FROM singer GROUP BY Citizenship",
+      "pred_sql": "SELECT Citizenship, COUNT(*) AS singer_count\nFROM singer\nGROUP BY Citizenship",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 2.9976,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=[] dst=['singer'] literals=[]",
+        "belief0: colH=2.998 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "spider1_1021",
+      "db_id": "singer",
+      "difficulty": "",
+      "question": "what are the different names of the singers that have sales more than 300000?",
+      "gold_sql": "SELECT DISTINCT T1.Name FROM singer AS T1 JOIN song AS T2 ON T1.Singer_ID  =  T2.Singer_ID WHERE T2.Sales  >  300000",
+      "pred_sql": "SELECT DISTINCT s.Name\nFROM singer s\nJOIN song so ON s.Singer_ID = so.Singer_ID\nWHERE so.Sales > 300000",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "song"
+      ],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "song",
+        "singer"
+      ],
+      "chosen_path": [
+        "song",
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 0.2873,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['song'] dst=['singer'] literals=['300000']",
+        "belief0: colH=0.287 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "spider1_1028",
+      "db_id": "singer",
+      "difficulty": "",
+      "question": "Show the citizenship shared by singers with birth year before 1945 and after 1955.",
+      "gold_sql": "SELECT Citizenship FROM singer WHERE Birth_Year  <  1945 INTERSECT SELECT Citizenship FROM singer WHERE Birth_Year  >  1955",
+      "pred_sql": "SELECT Citizenship\nFROM singer\nWHERE Birth_Year < 1945\nINTERSECT\nSELECT Citizenship\nFROM singer\nWHERE Birth_Year > 1955",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "singer"
+      ],
+      "destinations": [
+        "singer"
+      ],
+      "linked_tables": [
+        "singer"
+      ],
+      "chosen_path": [
+        "singer"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.2403,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['singer'] dst=['singer'] literals=['1945', '1955']",
+        "belief0: colH=2.240 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_1030",
+      "db_id": "real_estate_properties",
+      "difficulty": "",
+      "question": "How many available features are there in total?",
+      "gold_sql": "SELECT count(*) FROM Other_Available_Features",
+      "pred_sql": "SELECT COUNT(*) AS total_available_features\nFROM Other_Available_Features",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [],
+      "destinations": [
+        "Other_Available_Features"
+      ],
+      "linked_tables": [
+        "Other_Available_Features"
+      ],
+      "chosen_path": [
+        "Other_Available_Features"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.7803,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=[] dst=['Other_Available_Features'] literals=[]",
+        "belief0: colH=3.780 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_1031",
+      "db_id": "real_estate_properties",
+      "difficulty": "",
+      "question": "What is the feature type name of feature AirCon?",
+      "gold_sql": "SELECT T2.feature_type_name FROM Other_Available_Features AS T1 JOIN Ref_Feature_Types AS T2 ON T1.feature_type_code  =  T2.feature_type_code WHERE T1.feature_name  =  \"AirCon\"",
+      "pred_sql": "SELECT rft.feature_type_name\nFROM Other_Available_Features oaf\nJOIN Ref_Feature_Types rft ON oaf.feature_type_code = rft.feature_type_code\nWHERE oaf.feature_name = 'AirCon'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "Other_Available_Features"
+      ],
+      "destinations": [
+        "Ref_Feature_Types"
+      ],
+      "linked_tables": [
+        "Other_Available_Features",
+        "Ref_Feature_Types"
+      ],
+      "chosen_path": [
+        "Other_Available_Features",
+        "Ref_Feature_Types"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.3487,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['Other_Available_Features'] dst=['Ref_Feature_Types'] literals=['AirCon']",
+        "belief0: colH=2.349 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "spider1_1032",
+      "db_id": "real_estate_properties",
+      "difficulty": "",
+      "question": "Show the property type descriptions of properties belonging to that code.",
+      "gold_sql": "SELECT T2.property_type_description FROM Properties AS T1 JOIN Ref_Property_Types AS T2 ON T1.property_type_code  =  T2.property_type_code GROUP BY T1.property_type_code",
+      "pred_sql": "SELECT DISTINCT rpt.property_type_description\nFROM Properties p\nJOIN Ref_Property_Types rpt ON p.property_type_code = rpt.property_type_code",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "Properties"
+      ],
+      "destinations": [
+        "Ref_Property_Types"
+      ],
+      "linked_tables": [
+        "Properties",
+        "Ref_Property_Types"
+      ],
+      "chosen_path": [
+        "Properties",
+        "Ref_Property_Types"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 3.2839,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['Properties'] dst=['Ref_Property_Types'] literals=[]",
+        "belief0: colH=3.284 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "spider1_1033",
+      "db_id": "real_estate_properties",
+      "difficulty": "",
+      "question": "What are the names of properties that are either houses or apartments with more than 1 room?",
+      "gold_sql": "SELECT property_name FROM Properties WHERE property_type_code  =  \"House\" UNION SELECT property_name FROM Properties WHERE property_type_code  =  \"Apartment\" AND room_count  >  1",
+      "pred_sql": "SELECT p.property_name\nFROM Properties p\nJOIN Ref_Property_Types rpt ON p.property_type_code = rpt.property_type_code\nWHERE (rpt.property_type_description LIKE '%house%' OR rpt.property_type_description LIKE '%apartment%')\n  AND p.room_count > 1",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "Properties"
+      ],
+      "destinations": [
+        "Properties"
+      ],
+      "linked_tables": [
+        "Properties",
+        "Ref_Property_Types"
+      ],
+      "chosen_path": [
+        "Properties"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "column_hints": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Ref_Property_Types"
+      ],
+      "missing_rejected": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 7,
+      "belief_entropy": {
+        "columns": 3.8815,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['Properties'] dst=['Properties'] literals=['houses', 'apartments']",
+        "belief0: colH=3.882 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Ref_Property_Types'] -> ['Properties', 'Ref_Property_Types']",
+        "commit: generate -> ok=True rows=7"
+      ]
+    }
+  ]
+}
