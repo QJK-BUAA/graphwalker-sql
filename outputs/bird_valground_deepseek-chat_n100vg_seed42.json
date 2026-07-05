@@ -1,0 +1,5092 @@
+{
+  "run_id": "bird_valground_deepseek-chat_n100vg_seed42",
+  "timestamp": "2026-07-02T01:04:08",
+  "args": {
+    "dataset": "bird",
+    "limit": 100,
+    "full": false,
+    "seed": 42,
+    "model": "deepseek-chat",
+    "ablation": "valground",
+    "workers": 6,
+    "outdir": "outputs",
+    "no_eval": false,
+    "with_snapshot": false,
+    "tag": "n100vg"
+  },
+  "model": "deepseek-chat",
+  "seed": 42,
+  "ablation": "valground",
+  "ablation_config": {
+    "use_inferred_graph": true,
+    "use_belief_walk": true,
+    "use_topk": true,
+    "use_probes": true,
+    "use_entropy_stop": true,
+    "use_propose": true,
+    "value_verify": true,
+    "value_probe": true,
+    "max_repairs": 1,
+    "repair_on_empty": true,
+    "use_evidence_injection": false,
+    "use_column_align": false,
+    "use_value_grounding": true
+  },
+  "dataset": "bird",
+  "n_questions": 100,
+  "elapsed_sec": 367.8,
+  "llm_stats": {
+    "num_calls": 309,
+    "input_tokens": 183986,
+    "output_tokens": 11348
+  },
+  "official_eval": {
+    "n": 100,
+    "ex": 46.0,
+    "correct": 46,
+    "per_question": [
+      {
+        "instance_id": "bird_2",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_9",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_28",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_32",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_36",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_40",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_64",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_83",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_85",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_87",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_114",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_115",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_135",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_144",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_149",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_153",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_173",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_177",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_193",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_206",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_208",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_215",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_226",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_230",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_265",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_284",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_325",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_332",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_354",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_466",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_470",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_474",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_485",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_506",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_515",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_523",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_528",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_565",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_576",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_590",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_598",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_621",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_634",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_639",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_665",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_694",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_722",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_730",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_751",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_782",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_792",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_810",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_819",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_829",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_830",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_879",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_896",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_950",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_953",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_963",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_980",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_987",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_988",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1011",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1031",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1058",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1080",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1089",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1093",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1095",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1117",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1122",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1139",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1151",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1154",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1177",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1194",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1223",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1229",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1247",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1255",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1280",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1332",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1339",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1359",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1388",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1393",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1425",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1427",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1446",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1448",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1474",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1476",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1481",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1487",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1488",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1498",
+        "res": 0
+      },
+      {
+        "instance_id": "bird_1506",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1519",
+        "res": 1
+      },
+      {
+        "instance_id": "bird_1526",
+        "res": 0
+      }
+    ],
+    "simple": 60.61,
+    "challenging": 32.35,
+    "moderate": 45.45
+  },
+  "records": [
+    {
+      "instance_id": "bird_2",
+      "db_id": "california_schools",
+      "difficulty": "simple",
+      "question": "Please list the zip code of all the charter schools in Fresno County Office of Education.",
+      "gold_sql": "SELECT T2.Zip FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`District Name` = 'Fresno County Office of Education' AND T1.`Charter School (Y/N)` = 1",
+      "pred_sql": "SELECT schools.Zip\nFROM schools\nWHERE schools.District = 'Fresno County Office of Education'\n  AND schools.Charter = 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "schools"
+      ],
+      "destinations": [
+        "schools"
+      ],
+      "linked_tables": [
+        "schools"
+      ],
+      "chosen_path": [
+        "schools"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 6,
+      "belief_entropy": {
+        "columns": 2.3552,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['schools'] dst=['schools'] literals=[]",
+        "belief0: colH=2.355 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=6"
+      ]
+    },
+    {
+      "instance_id": "bird_9",
+      "db_id": "california_schools",
+      "difficulty": "simple",
+      "question": "Among the schools with the average score in Math over 560 in the SAT test, how many schools are directly charter-funded?",
+      "gold_sql": "SELECT COUNT(T2.`School Code`) FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath > 560 AND T2.`Charter Funding Type` = 'Directly funded'",
+      "pred_sql": "```sql\nSELECT COUNT(DISTINCT s.CDSCode)\nFROM schools s\nJOIN satscores sat ON sat.cds = s.CDSCode\nWHERE sat.AvgScrMath > 560\n  AND s.FundingType = 'Directly funded'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "satscores"
+      ],
+      "destinations": [
+        "schools"
+      ],
+      "linked_tables": [
+        "frpm",
+        "satscores",
+        "schools"
+      ],
+      "chosen_path": [
+        "satscores",
+        "schools"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "frpm"
+      ],
+      "repaired": false,
+      "exec_ok": false,
+      "exec_rows": null,
+      "belief_entropy": {
+        "columns": 3.1439,
+        "values": 3.1499,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['satscores'] dst=['schools'] literals=['560']",
+        "belief0: colH=3.144 valH=3.150 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['frpm'] -> ['frpm', 'satscores', 'schools']",
+        "commit: generate -> ok=False rows=unrecognized token: \"```sql\nSELECT COUNT(DISTINCT s.CDSCode)\nFROM schools s\nJOIN satscores sat ON sat.cds = s.CDSCode\nWHERE sat.AvgScrMath > 560\n  AND s.FundingType = 'Directly funded'\"",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "bird_28",
+      "db_id": "california_schools",
+      "difficulty": "challenging",
+      "question": "Consider the average difference between K-12 enrollment and 15-17 enrollment of schools that are locally funded, list the names and DOC type of schools which has a difference above this average.",
+      "gold_sql": "SELECT T2.School, T2.DOC FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.FundingType = 'Locally funded' AND (T1.`Enrollment (K-12)` - T1.`Enrollment (Ages 5-17)`) > (SELECT AVG(T3.`Enrollment (K-12)` - T3.`Enrollment (Ages 5-17)`) FROM frpm AS T3 INNER JOIN schools AS T4 ON T3.CDSCode = T4.CDSCode WHERE T4.FundingType = 'Locally funded')",
+      "pred_sql": "-- Compute the average difference for locally funded schools, then list schools with difference above that average\nWITH diff_data AS (\n    SELECT \n        s.School,\n        s.DOC,\n        (f.`Enrollment (K-12)` - f.`Enrollment (Ages 5-17)`) AS diff\n    FROM schools s\n    JOIN frpm f ON s.CDSCode = f.CDSCode\n    WHERE f.`Charter Funding Type` = 'Locally funded'\n),\navg_diff AS (\n    SELECT AVG(diff) AS avg_val\n    FROM diff_data\n)\nSELECT \n    d.School,\n    d.DOC\nFROM diff_data d, avg_diff a\nWHERE d.diff > a.avg_val",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "frpm"
+      ],
+      "destinations": [
+        "schools",
+        "frpm"
+      ],
+      "linked_tables": [
+        "frpm",
+        "satscores",
+        "schools"
+      ],
+      "chosen_path": [
+        "frpm",
+        "schools"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "satscores"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 49,
+      "belief_entropy": {
+        "columns": 3.9936,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['frpm'] dst=['schools', 'frpm'] literals=[]",
+        "belief0: colH=3.994 valH=0.000 hosts=0",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['frpm', 'schools']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['satscores'] -> ['frpm', 'satscores', 'schools']",
+        "commit: generate -> ok=True rows=49"
+      ]
+    },
+    {
+      "instance_id": "bird_32",
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the eligible free or reduced price meal rate for the top 5 schools in grades 1-12 with the highest free or reduced price meal count of the schools with the ownership code 66?",
+      "gold_sql": "SELECT CAST(T1.`FRPM Count (K-12)` AS REAL) / T1.`Enrollment (K-12)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.SOC = 66 ORDER BY T1.`FRPM Count (K-12)` DESC LIMIT 5",
+      "pred_sql": "SELECT \n    s.CDSCode,\n    s.School,\n    CAST(f.`FRPM Count (K-12)` AS REAL) / f.`Enrollment (K-12)` AS eligible_free_reduced_rate\nFROM schools s\nJOIN frpm f ON s.CDSCode = f.CDSCode\nWHERE s.DOC = '66'\nORDER BY f.`FRPM Count (K-12)` DESC\nLIMIT 5",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "frpm"
+      ],
+      "destinations": [
+        "frpm"
+      ],
+      "linked_tables": [
+        "frpm",
+        "schools"
+      ],
+      "chosen_path": [
+        "frpm"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "schools"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 2.9877,
+        "values": 3.1232,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['frpm'] dst=['frpm'] literals=['66']",
+        "belief0: colH=2.988 valH=3.123 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['schools'] -> ['frpm', 'schools']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "bird_36",
+      "db_id": "california_schools",
+      "difficulty": "challenging",
+      "question": "Under whose administration is the school with the highest number of students scoring 1500 or more on the SAT? Indicate their full names.",
+      "gold_sql": "SELECT T2.AdmFName1, T2.AdmLName1, T2.AdmFName2, T2.AdmLName2, T2.AdmFName3, T2.AdmLName3 FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1",
+      "pred_sql": "SELECT \n    COALESCE(s.AdmFName1 || ' ' || s.AdmLName1, '') AS admin1,\n    COALESCE(s.AdmFName2 || ' ' || s.AdmLName2, '') AS admin2,\n    COALESCE(s.AdmFName3 || ' ' || s.AdmLName3, '') AS admin3\nFROM satscores sc\nJOIN schools s ON sc.cds = s.CDSCode\nORDER BY sc.NumGE1500 DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "satscores"
+      ],
+      "destinations": [
+        "schools"
+      ],
+      "linked_tables": [
+        "satscores",
+        "schools"
+      ],
+      "chosen_path": [
+        "satscores",
+        "schools"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.8287,
+        "values": 2.9098,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['satscores'] dst=['schools'] literals=['1500']",
+        "belief0: colH=3.829 valH=2.910 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_40",
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the telephone number for the school with the lowest average score in reading in Fresno Unified?",
+      "gold_sql": "SELECT T2.Phone FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.District = 'Fresno Unified' AND T1.AvgScrRead IS NOT NULL ORDER BY T1.AvgScrRead ASC LIMIT 1",
+      "pred_sql": "SELECT s.Phone\nFROM schools s\nJOIN satscores sc ON s.CDSCode = sc.cds\nWHERE (s.District = 'Fresno Unified' OR sc.dname = 'Fresno Unified')\nORDER BY sc.AvgScrRead ASC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "satscores"
+      ],
+      "destinations": [
+        "schools"
+      ],
+      "linked_tables": [
+        "satscores",
+        "schools"
+      ],
+      "chosen_path": [
+        "satscores",
+        "schools"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.3851,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['satscores'] dst=['schools'] literals=['Fresno Unified']",
+        "belief0: colH=3.385 valH=1.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_64",
+      "db_id": "california_schools",
+      "difficulty": "simple",
+      "question": "What is the total number of schools with a mailing city in Hickman belonging to the charter number 00D4?",
+      "gold_sql": "SELECT COUNT(*) FROM schools WHERE CharterNum = '00D4' AND MailCity = 'Hickman'",
+      "pred_sql": "SELECT COUNT(*) AS total_schools\nFROM schools\nWHERE (MailCity = 'Hickman')\n  AND CharterNum = '00D4'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "schools"
+      ],
+      "destinations": [
+        "schools"
+      ],
+      "linked_tables": [
+        "schools"
+      ],
+      "chosen_path": [
+        "schools"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.7208,
+        "values": 2.4094,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['schools'] dst=['schools'] literals=['Hickman', '00D4']",
+        "belief0: colH=2.721 valH=2.409 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_83",
+      "db_id": "california_schools",
+      "difficulty": "challenging",
+      "question": "Of the schools that offers a magnet program serving a grade span of Kindergarten to 8th grade, how many offers Multiple Provision Types? List the number of cities that offers a Kindergarten to 8th grade span and indicate how many schools are there serving such grade span for each city.",
+      "gold_sql": "SELECT T2.City, COUNT(T2.CDSCode) FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.Magnet = 1 AND T2.GSoffered = 'K-8' AND T1.`NSLP Provision Status` = 'Multiple Provision Types' GROUP BY T2.City",
+      "pred_sql": "SELECT City, COUNT(*) AS school_count\nFROM schools\nWHERE Magnet = 1\n  AND GSoffered = 'K-8'\n  AND \"NSLP Provision Status\" = 'Multiple Provision Types'\nGROUP BY City\nORDER BY City",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "schools",
+        "frpm"
+      ],
+      "destinations": [
+        "schools",
+        "frpm"
+      ],
+      "linked_tables": [
+        "schools"
+      ],
+      "chosen_path": [
+        "schools"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.3811,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['schools', 'frpm'] dst=['schools', 'frpm'] literals=['Kindergarten to 8th grade', 'K-8', 'Multiple Provision Types']",
+        "belief0: colH=3.381 valH=0.000 hosts=0",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['schools']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=False rows=You can only execute one statement at a time.",
+        "commit: repair -> ok=True rows=0"
+      ]
+    },
+    {
+      "instance_id": "bird_85",
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the Percent (%) Eligible Free (K-12) in the school administered by an administrator whose first name is Alusine. List the district code of the school.",
+      "gold_sql": "SELECT T1.`Free Meal Count (K-12)` * 100 / T1.`Enrollment (K-12)`, T1.`District Code` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.AdmFName1 = 'Alusine'",
+      "pred_sql": "SELECT \n    frpm.`District Code`,\n    (CAST(frpm.`Free Meal Count (K-12)` AS REAL) / frpm.`Enrollment (K-12)`) * 100.0 AS `Percent (%) Eligible Free (K-12)`\nFROM frpm\nJOIN schools ON frpm.CDSCode = schools.CDSCode\nWHERE schools.AdmFName1 = 'Alusine'\n   OR schools.AdmFName2 = 'Alusine'\n   OR schools.AdmFName3 = 'Alusine'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "schools"
+      ],
+      "destinations": [
+        "frpm"
+      ],
+      "linked_tables": [
+        "schools",
+        "frpm"
+      ],
+      "chosen_path": [
+        "schools",
+        "frpm"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.7524,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['schools'] dst=['frpm'] literals=['Alusine']",
+        "belief0: colH=2.752 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_87",
+      "db_id": "california_schools",
+      "difficulty": "challenging",
+      "question": "What are the valid e-mail addresses of the administrator of the school located in the San Bernardino county, City of San Bernardino City Unified that opened between 1/1/2009 to 12/31/2010 whose school types are public Intermediate/Middle Schools and Unified Schools?",
+      "gold_sql": "SELECT T2.AdmEmail1, T2.AdmEmail2 FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'San Bernardino' AND T2.City = 'San Bernardino' AND T2.DOC = 54 AND strftime('%Y', T2.OpenDate) BETWEEN '2009' AND '2010' AND T2.SOC = 62",
+      "pred_sql": "SELECT AdmEmail1, AdmEmail2, AdmEmail3\nFROM schools\nWHERE County = 'San Bernardino'\n  AND City = 'San Bernardino'\n  AND District = 'San Bernardino City Unified'\n  AND OpenDate BETWEEN '2009-01-01' AND '2010-12-31'\n  AND (SOC = '62' OR DOC = '54')\n  AND (AdmEmail1 IS NOT NULL AND AdmEmail1 != '')",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "schools"
+      ],
+      "destinations": [
+        "schools"
+      ],
+      "linked_tables": [
+        "schools"
+      ],
+      "chosen_path": [
+        "schools"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 3.5159,
+        "values": 2.5452,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['schools'] dst=['schools'] literals=['San Bernardino', 'San Bernardino City Unified', '1/1/2009', '12/31/2010', '62', '54']",
+        "belief0: colH=3.516 valH=2.545 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "bird_114",
+      "db_id": "financial",
+      "difficulty": "simple",
+      "question": "For the first client who opened his/her account in Prague, what is his/her account ID?",
+      "gold_sql": "SELECT T1.account_id FROM account AS T1 INNER JOIN district AS T2 ON T1.district_id = T2.district_id WHERE T2.A3 = 'Prague' ORDER BY T1.date ASC LIMIT 1",
+      "pred_sql": "SELECT a.account_id\nFROM account a\nJOIN district d ON a.district_id = d.district_id\nWHERE d.A3 = 'Prague'\nORDER BY a.date ASC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "district"
+      ],
+      "destinations": [
+        "account"
+      ],
+      "linked_tables": [
+        "district",
+        "client",
+        "disp",
+        "account"
+      ],
+      "chosen_path": [
+        "district",
+        "client",
+        "disp",
+        "account"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.0289,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['district'] dst=['account'] literals=['Prague']",
+        "belief0: colH=1.029 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['district', 'account']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: account.district_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_115",
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "For the branch which located in the south Bohemia with biggest number of inhabitants, what is the percentage of the male clients?",
+      "gold_sql": "SELECT CAST(SUM(T1.gender = 'M') AS REAL) * 100 / COUNT(T1.client_id) FROM client AS T1 INNER JOIN district AS T2 ON T1.district_id = T2.district_id WHERE T2.A3 = 'south Bohemia' GROUP BY T2.A4 ORDER BY T2.A4 DESC LIMIT 1",
+      "pred_sql": "SELECT \n    CAST(SUM(CASE WHEN c.gender = 'M' THEN 1 ELSE 0 END) AS REAL) / COUNT(*) * 100 AS male_percentage\nFROM district d\nJOIN account a ON a.district_id = d.district_id\nJOIN disp dp ON dp.account_id = a.account_id\nJOIN client c ON c.client_id = dp.client_id\nWHERE d.A3 = 'south Bohemia'\n  AND d.A4 = (\n      SELECT MAX(d2.A4)\n      FROM district d2\n      WHERE d2.A3 = 'south Bohemia'\n  )",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "district"
+      ],
+      "destinations": [
+        "client",
+        "district"
+      ],
+      "linked_tables": [
+        "account",
+        "client",
+        "disp",
+        "district"
+      ],
+      "chosen_path": [
+        "district"
+      ],
+      "n_probes": 2,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "client",
+        "disp",
+        "account"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.5304,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['district'] dst=['client', 'district'] literals=['south Bohemia', 'M']",
+        "belief0: colH=2.530 valH=0.000 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['district', 'client']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: client.district_id'}",
+        "explore: probe P1 ['district', 'account', 'disp', 'client']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: district.district_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['client', 'disp', 'account'] -> ['account', 'client', 'disp', 'district']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_135",
+      "db_id": "financial",
+      "difficulty": "moderate",
+      "question": "After making a credit card withdrawal, how many account/s with monthly issuance has a negative balance?",
+      "gold_sql": "SELECT COUNT(T1.account_id) FROM trans AS T1 INNER JOIN account AS T2 ON T1.account_id = T2.account_id WHERE T1.balance < 0 AND T1.operation = 'VYBER KARTOU' AND T2.frequency = 'POPLATEK MESICNE'",
+      "pred_sql": "SELECT COUNT(DISTINCT a.account_id)\nFROM account a\nJOIN trans t ON a.account_id = t.account_id\nWHERE t.operation = 'VYBER KARTOU'\n  AND a.frequency = 'POPLATEK MESICNE'\n  AND t.balance < 0",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "trans",
+        "account"
+      ],
+      "destinations": [
+        "account"
+      ],
+      "linked_tables": [
+        "trans",
+        "account"
+      ],
+      "chosen_path": [
+        "trans",
+        "account"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.9182,
+        "values": 1.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['trans', 'account'] dst=['account'] literals=['VYBER KARTOU', 'POPLATEK MESICNE']",
+        "belief0: colH=0.918 valH=1.000 hosts=2",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['trans', 'account']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_144",
+      "db_id": "financial",
+      "difficulty": "moderate",
+      "question": "How much is the average amount in credit card made by account holders in a month, in year 2021?",
+      "gold_sql": "SELECT AVG(T4.amount) FROM card AS T1 INNER JOIN disp AS T2 ON T1.disp_id = T2.disp_id INNER JOIN account AS T3 ON T2.account_id = T3.account_id INNER JOIN trans AS T4 ON T3.account_id = T4.account_id WHERE STRFTIME('%Y', T4.date) = '1998' AND T4.operation = 'VYBER KARTOU'",
+      "pred_sql": "SELECT AVG(CAST(t.amount AS REAL)) AS avg_credit_card_amount\nFROM trans t\nJOIN account a ON t.account_id = a.account_id\nJOIN disp d ON d.account_id = a.account_id\nJOIN card c ON c.disp_id = d.disp_id\nWHERE t.operation = 'VYBER KARTOU'\n  AND t.date LIKE '2021%'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "trans"
+      ],
+      "destinations": [
+        "trans"
+      ],
+      "linked_tables": [
+        "account",
+        "card",
+        "client",
+        "disp",
+        "district",
+        "loan",
+        "order",
+        "trans"
+      ],
+      "chosen_path": [
+        "trans"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "account",
+        "card",
+        "client",
+        "disp",
+        "district",
+        "loan",
+        "order"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.922,
+        "values": 2.1424,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['trans'] dst=['trans'] literals=['VYBER KARTOU', '2021']",
+        "belief0: colH=1.922 valH=2.142 hosts=2",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['account', 'card', 'client', 'disp', 'district', 'loan', 'order'] -> ['account', 'card', 'client', 'disp', 'district', 'loan', 'order', 'trans']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_149",
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "Please list the account types that are not eligible for loans, and the average income of residents in the district where the account is located exceeds $8000 but is no more than $9000.",
+      "gold_sql": "SELECT T3.type FROM district AS T1 INNER JOIN account AS T2 ON T1.district_id = T2.district_id INNER JOIN disp AS T3 ON T2.account_id = T3.account_id WHERE T3.type != 'OWNER' AND T1.A11 BETWEEN 8000 AND 9000",
+      "pred_sql": "SELECT a.frequency\nFROM account a\nJOIN district d ON a.district_id = d.district_id\nWHERE d.A11 > 8000 AND d.A11 <= 9000\n  AND a.frequency != 'OWNER'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "district",
+        "account"
+      ],
+      "destinations": [
+        "account",
+        "district"
+      ],
+      "linked_tables": [
+        "account",
+        "district",
+        "loan"
+      ],
+      "chosen_path": [
+        "district"
+      ],
+      "n_probes": 3,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "account",
+        "loan"
+      ],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 2000,
+      "belief_entropy": {
+        "columns": 1.1925,
+        "values": 0.0,
+        "paths": 0.8042
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['district', 'account'] dst=['account', 'district'] literals=['OWNER', '8000', '9000']",
+        "belief0: colH=1.192 valH=0.000 hosts=1",
+        "explore: path entropy=2.585 top_gap=0.00 (6 candidates)",
+        "explore: probe P0 ['district', 'account']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: account.district_id'}",
+        "explore: probe P1 ['district', 'client', 'disp', 'account']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: district.district_id'}",
+        "explore: probe P2 ['district']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['account', 'loan'] -> ['account', 'district', 'loan']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=2000"
+      ]
+    },
+    {
+      "instance_id": "bird_153",
+      "db_id": "financial",
+      "difficulty": "simple",
+      "question": "How many 'classic' cards are eligible for loan?",
+      "gold_sql": "SELECT COUNT(T1.card_id) FROM card AS T1 INNER JOIN disp AS T2 ON T1.disp_id = T2.disp_id WHERE T1.type = 'classic' AND T2.type = 'OWNER'",
+      "pred_sql": "SELECT COUNT(DISTINCT card.card_id)\nFROM card\nJOIN disp ON card.disp_id = disp.disp_id\nJOIN account ON disp.account_id = account.account_id\nJOIN loan ON account.account_id = loan.account_id\nWHERE card.type = 'classic'\n  AND disp.type = 'OWNER'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "disp"
+      ],
+      "destinations": [
+        "card"
+      ],
+      "linked_tables": [
+        "account",
+        "card",
+        "disp",
+        "loan"
+      ],
+      "chosen_path": [
+        "disp",
+        "card"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "account",
+        "loan"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.7786,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['disp'] dst=['card'] literals=['classic', 'OWNER']",
+        "belief0: colH=2.779 valH=1.000 hosts=2",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['account', 'loan'] -> ['account', 'card', 'disp', 'loan']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_173",
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "How often does account number 3 request an account statement to be released? What was the aim of debiting 3539 in total?",
+      "gold_sql": "SELECT T1.frequency, T2.k_symbol FROM account AS T1 INNER JOIN (SELECT account_id, k_symbol, SUM(amount) AS total_amount FROM `order` GROUP BY account_id, k_symbol) AS T2 ON T1.account_id = T2.account_id WHERE T1.account_id = 3 AND T2.total_amount = 3539",
+      "pred_sql": "-- First part: count how often account number 3 requests an account statement\n-- \"account statement\" corresponds to k_symbol = 'POPLATEK MESICNE' (monthly statement) or similar\n-- Based on typical Czech banking data, 'POPLATEK MESICNE' is the k_symbol for account statement issuance\n-- Second part: find the k_symbol (purpose) for debits of amount 3539\n\nSELECT \n    (SELECT COUNT(*) \n     FROM `order` o \n     JOIN account a ON o.account_id = a.account_id \n     WHERE a.account_id = 3 \n       AND o.k_symbol = 'POPLATEK MESICNE') AS statement_request_count,\n    (SELECT t.k_symbol \n     FROM trans t \n     WHERE t.amount = 3539 \n       AND t.type = 'VYDAJ' \n     LIMIT 1) AS debit_purpose",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "trans"
+      ],
+      "destinations": [
+        "trans"
+      ],
+      "linked_tables": [
+        "account",
+        "order",
+        "trans"
+      ],
+      "chosen_path": [
+        "trans"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "account",
+        "order"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.8708,
+        "values": 2.1424,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['trans'] dst=['trans'] literals=['3', '3539']",
+        "belief0: colH=1.871 valH=2.142 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['account', 'order'] -> ['account', 'order', 'trans']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_177",
+      "db_id": "financial",
+      "difficulty": "simple",
+      "question": "What is the sum that client number 4's account has following transaction 851? Who owns this account, a man or a woman?",
+      "gold_sql": "SELECT T4.balance, T1.gender FROM client AS T1 INNER JOIN disp AS T2 ON T1.client_id = T2.client_id INNER JOIN account AS T3 ON T2.account_id =T3.account_id INNER JOIN trans AS T4 ON T3.account_id = T4.account_id WHERE T1.client_id = 4 AND T4.trans_id = 851",
+      "pred_sql": "-- Find the account of client 4, then get the balance after transaction 851, and the gender of the client\nSELECT \n    t.balance AS sum_after_transaction,\n    c.gender\nFROM trans t\nJOIN account a ON t.account_id = a.account_id\nJOIN disp d ON a.account_id = d.account_id\nJOIN client c ON d.client_id = c.client_id\nWHERE c.client_id = 4\n  AND t.trans_id = 851\n  AND d.type = 'OWNER'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "client",
+        "trans"
+      ],
+      "destinations": [
+        "client",
+        "trans"
+      ],
+      "linked_tables": [
+        "account",
+        "client",
+        "disp",
+        "trans"
+      ],
+      "chosen_path": [
+        "client"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "account",
+        "trans",
+        "disp"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.321,
+        "values": 2.4054,
+        "paths": 1.1834
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['client', 'trans'] dst=['client', 'trans'] literals=['4', '851']",
+        "belief0: colH=2.321 valH=2.405 hosts=1",
+        "explore: path entropy=2.585 top_gap=0.00 (6 candidates)",
+        "explore: probe P0 ['client']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['account', 'trans', 'disp'] -> ['account', 'client', 'disp', 'trans']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_193",
+      "db_id": "financial",
+      "difficulty": "moderate",
+      "question": "List all ID and district for clients that can only have the right to issue permanent orders or apply for loans.",
+      "gold_sql": "SELECT T3.client_id, T2.district_id, T2.A2 FROM account AS T1 INNER JOIN district AS T2 ON T1.district_id = T2.district_id INNER JOIN disp AS T3 ON T1.account_id = T3.account_id WHERE T3.type = 'OWNER'",
+      "pred_sql": "SELECT \n    c.client_id AS ID,\n    c.district_id AS district\nFROM client c\nJOIN disp d ON c.client_id = d.client_id\nWHERE d.type = 'OWNER'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "disp"
+      ],
+      "destinations": [
+        "client",
+        "district"
+      ],
+      "linked_tables": [
+        "account",
+        "client",
+        "disp"
+      ],
+      "chosen_path": [
+        "disp",
+        "client"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "account"
+      ],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 2000,
+      "belief_entropy": {
+        "columns": 2.3056,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['disp'] dst=['client', 'district'] literals=['owner']",
+        "belief0: colH=2.306 valH=0.000 hosts=1",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['disp', 'client']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['account'] -> ['account', 'client', 'disp']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=2000"
+      ]
+    },
+    {
+      "instance_id": "bird_206",
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "question": "What elements are in the TR004_8_9 bond atoms?",
+      "gold_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id = 'TR004_8_9'",
+      "pred_sql": "SELECT DISTINCT a.element\nFROM atom a\nJOIN connected c ON a.atom_id = c.atom_id2\nJOIN bond b ON c.bond_id = b.bond_id\nWHERE b.bond_id = 'TR004_8_9'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "bond"
+      ],
+      "destinations": [
+        "atom"
+      ],
+      "linked_tables": [
+        "bond",
+        "connected",
+        "atom"
+      ],
+      "chosen_path": [
+        "bond",
+        "connected",
+        "atom"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.7611,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['bond'] dst=['atom'] literals=['TR004_8_9']",
+        "belief0: colH=1.761 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['bond', 'molecule', 'atom']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: molecule.molecule_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_208",
+      "db_id": "toxicology",
+      "difficulty": "moderate",
+      "question": "Which type of label is the most numerous in atoms with hydrogen?",
+      "gold_sql": "SELECT T.label FROM ( SELECT T2.label, COUNT(T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'h' GROUP BY T2.label ORDER BY COUNT(T2.molecule_id) DESC LIMIT 1 ) t",
+      "pred_sql": "SELECT m.label\nFROM molecule m\nJOIN atom a ON m.molecule_id = a.molecule_id\nWHERE a.element = 'h'\nGROUP BY m.label\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "molecule",
+        "atom"
+      ],
+      "destinations": [
+        "molecule"
+      ],
+      "linked_tables": [
+        "atom",
+        "molecule"
+      ],
+      "chosen_path": [
+        "molecule"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "atom"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.4071,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['molecule', 'atom'] dst=['molecule'] literals=['h']",
+        "belief0: colH=2.407 valH=0.000 hosts=0",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['molecule']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['atom'] -> ['atom', 'molecule']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_215",
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "question": "How many atoms with iodine and with sulfur type elements are there in single bond molecules?",
+      "gold_sql": "SELECT COUNT(DISTINCT CASE WHEN T1.element = 'i' THEN T1.atom_id ELSE NULL END) AS iodine_nums , COUNT(DISTINCT CASE WHEN T1.element = 's' THEN T1.atom_id ELSE NULL END) AS sulfur_nums FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id INNER JOIN bond AS T3 ON T2.bond_id = T3.bond_id WHERE T3.bond_type = '-'",
+      "pred_sql": "SELECT COUNT(DISTINCT a.atom_id)\nFROM atom a\nJOIN connected c1 ON a.atom_id = c1.atom_id\nJOIN connected c2 ON a.atom_id = c2.atom_id2\nJOIN bond b ON c1.bond_id = b.bond_id AND c2.bond_id = b.bond_id\nWHERE a.element IN ('i', 's')\n  AND b.bond_type = '-'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "atom",
+        "bond"
+      ],
+      "destinations": [
+        "atom"
+      ],
+      "linked_tables": [
+        "atom",
+        "connected"
+      ],
+      "chosen_path": [
+        "atom"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "connected"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.7865,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['atom', 'bond'] dst=['atom'] literals=['i', 's', '-']",
+        "belief0: colH=1.787 valH=0.000 hosts=0",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['atom']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['connected'] -> ['atom', 'connected']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_226",
+      "db_id": "toxicology",
+      "difficulty": "moderate",
+      "question": "What is the percentage of double bonds in the molecule TR008? Please provide your answer as a percentage with five decimal places.",
+      "gold_sql": "SELECT ROUND(CAST(COUNT(CASE WHEN T.bond_type = '=' THEN T.bond_id ELSE NULL END) AS REAL) * 100 / COUNT(T.bond_id),5) FROM bond AS T WHERE T.molecule_id = 'TR008'",
+      "pred_sql": "SELECT ROUND(CAST(SUM(CASE WHEN bond_type = '=' THEN 1 ELSE 0 END) AS REAL) / COUNT(bond_id) * 100, 5) AS percentage\nFROM bond\nWHERE molecule_id = 'TR008'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "molecule",
+        "bond"
+      ],
+      "destinations": [
+        "bond"
+      ],
+      "linked_tables": [
+        "bond"
+      ],
+      "chosen_path": [
+        "bond"
+      ],
+      "n_probes": 2,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.8611,
+        "values": 1.7535,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['molecule', 'bond'] dst=['bond'] literals=['=', 'TR008']",
+        "belief0: colH=1.861 valH=1.754 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['molecule', 'bond']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: bond.molecule_id'}",
+        "explore: probe P1 ['molecule', 'atom', 'connected', 'bond']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: molecule.molecule_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_230",
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "question": "What are the elements of the toxicology and label of molecule TR060?",
+      "gold_sql": "SELECT DISTINCT T1.element, T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.molecule_id = 'TR060'",
+      "pred_sql": "SELECT \n  molecule.label,\n  molecule.molecule_id\nFROM molecule\nWHERE molecule.molecule_id = 'TR060'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "molecule"
+      ],
+      "destinations": [
+        "atom",
+        "molecule"
+      ],
+      "linked_tables": [
+        "molecule"
+      ],
+      "chosen_path": [
+        "molecule"
+      ],
+      "n_probes": 2,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.9062,
+        "values": 1.7535,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['molecule'] dst=['atom', 'molecule'] literals=['TR060']",
+        "belief0: colH=1.906 valH=1.754 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['molecule', 'atom']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: atom.molecule_id'}",
+        "explore: probe P1 ['molecule', 'bond', 'connected', 'atom']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: molecule.molecule_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_265",
+      "db_id": "toxicology",
+      "difficulty": "simple",
+      "question": "List down the molecule id for non carcinogenic molecules.",
+      "gold_sql": "SELECT T.molecule_id FROM molecule AS T WHERE T.label = '-'",
+      "pred_sql": "SELECT molecule_id \nFROM molecule \nWHERE label = '-'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "molecule"
+      ],
+      "destinations": [
+        "molecule"
+      ],
+      "linked_tables": [
+        "molecule"
+      ],
+      "chosen_path": [
+        "molecule"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 191,
+      "belief_entropy": {
+        "columns": 0.9628,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['molecule'] dst=['molecule'] literals=['-']",
+        "belief0: colH=0.963 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=191"
+      ]
+    },
+    {
+      "instance_id": "bird_284",
+      "db_id": "toxicology",
+      "difficulty": "moderate",
+      "question": "Determine the bond type that is formed in the chemical compound containing element Carbon.",
+      "gold_sql": "SELECT DISTINCT T2.bond_type FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'c'",
+      "pred_sql": "SELECT DISTINCT b.bond_type\nFROM atom a\nJOIN connected c ON a.atom_id = c.atom_id2\nJOIN bond b ON c.bond_id = b.bond_id\nWHERE a.element = 'c'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "atom"
+      ],
+      "destinations": [
+        "bond"
+      ],
+      "linked_tables": [
+        "atom",
+        "connected",
+        "bond"
+      ],
+      "chosen_path": [
+        "atom",
+        "connected",
+        "bond"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 1.9266,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['atom'] dst=['bond'] literals=['c']",
+        "belief0: colH=1.927 valH=0.000 hosts=0",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['atom', 'molecule', 'bond']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: molecule.molecule_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "bird_325",
+      "db_id": "toxicology",
+      "difficulty": "simple",
+      "question": "How many carcinogenic molecules that consisted of Nitrogen?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.molecule_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.element = 'n' AND T1.label = '+'",
+      "pred_sql": "SELECT COUNT(DISTINCT m.molecule_id)\nFROM molecule m\nJOIN atom a ON m.molecule_id = a.molecule_id\nWHERE m.label = '+'\n  AND LOWER(a.element) = 'n'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "molecule",
+        "atom"
+      ],
+      "destinations": [
+        "molecule"
+      ],
+      "linked_tables": [
+        "atom",
+        "molecule"
+      ],
+      "chosen_path": [
+        "molecule"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "atom"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.0024,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['molecule', 'atom'] dst=['molecule'] literals=['+', 'n']",
+        "belief0: colH=2.002 valH=0.000 hosts=0",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['molecule']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['atom'] -> ['atom', 'molecule']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_332",
+      "db_id": "toxicology",
+      "difficulty": "simple",
+      "question": "Among the molecules between TR004 to TR010, how many of them has single bonds?",
+      "gold_sql": "SELECT COUNT(DISTINCT T.molecule_id) FROM bond AS T WHERE T.molecule_id BETWEEN 'TR004' AND 'TR010' AND T.bond_type = '-'",
+      "pred_sql": "SELECT COUNT(DISTINCT bond.molecule_id)\nFROM bond\nJOIN molecule ON bond.molecule_id = molecule.molecule_id\nWHERE bond.molecule_id BETWEEN 'TR004' AND 'TR010'\n  AND bond.bond_type = '-'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "molecule",
+        "bond"
+      ],
+      "destinations": [
+        "molecule"
+      ],
+      "linked_tables": [
+        "bond",
+        "molecule"
+      ],
+      "chosen_path": [
+        "molecule"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "bond"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.5125,
+        "values": 2.7535,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['molecule', 'bond'] dst=['molecule'] literals=['TR004', 'TR010', '-']",
+        "belief0: colH=1.512 valH=2.754 hosts=2",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['molecule']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['bond'] -> ['bond', 'molecule']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_354",
+      "db_id": "card_games",
+      "difficulty": "simple",
+      "question": "How many types of cards does the artist Aaron Boyd illustrated about card art?",
+      "gold_sql": "SELECT COUNT(type) FROM cards WHERE artist = 'Aaron Boyd'",
+      "pred_sql": "SELECT COUNT(DISTINCT cards.type) \nFROM cards \nWHERE cards.artist = 'Aaron Boyd'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "cards"
+      ],
+      "destinations": [
+        "cards"
+      ],
+      "linked_tables": [
+        "cards"
+      ],
+      "chosen_path": [
+        "cards"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.7799,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['cards'] dst=['cards'] literals=['Aaron Boyd']",
+        "belief0: colH=3.780 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_466",
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Among the cards in the set \"Hauptset Zehnte Edition\", how many of them are designed by Adam Rex?",
+      "gold_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T2.translation = 'Hauptset Zehnte Edition' AND T1.artist = 'Adam Rex'",
+      "pred_sql": "SELECT COUNT(*) AS card_count\nFROM cards\nWHERE setCode = 'Hauptset Zehnte Edition'\n  AND artist = 'Adam Rex'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "cards",
+        "sets",
+        "set_translations"
+      ],
+      "destinations": [
+        "cards"
+      ],
+      "linked_tables": [
+        "cards"
+      ],
+      "chosen_path": [
+        "cards"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.996,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['cards', 'sets', 'set_translations'] dst=['cards'] literals=['Hauptset Zehnte Edition', 'Adam Rex']",
+        "belief0: colH=3.996 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_470",
+      "db_id": "card_games",
+      "difficulty": "simple",
+      "question": "When was the set of cards with \"Ancestor's Chosen\" released?",
+      "gold_sql": "SELECT DISTINCT T2.releaseDate FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T1.name = 'Ancestor''s Chosen'",
+      "pred_sql": "SELECT s.releaseDate\nFROM cards c\nJOIN sets s ON c.setCode = s.code\nWHERE c.name = 'Ancestor''s Chosen'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "cards"
+      ],
+      "destinations": [
+        "sets"
+      ],
+      "linked_tables": [
+        "cards",
+        "sets"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 4.2201,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['cards'] dst=['sets'] literals=[\"Ancestor's Chosen\"]",
+        "belief0: colH=4.220 valH=0.000 hosts=1",
+        "explore: no path between anchors; union fallback -> ['cards', 'sets']",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "bird_474",
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Among the sets of cards that have an Italian translation, how many of them have a base set number of under 100?",
+      "gold_sql": "SELECT COUNT(T1.id) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.translation IS NOT NULL AND T1.baseSetSize < 100 AND T2.language = 'Italian'",
+      "pred_sql": "SELECT COUNT(DISTINCT sets.code)\nFROM sets\nJOIN set_translations ON sets.code = set_translations.setCode\nWHERE set_translations.language = 'Italian'\n  AND set_translations.translation IS NOT NULL\n  AND sets.baseSetSize < 10",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "set_translations",
+        "sets"
+      ],
+      "destinations": [
+        "sets"
+      ],
+      "linked_tables": [
+        "set_translations",
+        "sets"
+      ],
+      "chosen_path": [
+        "set_translations",
+        "sets"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.164,
+        "values": 0.5271,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['set_translations', 'sets'] dst=['sets'] literals=['Italian']",
+        "belief0: colH=4.164 valH=0.527 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['set_translations', 'sets']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_485",
+      "db_id": "card_games",
+      "difficulty": "simple",
+      "question": "When was the ruling for the card 'Reminisce' created?",
+      "gold_sql": "SELECT T2.date FROM cards AS T1 INNER JOIN rulings AS T2 ON T2.uuid = T1.uuid WHERE T1.name = 'Reminisce'",
+      "pred_sql": "SELECT r.date\nFROM rulings r\nJOIN cards c ON r.uuid = c.uuid\nWHERE c.name = 'Reminisce'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "cards",
+        "rulings"
+      ],
+      "destinations": [
+        "rulings"
+      ],
+      "linked_tables": [
+        "cards",
+        "rulings"
+      ],
+      "chosen_path": [
+        "rulings"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "cards"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 3.7627,
+        "values": 0.5271,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['cards', 'rulings'] dst=['rulings'] literals=['Reminisce']",
+        "belief0: colH=3.763 valH=0.527 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['cards', 'rulings']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: rulings.uuid'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['cards'] -> ['cards', 'rulings']",
+        "commit: generate -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "bird_506",
+      "db_id": "card_games",
+      "difficulty": "challenging",
+      "question": "For all the set of cards that has Japanese translation, what is the percentage of them are only available in non-foil?",
+      "gold_sql": "SELECT CAST(SUM(CASE WHEN isNonFoilOnly = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(id) FROM sets WHERE code IN ( SELECT setCode FROM set_translations WHERE language = 'Japanese' )",
+      "pred_sql": "SELECT \n    CAST(SUM(CASE WHEN c.hasNonFoil = 1 AND c.hasFoil = 0 THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*) AS percentage_non_foil_only\nFROM foreign_data fd\nJOIN cards c ON fd.uuid = c.uuid\nWHERE fd.language = 'Japanese'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "foreign_data",
+        "cards"
+      ],
+      "destinations": [
+        "cards"
+      ],
+      "linked_tables": [
+        "foreign_data",
+        "cards"
+      ],
+      "chosen_path": [
+        "foreign_data",
+        "cards"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.29,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['foreign_data', 'cards'] dst=['cards'] literals=['Japanese']",
+        "belief0: colH=4.290 valH=0.000 hosts=0",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['foreign_data', 'cards']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_515",
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "When was the oldest mythic card released and what are its legal play formats?",
+      "gold_sql": "SELECT T1.originalReleaseDate, T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.rarity = 'mythic' AND T1.originalReleaseDate IS NOT NULL AND T2.status = 'Legal' ORDER BY T1.originalReleaseDate LIMIT 1",
+      "pred_sql": "SELECT \n    MIN(cards.originalReleaseDate) AS oldest_release_date,\n    'legal' AS legal_play_status,\n    'format' AS play_format\nFROM cards\nWHERE cards.rarity = 'mythic'\n  AND cards.originalReleaseDate IS NOT NULL",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "cards"
+      ],
+      "destinations": [
+        "cards",
+        "legalities"
+      ],
+      "linked_tables": [
+        "cards"
+      ],
+      "chosen_path": [
+        "cards"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.8699,
+        "values": 1.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['cards'] dst=['cards', 'legalities'] literals=['mythic', 'legal']",
+        "belief0: colH=3.870 valH=1.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['cards']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_523",
+      "db_id": "card_games",
+      "difficulty": "challenging",
+      "question": "What is the annual average number of sets that were released between 1/1/2012 to 12/31/2015? Indicate the common langugage of the card.",
+      "gold_sql": "SELECT (CAST(SUM(T1.id) AS REAL) / COUNT(T1.id)) / 4, T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.id = T2.id WHERE T1.releaseDate BETWEEN '2012-01-01' AND '2015-12-31' GROUP BY T1.releaseDate ORDER BY COUNT(T2.language) DESC LIMIT 1",
+      "pred_sql": "-- Calculate the annual average number of sets released between 2012 and 2015\n-- and find the most common language among cards in those sets\nWITH sets_in_period AS (\n    SELECT \n        s.id AS set_id,\n        s.code,\n        s.releaseDate,\n        s.name AS set_name\n    FROM sets s\n    WHERE s.releaseDate BETWEEN '2012-01-01' AND '2015-12-31'\n),\n-- Count sets per year\nsets_per_year AS (\n    SELECT \n        CAST(strftime('%Y', releaseDate) AS INTEGER) AS year,\n        COUNT(*) AS set_count\n    FROM sets_in_period\n    GROUP BY year\n),\n-- Calculate annual average number of sets\nannual_avg_sets AS (\n    SELECT \n        CAST(SUM(set_count) AS REAL) / COUNT(DISTINCT year) AS avg_sets_per_year\n    FROM sets_per_year\n),\n-- Find the most common language among cards in these sets\n-- Since there's no language column in the schema, we'll use the card's text field as a proxy\n-- or we can note that the schema doesn't have a language column\n-- Based on the external knowledge hint, we'll look at the most frequent card name or type\n-- Actually, since no language column exists, we'll return 'English' as the default common language\n-- as most Magic cards are in English\ncard_language_stats AS (\n    SELECT \n        'English' AS common_language\n)\nSELECT \n    a.avg_sets_per_year AS annual_average_number_of_sets,\n    c.common_language\nFROM annual_avg_sets a, card_language_stats c",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "sets"
+      ],
+      "destinations": [
+        "sets",
+        "foreign_data"
+      ],
+      "linked_tables": [
+        "cards",
+        "sets"
+      ],
+      "chosen_path": [
+        "sets"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "cards"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.0521,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['sets'] dst=['sets', 'foreign_data'] literals=['1/1/2012', '12/31/2015']",
+        "belief0: colH=4.052 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['cards'] -> ['cards', 'sets']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_528",
+      "db_id": "card_games",
+      "difficulty": "challenging",
+      "question": "List the names of all the cards in the set Hour of Devastation and find the formats in which these cards are legal.",
+      "gold_sql": "SELECT DISTINCT T2.name , CASE WHEN T1.status = 'Legal' THEN T1.format ELSE NULL END FROM legalities AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid WHERE T2.setCode IN ( SELECT code FROM sets WHERE name = 'Hour of Devastation' )",
+      "pred_sql": "SELECT c.name, l.format\nFROM cards c\nJOIN legalities l ON c.uuid = l.uuid\nWHERE c.name = 'Hour of Devastation'\n  AND l.status = 'Legal'",
+      "graph_method": "declared",
+      "n_edges": 4,
+      "sources": [
+        "sets",
+        "legalities"
+      ],
+      "destinations": [
+        "cards",
+        "legalities"
+      ],
+      "linked_tables": [
+        "legalities",
+        "cards"
+      ],
+      "chosen_path": [
+        "legalities",
+        "cards"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 27,
+      "belief_entropy": {
+        "columns": 4.1381,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=4",
+        "anchor: src=['sets', 'legalities'] dst=['cards', 'legalities'] literals=['Hour of Devastation', 'Legal']",
+        "belief0: colH=4.138 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['legalities', 'cards']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=27"
+      ]
+    },
+    {
+      "instance_id": "bird_565",
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "User No.23853 gave a comment to a post at 9:08:18 on 2013/7/12, was that post well-finished?",
+      "gold_sql": "SELECT IIF(T2.ClosedDate IS NULL, 'NOT well-finished', 'well-finished') AS resylt FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T1.UserId = 23853 AND T1.CreationDate = '2013-07-12 09:08:18.0'",
+      "pred_sql": "SELECT \n    CASE \n        WHEN p.ClosedDate IS NULL THEN 'yes'\n        ELSE 'no'\n    END AS well_finished\nFROM comments c\nJOIN posts p ON c.PostId = p.Id\nWHERE c.UserId = '23853'\n  AND c.CreationDate = '2013-07-12 09:08:18.0'",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "comments"
+      ],
+      "destinations": [
+        "posts"
+      ],
+      "linked_tables": [
+        "comments",
+        "posts"
+      ],
+      "chosen_path": [
+        "comments",
+        "posts"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.0074,
+        "values": 3.1948,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['comments'] dst=['posts'] literals=['23853', '2013-07-12 09:08:18.0']",
+        "belief0: colH=3.007 valH=3.195 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['comments', 'posts']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_576",
+      "db_id": "codebase_community",
+      "difficulty": "simple",
+      "question": "Name the user that commented 'thank you user93!'",
+      "gold_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.UserId WHERE T2.Text = 'thank you user93!'",
+      "pred_sql": "SELECT u.DisplayName\nFROM comments c\nJOIN users u ON c.UserId = u.Id\nWHERE c.Text = 'thank you user93!'",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "comments"
+      ],
+      "destinations": [
+        "users"
+      ],
+      "linked_tables": [
+        "comments",
+        "users"
+      ],
+      "chosen_path": [
+        "comments",
+        "users"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.4901,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['comments'] dst=['users'] literals=['thank you user93!']",
+        "belief0: colH=1.490 valH=0.000 hosts=0",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['comments', 'users']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_590",
+      "db_id": "codebase_community",
+      "difficulty": "simple",
+      "question": "Which user ID has the lowest view?",
+      "gold_sql": "SELECT Id FROM users WHERE Views = ( SELECT MIN(Views) FROM users )",
+      "pred_sql": "SELECT Id \nFROM users \nWHERE Views = (SELECT MIN(Views) FROM users)",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "users"
+      ],
+      "destinations": [
+        "users"
+      ],
+      "linked_tables": [
+        "users"
+      ],
+      "chosen_path": [
+        "users"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2000,
+      "belief_entropy": {
+        "columns": 1.4996,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['users'] dst=['users'] literals=[]",
+        "belief0: colH=1.500 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2000"
+      ]
+    },
+    {
+      "instance_id": "bird_598",
+      "db_id": "codebase_community",
+      "difficulty": "challenging",
+      "question": "What is the percentage difference of student badges given during 2010 and 2011?",
+      "gold_sql": "SELECT CAST(SUM(IIF(STRFTIME('%Y', Date) = '2010', 1, 0)) AS REAL) * 100 / COUNT(Id) - CAST(SUM(IIF(STRFTIME('%Y', Date) = '2011', 1, 0)) AS REAL) * 100 / COUNT(Id) FROM badges WHERE Name = 'Student'",
+      "pred_sql": "SELECT \n    (CAST(SUM(CASE WHEN strftime('%Y', Date) = '2010' THEN 1 ELSE 0 END) AS REAL) / COUNT(*)) * 100 -\n    (CAST(SUM(CASE WHEN strftime('%Y', Date) = '2011' THEN 1 ELSE 0 END) AS REAL) / COUNT(*)) * 100 AS percentage_difference\nFROM badges\nWHERE Name = 'Student'",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "badges"
+      ],
+      "destinations": [
+        "badges"
+      ],
+      "linked_tables": [
+        "badges"
+      ],
+      "chosen_path": [
+        "badges"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.4746,
+        "values": 2.849,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['badges'] dst=['badges'] literals=['Student', '2010', '2011']",
+        "belief0: colH=1.475 valH=2.849 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_621",
+      "db_id": "codebase_community",
+      "difficulty": "simple",
+      "question": "What are the name of badges that users who have the lowest reputation obtained?",
+      "gold_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.Reputation = (SELECT MIN(Reputation) FROM users)",
+      "pred_sql": "SELECT b.Name\nFROM badges b\nJOIN users u ON b.UserId = u.Id\nWHERE u.Reputation = (SELECT MIN(Reputation) FROM users)",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "users"
+      ],
+      "destinations": [
+        "badges"
+      ],
+      "linked_tables": [
+        "users",
+        "badges"
+      ],
+      "chosen_path": [
+        "users",
+        "badges"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2000,
+      "belief_entropy": {
+        "columns": 1.3335,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['users'] dst=['badges'] literals=[]",
+        "belief0: colH=1.334 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=2000"
+      ]
+    },
+    {
+      "instance_id": "bird_634",
+      "db_id": "codebase_community",
+      "difficulty": "challenging",
+      "question": "Among posts by Harvey Motulsky and Noah Snyder, which one has higher popularity?",
+      "gold_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id WHERE T1.DisplayName = 'Harvey Motulsky' OR T1.DisplayName = 'Noah Snyder' GROUP BY T1.DisplayName ORDER BY SUM(T3.ViewCount) DESC LIMIT 1",
+      "pred_sql": "SELECT \n    CASE \n        WHEN SUM(CASE WHEN u.DisplayName = 'Harvey Motulsky' THEN p.ViewCount ELSE 0 END) > \n             SUM(CASE WHEN u.DisplayName = 'Noah Snyder' THEN p.ViewCount ELSE 0 END) \n        THEN 'Harvey Motulsky'\n        ELSE 'Noah Snyder'\n    END AS more_popular_user\nFROM posts p\nJOIN users u ON p.OwnerUserId = u.Id\nWHERE u.DisplayName IN ('Harvey Motulsky', 'Noah Snyder')",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "users"
+      ],
+      "destinations": [
+        "posts"
+      ],
+      "linked_tables": [
+        "users",
+        "postHistory",
+        "posts"
+      ],
+      "chosen_path": [
+        "users",
+        "postHistory",
+        "posts"
+      ],
+      "n_probes": 2,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.3478,
+        "values": 0.5271,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['users'] dst=['posts'] literals=['Harvey Motulsky', 'Noah Snyder']",
+        "belief0: colH=1.348 valH=0.527 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['users', 'posts']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: posts.OwnerUserId'}",
+        "explore: probe P1 ['users', 'comments', 'posts']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: comments.UserId'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_639",
+      "db_id": "codebase_community",
+      "difficulty": "challenging",
+      "question": "Based on posts posted by Community, calculate the percentage of posts that use the R language.",
+      "gold_sql": "SELECT CAST(SUM(IIF(T3.TagName = 'r', 1, 0)) AS REAL) * 100 / COUNT(T1.Id) FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN tags AS T3 ON T3.ExcerptPostId = T2.PostId WHERE T1.DisplayName = 'Community'",
+      "pred_sql": "SELECT \n    CAST(COUNT(DISTINCT CASE WHEN t.TagName = 'r' THEN p.Id END) AS REAL) * 100.0 / COUNT(DISTINCT p.Id) AS percentage\nFROM posts p\nINNER JOIN tags t ON t.ExcerptPostId = p.Id\nWHERE p.OwnerUserId IN (SELECT Id FROM users WHERE DisplayName = 'Community')\n   OR p.LastEditorUserId IN (SELECT Id FROM users WHERE DisplayName = 'Community')",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "users",
+        "posts",
+        "tags"
+      ],
+      "destinations": [
+        "posts"
+      ],
+      "linked_tables": [
+        "posts",
+        "tags"
+      ],
+      "chosen_path": [
+        "posts"
+      ],
+      "n_probes": 4,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "tags"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.5598,
+        "values": 1.6376,
+        "paths": 0.345
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['users', 'posts', 'tags'] dst=['posts'] literals=['Community', 'r']",
+        "belief0: colH=1.560 valH=1.638 hosts=1",
+        "explore: path entropy=2.322 top_gap=0.00 (5 candidates)",
+        "explore: probe P0 ['users', 'posts']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: posts.OwnerUserId'}",
+        "explore: probe P1 ['users', 'comments', 'posts']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: comments.UserId'}",
+        "explore: probe P2 ['users', 'postHistory', 'posts']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: postHistory.UserId'}",
+        "explore: probe P3 ['posts']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['tags'] -> ['posts', 'tags']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_665",
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "What is the average monthly number of links created in 2010 for posts that have no more than 2 answers?",
+      "gold_sql": "SELECT CAST(COUNT(T1.Id) AS REAL) / 12 FROM postLinks AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.AnswerCount <= 2 AND STRFTIME('%Y', T1.CreationDate) = '2010'",
+      "pred_sql": "SELECT CAST(COUNT(pl.Id) AS REAL) / 12.0 AS avg_monthly_links\nFROM postLinks pl\nJOIN posts p ON pl.PostId = p.Id\nWHERE strftime('%Y', pl.CreationDate) = '2010'\n  AND p.AnswerCount <= 2",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "posts"
+      ],
+      "destinations": [
+        "postLinks"
+      ],
+      "linked_tables": [
+        "postLinks",
+        "posts",
+        "users"
+      ],
+      "chosen_path": [
+        "posts",
+        "postLinks"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "users"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.5332,
+        "values": 3.4081,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['posts'] dst=['postLinks'] literals=['2010', '2']",
+        "belief0: colH=1.533 valH=3.408 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['users'] -> ['postLinks', 'posts', 'users']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_694",
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "Provide the text of the latest 10 comments to the post with the title 'Analysing wind data with R' and the display name of the user who left it.",
+      "gold_sql": "SELECT T3.Text, T1.DisplayName FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId INNER JOIN comments AS T3 ON T2.Id = T3.PostId WHERE T2.Title = 'Analysing wind data with R' ORDER BY T1.CreationDate DESC LIMIT 10",
+      "pred_sql": "SELECT c.Text, u.DisplayName\nFROM comments c\nJOIN posts p ON c.PostId = p.Id\nJOIN users u ON c.UserId = u.Id\nWHERE p.Title = 'Analysing wind data with R'\nORDER BY c.CreationDate DESC\nLIMIT 10",
+      "graph_method": "declared",
+      "n_edges": 10,
+      "sources": [
+        "posts"
+      ],
+      "destinations": [
+        "comments",
+        "users"
+      ],
+      "linked_tables": [
+        "comments",
+        "posts",
+        "users"
+      ],
+      "chosen_path": [
+        "posts",
+        "users"
+      ],
+      "n_probes": 4,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "comments"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 10,
+      "belief_entropy": {
+        "columns": 2.0879,
+        "values": 0.0,
+        "paths": 0.5941
+      },
+      "trace": [
+        "ground: graph=declared edges=10",
+        "anchor: src=['posts'] dst=['comments', 'users'] literals=['Analysing wind data with R']",
+        "belief0: colH=2.088 valH=0.000 hosts=1",
+        "explore: path entropy=2.585 top_gap=0.00 (6 candidates)",
+        "explore: probe P0 ['posts', 'comments']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: comments.PostId'}",
+        "explore: probe P1 ['posts', 'users', 'comments']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: users.Id'}",
+        "explore: probe P2 ['posts', 'postHistory', 'users', 'comments']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: postHistory.PostId'}",
+        "explore: probe P3 ['posts', 'users']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['comments'] -> ['comments', 'posts', 'users']",
+        "commit: generate -> ok=True rows=10"
+      ]
+    },
+    {
+      "instance_id": "bird_722",
+      "db_id": "superhero",
+      "difficulty": "simple",
+      "question": "What is the colour of Apocalypse's skin?",
+      "gold_sql": "SELECT T2.colour FROM superhero AS T1 INNER JOIN colour AS T2 ON T1.skin_colour_id = T2.id WHERE T1.superhero_name = 'Apocalypse'",
+      "pred_sql": "SELECT colour.colour\nFROM superhero\nJOIN colour ON superhero.skin_colour_id = colour.id\nWHERE superhero.superhero_name = 'Apocalypse'",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "superhero"
+      ],
+      "destinations": [
+        "colour"
+      ],
+      "linked_tables": [
+        "superhero",
+        "colour"
+      ],
+      "chosen_path": [
+        "superhero",
+        "colour"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.7827,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['superhero'] dst=['colour'] literals=['Apocalypse']",
+        "belief0: colH=3.783 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_730",
+      "db_id": "superhero",
+      "difficulty": "challenging",
+      "question": "List the superheroes from Marvel Comics who have the super power of 'Super Strength'.",
+      "gold_sql": "SELECT superhero_name FROM superhero AS T1 WHERE EXISTS (SELECT 1 FROM hero_power AS T2 INNER JOIN superpower AS T3 ON T2.power_id = T3.id WHERE T3.power_name = 'Super Strength' AND T1.id = T2.hero_id)AND EXISTS (SELECT 1 FROM publisher AS T4 WHERE T4.publisher_name = 'Marvel Comics' AND T1.publisher_id = T4.id)",
+      "pred_sql": "SELECT s.superhero_name\nFROM superhero s\nJOIN publisher p ON s.publisher_id = p.id\nJOIN superhero_power sp ON s.id = sp.superhero_id\nJOIN power pw ON sp.power_id = pw.id\nWHERE p.publisher_name = 'Marvel Comics'\n  AND pw.power_name = 'Super Strength'",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "superhero",
+        "publisher",
+        "superpower",
+        "hero_power"
+      ],
+      "destinations": [
+        "superhero"
+      ],
+      "linked_tables": [
+        "superhero"
+      ],
+      "chosen_path": [
+        "superhero"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": false,
+      "exec_rows": null,
+      "belief_entropy": {
+        "columns": 3.5968,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['superhero', 'publisher', 'superpower', 'hero_power'] dst=['superhero'] literals=['Marvel Comics', 'Super Strength']",
+        "belief0: colH=3.597 valH=0.000 hosts=1",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['superhero']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=False rows=no such table: superhero_power",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "bird_751",
+      "db_id": "superhero",
+      "difficulty": "moderate",
+      "question": "List down at least five superpowers of male superheroes.",
+      "gold_sql": "SELECT T3.power_name FROM superhero AS T1 INNER JOIN hero_power AS T2 ON T1.id = T2.hero_id INNER JOIN superpower AS T3 ON T3.id = T2.power_id INNER JOIN gender AS T4 ON T4.id = T1.gender_id WHERE T4.gender = 'Male' LIMIT 5",
+      "pred_sql": "SELECT DISTINCT sp.power_name\nFROM superhero sh\nJOIN gender g ON sh.gender_id = g.id\nJOIN hero_power hp ON sh.id = hp.hero_id\nJOIN superpower sp ON hp.power_id = sp.id\nWHERE g.gender = 'Male'\nLIMIT 5",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "gender"
+      ],
+      "destinations": [
+        "superpower"
+      ],
+      "linked_tables": [
+        "gender",
+        "superhero",
+        "hero_power",
+        "superpower"
+      ],
+      "chosen_path": [
+        "gender",
+        "superhero",
+        "hero_power",
+        "superpower"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 3.3857,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['gender'] dst=['superpower'] literals=['Male']",
+        "belief0: colH=3.386 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "bird_782",
+      "db_id": "superhero",
+      "difficulty": "moderate",
+      "question": "List the heroes' names whose eyes and hair colours are both black.",
+      "gold_sql": "SELECT T1.superhero_name FROM superhero AS T1 INNER JOIN colour AS T2 ON T1.eye_colour_id = T2.id AND T1.hair_colour_id = T2.id WHERE T2.colour = 'Black'",
+      "pred_sql": "SELECT s.superhero_name\nFROM superhero s\nJOIN colour c_eye ON s.eye_colour_id = c_eye.id\nJOIN colour c_hair ON s.hair_colour_id = c_hair.id\nWHERE c_eye.colour = 'Black'\n  AND c_hair.colour = 'Black'",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "colour"
+      ],
+      "destinations": [
+        "superhero"
+      ],
+      "linked_tables": [
+        "colour",
+        "superhero"
+      ],
+      "chosen_path": [
+        "colour",
+        "superhero"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 11,
+      "belief_entropy": {
+        "columns": 1.0258,
+        "values": 0.13,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['colour'] dst=['superhero'] literals=['Black', 'Black']",
+        "belief0: colH=1.026 valH=0.130 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=11"
+      ]
+    },
+    {
+      "instance_id": "bird_792",
+      "db_id": "superhero",
+      "difficulty": "simple",
+      "question": "What is Abomination's superpower?",
+      "gold_sql": "SELECT T3.power_name FROM superhero AS T1 INNER JOIN hero_power AS T2 ON T1.id = T2.hero_id INNER JOIN superpower AS T3 ON T2.power_id = T3.id WHERE T1.superhero_name = 'Abomination'",
+      "pred_sql": "SELECT sp.power_name\nFROM superhero s\nJOIN hero_power hp ON s.id = hp.hero_id\nJOIN superpower sp ON hp.power_id = sp.id\nWHERE s.superhero_name = 'Abomination'",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "superhero"
+      ],
+      "destinations": [
+        "superpower"
+      ],
+      "linked_tables": [
+        "superhero",
+        "hero_power",
+        "superpower"
+      ],
+      "chosen_path": [
+        "superhero",
+        "hero_power",
+        "superpower"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 8,
+      "belief_entropy": {
+        "columns": 3.5472,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['superhero'] dst=['superpower'] literals=['Abomination']",
+        "belief0: colH=3.547 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=8"
+      ]
+    },
+    {
+      "instance_id": "bird_810",
+      "db_id": "superhero",
+      "difficulty": "simple",
+      "question": "What is the race of the superhero with maximum attribute value?",
+      "gold_sql": "SELECT T3.race FROM superhero AS T1 INNER JOIN hero_attribute AS T2 ON T1.id = T2.hero_id INNER JOIN race AS T3 ON T1.race_id = T3.id ORDER BY T2.attribute_value DESC LIMIT 1",
+      "pred_sql": "SELECT s.race_id\nFROM superhero s\nJOIN hero_attribute ha ON s.id = ha.hero_id\nWHERE ha.attribute_value = (SELECT MAX(attribute_value) FROM hero_attribute)\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "hero_attribute"
+      ],
+      "destinations": [
+        "superhero",
+        "race"
+      ],
+      "linked_tables": [
+        "hero_attribute",
+        "superhero"
+      ],
+      "chosen_path": [
+        "hero_attribute",
+        "superhero"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.8432,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['hero_attribute'] dst=['superhero', 'race'] literals=[]",
+        "belief0: colH=3.843 valH=0.000 hosts=0",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['hero_attribute', 'superhero']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_819",
+      "db_id": "superhero",
+      "difficulty": "challenging",
+      "question": "In superheroes with missing weight data, calculate the difference between the number of superheroes with blue eyes and no eye color.",
+      "gold_sql": "SELECT SUM(CASE WHEN T2.id = 7 THEN 1 ELSE 0 END) - SUM(CASE WHEN T2.id = 1 THEN 1 ELSE 0 END) FROM superhero AS T1 INNER JOIN colour AS T2 ON T1.eye_colour_id = T2.id WHERE T1.weight_kg = 0 OR T1.weight_kg is NULL",
+      "pred_sql": "SELECT \n    SUM(CASE WHEN s.eye_colour_id = 7 THEN 1 ELSE 0 END) - \n    SUM(CASE WHEN s.eye_colour_id = 1 THEN 1 ELSE 0 END) AS difference\nFROM superhero s\nWHERE s.weight_kg IS NULL OR s.weight_kg = 0",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "superhero",
+        "colour"
+      ],
+      "destinations": [
+        "superhero",
+        "colour"
+      ],
+      "linked_tables": [
+        "superhero"
+      ],
+      "chosen_path": [
+        "superhero"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.7146,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['superhero', 'colour'] dst=['superhero', 'colour'] literals=[]",
+        "belief0: colH=3.715 valH=0.000 hosts=0",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['superhero']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_829",
+      "db_id": "superhero",
+      "difficulty": "challenging",
+      "question": "Which publisher created more superheroes: DC or Marvel Comics? Find the difference in the number of superheroes.",
+      "gold_sql": "SELECT SUM(CASE WHEN T2.publisher_name = 'DC Comics' THEN 1 ELSE 0 END) - SUM(CASE WHEN T2.publisher_name = 'Marvel Comics' THEN 1 ELSE 0 END) FROM superhero AS T1 INNER JOIN publisher AS T2 ON T1.publisher_id = T2.id",
+      "pred_sql": "SELECT \n    (SELECT COUNT(*) FROM superhero s \n     JOIN publisher p ON s.publisher_id = p.id \n     WHERE p.publisher_name = 'DC Comics') -\n    (SELECT COUNT(*) FROM superhero s \n     JOIN publisher p ON s.publisher_id = p.id \n     WHERE p.publisher_name = 'Marvel Comics') AS difference",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "superhero"
+      ],
+      "destinations": [
+        "superhero"
+      ],
+      "linked_tables": [
+        "superhero"
+      ],
+      "chosen_path": [
+        "superhero"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.8763,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['superhero'] dst=['superhero'] literals=['DC Comics', 'Marvel Comics']",
+        "belief0: colH=1.876 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_830",
+      "db_id": "superhero",
+      "difficulty": "moderate",
+      "question": "Identify the weakest attribute of the Black Panther.",
+      "gold_sql": "SELECT T3.attribute_name FROM superhero AS T1 INNER JOIN hero_attribute AS T2 ON T1.id = T2.hero_id INNER JOIN attribute AS T3 ON T2.attribute_id = T3.id WHERE T1.superhero_name = 'Black Panther' ORDER BY T2.attribute_value ASC LIMIT 1",
+      "pred_sql": "SELECT a.attribute_name\nFROM hero_attribute ha\nJOIN attribute a ON ha.attribute_id = a.id\nJOIN superhero s ON ha.hero_id = s.id\nWHERE s.superhero_name = 'Black Panther'\nORDER BY ha.attribute_value ASC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "hero_attribute",
+        "superhero"
+      ],
+      "destinations": [
+        "attribute"
+      ],
+      "linked_tables": [
+        "hero_attribute",
+        "attribute"
+      ],
+      "chosen_path": [
+        "hero_attribute",
+        "attribute"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.6942,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['hero_attribute', 'superhero'] dst=['attribute'] literals=['Black Panther']",
+        "belief0: colH=3.694 valH=0.000 hosts=0",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['hero_attribute', 'attribute']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_879",
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "question": "For the driver who set the fastest lap speed, what is his nationality?",
+      "gold_sql": "SELECT T1.nationality FROM drivers AS T1 INNER JOIN results AS T2 ON T2.driverId = T1.driverId ORDER BY T2.fastestLapSpeed DESC LIMIT 1",
+      "pred_sql": "SELECT d.nationality\nFROM results r\nJOIN drivers d ON r.driverId = d.driverId\nWHERE r.fastestLapSpeed = (SELECT MAX(fastestLapSpeed) FROM results)\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "results"
+      ],
+      "destinations": [
+        "drivers"
+      ],
+      "linked_tables": [
+        "results",
+        "drivers"
+      ],
+      "chosen_path": [
+        "results",
+        "drivers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.3422,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['results'] dst=['drivers'] literals=[]",
+        "belief0: colH=1.342 valH=0.000 hosts=0",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['results', 'drivers']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_896",
+      "db_id": "formula_1",
+      "difficulty": "challenging",
+      "question": "Calculate the percentage whereby Hamilton was not at the 1st track of the the f1 circuit since 2010.",
+      "gold_sql": "SELECT CAST(COUNT(CASE WHEN T2.position <> 1 THEN T2.position END) AS REAL) * 100 / COUNT(T2.driverStandingsId) FROM races AS T1 INNER JOIN driverStandings AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T3.surname = 'Hamilton' AND T1.year >= 2010",
+      "pred_sql": "SELECT \n    CAST(COUNT(CASE WHEN r.position > 1 THEN 1 END) AS REAL) / COUNT(*) AS percentage\nFROM results r\nJOIN drivers d ON r.driverId = d.driverId\nJOIN races ra ON r.raceId = ra.raceId\nWHERE d.surname = 'Hamilton'\n  AND ra.year >= 2010",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "drivers",
+        "results",
+        "races"
+      ],
+      "destinations": [
+        "drivers",
+        "results",
+        "races"
+      ],
+      "linked_tables": [
+        "drivers",
+        "races",
+        "results"
+      ],
+      "chosen_path": [
+        "drivers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "races",
+        "results"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.2011,
+        "values": 0.0,
+        "paths": 3.1563
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['drivers', 'results', 'races'] dst=['drivers', 'results', 'races'] literals=['Hamilton', '2010']",
+        "belief0: colH=1.201 valH=0.000 hosts=1",
+        "explore: path entropy=4.392 top_gap=0.00 (21 candidates)",
+        "explore: probe P0 ['drivers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['races', 'results'] -> ['drivers', 'races', 'results']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_950",
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "question": "Please list the constructor names with 0 points at race 291.",
+      "gold_sql": "SELECT T2.name FROM constructorStandings AS T1 INNER JOIN constructors AS T2 on T1.constructorId = T2.constructorId WHERE T1.points = 0 AND T1.raceId = 291",
+      "pred_sql": "SELECT DISTINCT c.name\nFROM constructors c\nJOIN results r ON c.constructorId = r.constructorId\nWHERE r.raceId = 291\n  AND r.points = 0",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "results"
+      ],
+      "destinations": [
+        "constructors"
+      ],
+      "linked_tables": [
+        "constructors",
+        "races",
+        "results"
+      ],
+      "chosen_path": [
+        "results",
+        "constructors"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "races"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 13,
+      "belief_entropy": {
+        "columns": 0.851,
+        "values": 2.8623,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['results'] dst=['constructors'] literals=['0', '291']",
+        "belief0: colH=0.851 valH=2.862 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['results', 'constructors']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['races'] -> ['constructors', 'races', 'results']",
+        "commit: generate -> ok=True rows=13"
+      ]
+    },
+    {
+      "instance_id": "bird_953",
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "question": "How many French constructors have a lap number of over 50?",
+      "gold_sql": "SELECT COUNT(DISTINCT T2.constructorId) FROM results AS T1 INNER JOIN constructors AS T2 on T1.constructorId = T2.constructorId WHERE T1.laps > 50 AND T2.nationality = 'French'",
+      "pred_sql": "SELECT COUNT(DISTINCT c.constructorId)\nFROM constructors c\nJOIN lapTimes lt ON c.constructorId = lt.driverId\nWHERE c.nationality = 'French'\n  AND lt.lap > 50",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "constructors",
+        "lapTimes"
+      ],
+      "destinations": [
+        "constructors"
+      ],
+      "linked_tables": [
+        "constructors",
+        "lapTimes"
+      ],
+      "chosen_path": [
+        "constructors"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "lapTimes"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.1337,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['constructors', 'lapTimes'] dst=['constructors'] literals=[]",
+        "belief0: colH=1.134 valH=0.000 hosts=0",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['constructors']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['lapTimes'] -> ['constructors', 'lapTimes']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_963",
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "question": "How many French drivers who obtain the laptime less than 02:00.00?",
+      "gold_sql": "SELECT COUNT(T1.driverId) FROM drivers AS T1 INNER JOIN lapTimes AS T2 on T1.driverId = T2.driverId WHERE T1.nationality = 'French' AND (CAST(SUBSTR(T2.time, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(T2.time, 4, 2) AS INTEGER) + CAST(SUBSTR(T2.time, 7, 2) AS REAL) / 1000) < 120",
+      "pred_sql": "SELECT COUNT(DISTINCT d.driverId)\nFROM drivers d\nJOIN lapTimes lt ON d.driverId = lt.driverId\nWHERE d.nationality = 'French'\n  AND lt.milliseconds < 120000",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "drivers",
+        "lapTimes"
+      ],
+      "destinations": [
+        "drivers"
+      ],
+      "linked_tables": [
+        "drivers",
+        "lapTimes"
+      ],
+      "chosen_path": [
+        "drivers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "lapTimes"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.1304,
+        "values": 1.2773,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['drivers', 'lapTimes'] dst=['drivers'] literals=['French', '02:00.00']",
+        "belief0: colH=1.130 valH=1.277 hosts=1",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['drivers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['lapTimes'] -> ['drivers', 'lapTimes']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_980",
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "question": "List the reference name of the drivers who passed the second qualifying lap during race no. 23. Indicate their nationality and birthday.",
+      "gold_sql": "SELECT T2.driverRef, T2.nationality, T2.dob FROM qualifying AS T1 INNER JOIN drivers AS T2 on T1.driverId = T2.driverId WHERE T1.raceId = 23 AND T1.q2 IS NOT NULL",
+      "pred_sql": "SELECT d.driverRef, d.nationality, d.dob\nFROM qualifying q\nJOIN drivers d ON q.driverId = d.driverId\nWHERE q.raceId = 23 AND q.q2 IS NOT NULL",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "qualifying"
+      ],
+      "destinations": [
+        "drivers"
+      ],
+      "linked_tables": [
+        "drivers",
+        "qualifying",
+        "races"
+      ],
+      "chosen_path": [
+        "qualifying",
+        "drivers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "races"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 15,
+      "belief_entropy": {
+        "columns": 0.6803,
+        "values": 4.2969,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['qualifying'] dst=['drivers'] literals=['23']",
+        "belief0: colH=0.680 valH=4.297 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['qualifying', 'drivers']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['races'] -> ['drivers', 'qualifying', 'races']",
+        "commit: generate -> ok=True rows=15"
+      ]
+    },
+    {
+      "instance_id": "bird_987",
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "question": "What is the average fastest lap time of the top 10 drivers in the 2006 United States Grand Prix?",
+      "gold_sql": "SELECT AVG(T1.fastestLapTime) FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId WHERE T1.rank < 11 AND T2.year = 2006 AND T2.name = 'United States Grand Prix'",
+      "pred_sql": "SELECT AVG(r.fastestLapTime) AS avg_fastest_lap_time\nFROM results r\nJOIN races ra ON r.raceId = ra.raceId\nWHERE ra.year = '2006'\n  AND ra.name LIKE '%United States%'\n  AND r.rank < 11",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "races",
+        "results"
+      ],
+      "destinations": [
+        "results"
+      ],
+      "linked_tables": [
+        "lapTimes",
+        "results"
+      ],
+      "chosen_path": [
+        "results"
+      ],
+      "n_probes": 3,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "lapTimes"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.2332,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['races', 'results'] dst=['results'] literals=['2006', 'United States Grand Prix']",
+        "belief0: colH=1.233 valH=0.000 hosts=1",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['races', 'results']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: results.raceId'}",
+        "explore: probe P1 ['races', 'constructorResults', 'constructors', 'results']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: constructorResults.raceId'}",
+        "explore: probe P2 ['races', 'constructorStandings', 'constructors', 'results']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: constructorStandings.raceId'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['lapTimes'] -> ['lapTimes', 'results']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_988",
+      "db_id": "formula_1",
+      "difficulty": "challenging",
+      "question": "List down top 3 German drivers who has the shortest average pit stop duration and were born between 1980-1985.",
+      "gold_sql": "SELECT T2.forename, T2.surname FROM pitStops AS T1 INNER JOIN drivers AS T2 on T1.driverId = T2.driverId WHERE T2.nationality = 'German' AND STRFTIME('%Y', T2.dob) BETWEEN '1980' AND '1985' GROUP BY T2.forename, T2.surname ORDER BY AVG(T1.duration) LIMIT 3",
+      "pred_sql": "SELECT \n    drivers.forename || ' ' || drivers.surname AS full_name,\n    AVG(CAST(pitStops.duration AS REAL)) AS avg_pit_duration\nFROM drivers\nJOIN pitStops ON drivers.driverId = pitStops.driverId\nWHERE drivers.nationality = 'German'\n  AND CAST(strftime('%Y', drivers.dob) AS INTEGER) BETWEEN 1980 AND 1985\nGROUP BY drivers.driverId\nORDER BY avg_pit_duration ASC\nLIMIT 3",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "drivers",
+        "pitStops"
+      ],
+      "destinations": [
+        "drivers"
+      ],
+      "linked_tables": [
+        "drivers",
+        "pitStops"
+      ],
+      "chosen_path": [
+        "drivers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "pitStops"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 1.1501,
+        "values": 1.5271,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['drivers', 'pitStops'] dst=['drivers'] literals=['German', '1980', '1985']",
+        "belief0: colH=1.150 valH=1.527 hosts=1",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['drivers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['pitStops'] -> ['drivers', 'pitStops']",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "bird_1011",
+      "db_id": "formula_1",
+      "difficulty": "challenging",
+      "question": "Which top 20 driver created the shortest lap time ever record in a Formula_1 race? Please give them full names.",
+      "gold_sql": "WITH lap_times_in_seconds AS (SELECT driverId, (CASE WHEN SUBSTR(time, 1, INSTR(time, ':') - 1) <> '' THEN CAST(SUBSTR(time, 1, INSTR(time, ':') - 1) AS REAL) * 60 ELSE 0 END + CASE WHEN SUBSTR(time, INSTR(time, ':') + 1, INSTR(time, '.') - INSTR(time, ':') - 1) <> '' THEN CAST(SUBSTR(time, INSTR(time, ':') + 1, INSTR(time, '.') - INSTR(time, ':') - 1) AS REAL) ELSE 0 END + CASE WHEN SUBSTR(time, INSTR(time, '.') + 1) <> '' THEN CAST(SUBSTR(time, INSTR(time, '.') + 1) AS REAL) / 1000 ELSE 0 END) AS time_in_seconds FROM lapTimes) SELECT T2.forename, T2.surname, T1.driverId FROM (SELECT driverId, MIN(time_in_seconds) AS min_time_in_seconds FROM lap_times_in_seconds GROUP BY driverId) AS T1 INNER JOIN drivers AS T2 ON T1.driverId = T2.driverId ORDER BY T1.min_time_in_seconds ASC LIMIT 20",
+      "pred_sql": "SELECT d.forename || ' ' || d.surname AS full_name\nFROM lapTimes lt\nJOIN drivers d ON lt.driverId = d.driverId\nJOIN races r ON lt.raceId = r.raceId\nWHERE lt.time IS NOT NULL\n  AND lt.time != ''\nORDER BY lt.time ASC\nLIMIT 20",
+      "graph_method": "declared",
+      "n_edges": 19,
+      "sources": [
+        "lapTimes"
+      ],
+      "destinations": [
+        "drivers"
+      ],
+      "linked_tables": [
+        "drivers",
+        "lapTimes",
+        "races"
+      ],
+      "chosen_path": [
+        "lapTimes",
+        "drivers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "races"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 20,
+      "belief_entropy": {
+        "columns": 0.8519,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=19",
+        "anchor: src=['lapTimes'] dst=['drivers'] literals=[]",
+        "belief0: colH=0.852 valH=0.000 hosts=0",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['lapTimes', 'drivers']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['races'] -> ['drivers', 'lapTimes', 'races']",
+        "commit: generate -> ok=True rows=20"
+      ]
+    },
+    {
+      "instance_id": "bird_1031",
+      "db_id": "european_football_2",
+      "difficulty": "challenging",
+      "question": "At present, calculate for the player's age who have a sprint speed of no less than 97 between 2013 to 2015.",
+      "gold_sql": "SELECT DISTINCT DATETIME() - T2.birthday age FROM Player_Attributes AS t1 INNER JOIN Player AS t2 ON t1.player_api_id = t2.player_api_id WHERE STRFTIME('%Y',t1.`date`) >= '2013' AND STRFTIME('%Y',t1.`date`) <= '2015' AND t1.sprint_speed >= 97",
+      "pred_sql": "-- Calculate the age of players with sprint speed >= 97 between 2013 and 2015\nSELECT \n    CAST(SUBSTR(DATETIME('now'), 1, 4) AS INTEGER) - CAST(SUBSTR(Player.birthday, 1, 4) AS INTEGER) AS age\nFROM Player_Attributes\nJOIN Player ON Player_Attributes.player_api_id = Player.player_api_id\nWHERE Player_Attributes.sprint_speed >= 97\n  AND CAST(SUBSTR(Player_Attributes.date, 1, 4) AS INTEGER) >= 2013\n  AND CAST(SUBSTR(Player_Attributes.date, 1, 4) AS INTEGER) <= 2015",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Player_Attributes",
+        "Player"
+      ],
+      "destinations": [
+        "Player"
+      ],
+      "linked_tables": [
+        "Player_Attributes",
+        "Player"
+      ],
+      "chosen_path": [
+        "Player_Attributes",
+        "Player"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 23,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 1.585,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Player_Attributes', 'Player'] dst=['Player'] literals=['2013', '2015', '97']",
+        "belief0: colH=0.000 valH=1.585 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Player_Attributes', 'Player']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=23"
+      ]
+    },
+    {
+      "instance_id": "bird_1058",
+      "db_id": "european_football_2",
+      "difficulty": "challenging",
+      "question": "Who has the highest average finishing rate between the highest and shortest football player?",
+      "gold_sql": "SELECT A FROM ( SELECT AVG(finishing) result, 'Max' A FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id WHERE T1.height = ( SELECT MAX(height) FROM Player ) UNION SELECT AVG(finishing) result, 'Min' A FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id WHERE T1.height = ( SELECT MIN(height) FROM Player ) ) ORDER BY result DESC LIMIT 1",
+      "pred_sql": "SELECT p.player_name\nFROM Player p\nJOIN Player_Attributes pa ON p.player_api_id = pa.player_api_id\nWHERE p.height = (SELECT MAX(height) FROM Player)\n   OR p.height = (SELECT MIN(height) FROM Player)\nGROUP BY p.player_api_id, p.player_name\nORDER BY AVG(pa.finishing) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Player"
+      ],
+      "destinations": [
+        "Player_Attributes"
+      ],
+      "linked_tables": [
+        "Player",
+        "Player_Attributes"
+      ],
+      "chosen_path": [
+        "Player",
+        "Player_Attributes"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Player'] dst=['Player_Attributes'] literals=[]",
+        "belief0: colH=0.000 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1080",
+      "db_id": "european_football_2",
+      "difficulty": "moderate",
+      "question": "Among the players whose preferred foot was the left foot when attacking, how many of them would remain in his position when the team attacked?",
+      "gold_sql": "SELECT COUNT(player_api_id) FROM Player_Attributes WHERE preferred_foot = 'left' AND attacking_work_rate = 'low'",
+      "pred_sql": "SELECT COUNT(*) \nFROM Player_Attributes \nWHERE preferred_foot = 'left' \n  AND attacking_work_rate = 'low'",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Player_Attributes"
+      ],
+      "destinations": [
+        "Player_Attributes"
+      ],
+      "linked_tables": [
+        "Player_Attributes"
+      ],
+      "chosen_path": [
+        "Player_Attributes"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Player_Attributes'] dst=['Player_Attributes'] literals=['left', 'low']",
+        "belief0: colH=0.000 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1089",
+      "db_id": "european_football_2",
+      "difficulty": "simple",
+      "question": "How many matches in the 2008/2009 season were held in Belgium?",
+      "gold_sql": "SELECT COUNT(t2.id) FROM Country AS t1 INNER JOIN Match AS t2 ON t1.id = t2.country_id WHERE t1.name = 'Belgium' AND t2.season = '2008/2009'",
+      "pred_sql": "SELECT COUNT(*) \nFROM Match \nJOIN Country ON Match.country_id = Country.id \nWHERE Match.season = '2008/2009' \n  AND Country.name = 'Belgium'",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Match",
+        "Country"
+      ],
+      "destinations": [
+        "Match"
+      ],
+      "linked_tables": [
+        "Country",
+        "Match"
+      ],
+      "chosen_path": [
+        "Match"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Country"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Match', 'Country'] dst=['Match'] literals=['2008/2009', 'Belgium']",
+        "belief0: colH=0.000 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Match']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Country'] -> ['Country', 'Match']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1093",
+      "db_id": "european_football_2",
+      "difficulty": "moderate",
+      "question": "What is the average overall rating of the players born before the year 1986?",
+      "gold_sql": "SELECT SUM(t2.overall_rating) / COUNT(t1.id) FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE SUBSTR(t1.birthday, 1, 4) < '1986'",
+      "pred_sql": "SELECT CAST(SUM(pa.overall_rating) AS REAL) / COUNT(pa.id) AS avg_overall_rating\nFROM Player_Attributes pa\nJOIN Player p ON pa.player_api_id = p.player_api_id\nWHERE strftime('%Y', p.birthday) < '1986'",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Player"
+      ],
+      "destinations": [
+        "Player_Attributes"
+      ],
+      "linked_tables": [
+        "Player",
+        "Player_Attributes"
+      ],
+      "chosen_path": [
+        "Player",
+        "Player_Attributes"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Player'] dst=['Player_Attributes'] literals=['1986']",
+        "belief0: colH=0.000 valH=1.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1095",
+      "db_id": "european_football_2",
+      "difficulty": "moderate",
+      "question": "How much is the average build up play speed of the Heart of Midlothian team?",
+      "gold_sql": "SELECT CAST(SUM(t2.buildUpPlaySpeed) AS REAL) / COUNT(t2.id) FROM Team AS t1 INNER JOIN Team_Attributes AS t2 ON t1.team_api_id = t2.team_api_id WHERE t1.team_long_name = 'Heart of Midlothian'",
+      "pred_sql": "SELECT AVG(ta.buildUpPlaySpeed) AS avg_build_up_play_speed\nFROM Team_Attributes ta\nJOIN Team t ON ta.team_api_id = t.team_api_id\nWHERE t.team_long_name = 'Heart of Midlothian'",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Team"
+      ],
+      "destinations": [
+        "Team_Attributes"
+      ],
+      "linked_tables": [
+        "Team",
+        "Team_Attributes"
+      ],
+      "chosen_path": [
+        "Team",
+        "Team_Attributes"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Team'] dst=['Team_Attributes'] literals=['Heart of Midlothian']",
+        "belief0: colH=0.000 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1117",
+      "db_id": "european_football_2",
+      "difficulty": "simple",
+      "question": "What are the player api id of 10 heaviest players?",
+      "gold_sql": "SELECT player_api_id FROM Player ORDER BY weight DESC LIMIT 10",
+      "pred_sql": "SELECT player_api_id\nFROM Player\nORDER BY weight DESC\nLIMIT 10",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Player"
+      ],
+      "destinations": [
+        "Player"
+      ],
+      "linked_tables": [
+        "Player"
+      ],
+      "chosen_path": [
+        "Player"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 10,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Player'] dst=['Player'] literals=[]",
+        "belief0: colH=0.000 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=10"
+      ]
+    },
+    {
+      "instance_id": "bird_1122",
+      "db_id": "european_football_2",
+      "difficulty": "simple",
+      "question": "State the name of the most strongest player.",
+      "gold_sql": "SELECT DISTINCT t1.player_name FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE t2.overall_rating = (SELECT MAX(overall_rating) FROM Player_Attributes)",
+      "pred_sql": "SELECT p.player_name\nFROM Player p\nJOIN Player_Attributes pa ON p.player_api_id = pa.player_api_id\nWHERE pa.overall_rating = (SELECT MAX(overall_rating) FROM Player_Attributes)",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Player_Attributes"
+      ],
+      "destinations": [
+        "Player"
+      ],
+      "linked_tables": [
+        "Player_Attributes",
+        "Player"
+      ],
+      "chosen_path": [
+        "Player_Attributes",
+        "Player"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 12,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Player_Attributes'] dst=['Player'] literals=[]",
+        "belief0: colH=0.000 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=12"
+      ]
+    },
+    {
+      "instance_id": "bird_1139",
+      "db_id": "european_football_2",
+      "difficulty": "challenging",
+      "question": "What was the final score for the match on September 24, 2008, in the Belgian Jupiler League between the home team and the away team?",
+      "gold_sql": "SELECT t2.home_team_goal, t2.away_team_goal FROM League AS t1 INNER JOIN Match AS t2 ON t1.id = t2.league_id WHERE t1.name = 'Belgium Jupiler League' AND t2.`date` LIKE '2008-09-24%'",
+      "pred_sql": "SELECT \n    Match.home_team_goal AS home_team_score,\n    Match.away_team_goal AS away_team_score\nFROM Match\nJOIN League ON Match.league_id = League.id\nWHERE Match.date LIKE '%2008-09-24%'\n  AND League.name = 'Belgium Jupiler League'",
+      "graph_method": "declared",
+      "n_edges": 6,
+      "sources": [
+        "Match",
+        "League"
+      ],
+      "destinations": [
+        "Match"
+      ],
+      "linked_tables": [
+        "League",
+        "Match"
+      ],
+      "chosen_path": [
+        "Match"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "League"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=6",
+        "anchor: src=['Match', 'League'] dst=['Match'] literals=['2008-09-24', 'Belgium Jupiler League']",
+        "belief0: colH=0.000 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Match']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['League'] -> ['League', 'Match']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1151",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "For patient born between Year 1930 to 1940, how many percent of them were inpatient?",
+      "gold_sql": "SELECT CAST(SUM(CASE WHEN Admission = '+' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM Patient WHERE STRFTIME('%Y', Birthday) BETWEEN '1930' AND '1940'",
+      "pred_sql": "SELECT \n    CAST(SUM(CASE WHEN p.Admission = '+' THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*) AS percent_inpatient\nFROM Patient p\nWHERE p.Birthday BETWEEN '1930-01-01' AND '1940-12-31'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Patient"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Examination",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Patient"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Examination"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.0299,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Patient'] dst=['Patient'] literals=['1930-01-01', '1940-12-31', '+']",
+        "belief0: colH=1.030 valH=0.000 hosts=0",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['Examination'] -> ['Examination', 'Patient']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1154",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "simple",
+      "question": "State the sex and birthday of patient ID '163109'. When was the examination taken and what symptom does the patient had.",
+      "gold_sql": "SELECT T1.SEX, T1.Birthday, T2.`Examination Date`, T2.Symptoms FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.ID = 163109",
+      "pred_sql": "SELECT \n    Patient.SEX,\n    Patient.Birthday,\n    Examination.`Examination Date`,\n    Examination.Symptoms\nFROM Patient\nJOIN Examination ON Patient.ID = Examination.ID\nWHERE Patient.ID = '163109'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Patient",
+        "Examination"
+      ],
+      "destinations": [
+        "Patient",
+        "Examination"
+      ],
+      "linked_tables": [
+        "Examination",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Patient"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Examination"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.3671,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Patient', 'Examination'] dst=['Patient', 'Examination'] literals=['163109']",
+        "belief0: colH=2.367 valH=0.000 hosts=0",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['Patient']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Examination'] -> ['Examination', 'Patient']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1177",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "simple",
+      "question": "Was the total cholesterol status for the patient id 2927464 on 1995-9-4 at the normal level?",
+      "gold_sql": "SELECT CASE WHEN `T-CHO` < 250 THEN 'Normal' ELSE 'Abnormal' END FROM Laboratory WHERE ID = 2927464 AND Date = '1995-09-04'",
+      "pred_sql": "SELECT \n    CASE \n        WHEN `T-CHO` < 250 THEN 'normal'\n        ELSE 'abnormal'\n    END AS total_cholesterol_status\nFROM Laboratory\nWHERE ID = 2927464 AND Date = '1995-09-04'",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Laboratory"
+      ],
+      "destinations": [
+        "Laboratory"
+      ],
+      "linked_tables": [
+        "Laboratory"
+      ],
+      "chosen_path": [
+        "Laboratory"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.4677,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Laboratory'] dst=['Laboratory'] literals=['2927464', '1995-9-4', '250']",
+        "belief0: colH=1.468 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1194",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "What sex is the patient who in a medical examination was diagnosed with PSS and in a laboratory examination had a blood level of C-reactive protein de 2+, createnine 1 and LDH 123?",
+      "gold_sql": "SELECT T1.SEX FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID INNER JOIN Laboratory AS T3 ON T3.ID = T2.ID WHERE T2.Diagnosis = 'PSS' AND T3.CRP = '2+' AND T3.CRE = 1.0 AND T3.LDH = 123",
+      "pred_sql": "SELECT p.SEX\nFROM Patient p\nJOIN Examination e ON p.ID = e.ID\nJOIN Laboratory l ON p.ID = l.ID\nWHERE (e.Diagnosis = 'PSS' OR p.Diagnosis = 'PSS')\n  AND l.CRP = '2+'\n  AND l.CRE = 1\n  AND l.LDH = 123",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Examination",
+        "Laboratory"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Examination",
+        "Laboratory",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Examination",
+        "Patient"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Laboratory"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.6507,
+        "values": 1.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Examination', 'Laboratory'] dst=['Patient'] literals=['PSS', '2+', '1', '123']",
+        "belief0: colH=2.651 valH=1.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Examination', 'Patient']: {'ok': True, 'nonempty': True, 'count': 70}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Laboratory'] -> ['Examination', 'Laboratory', 'Patient']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1223",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "Are there more male patients with creatinine not within the normal range than female? True or False?",
+      "gold_sql": "SELECT CASE WHEN SUM(CASE WHEN T1.SEX = 'M' THEN 1 ELSE 0 END) > SUM(CASE WHEN T1.SEX = 'F' THEN 1 ELSE 0 END) THEN 'True' ELSE 'False' END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CRE >= 1.5",
+      "pred_sql": "SELECT \n    (SUM(CASE WHEN p.SEX = 'M' THEN 1 ELSE 0 END) > \n     SUM(CASE WHEN p.SEX = 'F' THEN 1 ELSE 0 END)) AS result\nFROM Patient p\nJOIN Laboratory l ON p.ID = l.ID\nWHERE l.CRE >= 1.5",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Patient",
+        "Laboratory"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Laboratory",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Patient"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Laboratory"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.8207,
+        "values": 0.9602,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Patient', 'Laboratory'] dst=['Patient'] literals=['M', 'F', '1.5']",
+        "belief0: colH=1.821 valH=0.960 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Patient']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Laboratory'] -> ['Laboratory', 'Patient']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1229",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "For all patients with triglyceride (TG) level beyond the normal range, how many are age more than 50 years?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TG >= 200 AND STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) > 50",
+      "pred_sql": "SELECT COUNT(DISTINCT p.ID)\nFROM Patient p\nJOIN Laboratory l ON p.ID = l.ID\nWHERE l.TG >= 200\n  AND (CAST(strftime('%Y', 'now') AS INTEGER) - CAST(strftime('%Y', p.Birthday) AS INTEGER)) > 50",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Laboratory",
+        "Patient"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Laboratory",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Laboratory",
+        "Patient"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.6619,
+        "values": 3.4919,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Laboratory', 'Patient'] dst=['Patient'] literals=['200']",
+        "belief0: colH=3.662 valH=3.492 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Laboratory', 'Patient']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1247",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "Among the male patients who have a normal level of white blood cells, how many of them have an abnormal fibrinogen level?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.FG <= 150 OR T2.FG >= 450 AND T2.WBC > 3.5 AND T2.WBC < 9.0 AND T1.SEX = 'M'",
+      "pred_sql": "SELECT COUNT(DISTINCT p.ID)\nFROM Patient p\nJOIN Laboratory l ON p.ID = l.ID\nWHERE p.SEX = 'M'\n  AND l.WBC > 3.5 AND l.WBC < 9.0\n  AND (l.FG <= 150 OR l.FG >= 450)",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Patient",
+        "Laboratory"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Examination",
+        "Laboratory",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Patient"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Examination",
+        "Laboratory"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6892,
+        "values": 0.5271,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Patient', 'Laboratory'] dst=['Patient'] literals=['M', '3.5', '9.0', '150', '450']",
+        "belief0: colH=1.689 valH=0.527 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Patient']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Examination', 'Laboratory'] -> ['Examination', 'Laboratory', 'Patient']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1255",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "For the patients with an abnormal Ig M level, what is the most common disease they are diagnosed with?",
+      "gold_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGM NOT BETWEEN 40 AND 400 GROUP BY T1.Diagnosis ORDER BY COUNT(T1.Diagnosis) DESC LIMIT 1",
+      "pred_sql": "SELECT Diagnosis\nFROM Patient\nJOIN Laboratory ON Patient.ID = Laboratory.ID\nWHERE Laboratory.IGM <= 40 OR Laboratory.IGM >= 400\nGROUP BY Diagnosis\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Laboratory"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Laboratory",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Laboratory",
+        "Patient"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.1362,
+        "values": 4.0377,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Laboratory'] dst=['Patient'] literals=['40', '400']",
+        "belief0: colH=4.136 valH=4.038 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1280",
+      "db_id": "thrombosis_prediction",
+      "difficulty": "simple",
+      "question": "How many male patients have their glutamic oxaloacetic transaminase in the normal range?",
+      "gold_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GOT < 60 AND T1.SEX = 'M'",
+      "pred_sql": "SELECT COUNT(DISTINCT Patient.ID)\nFROM Patient\nJOIN Laboratory ON Patient.ID = Laboratory.ID\nWHERE Patient.SEX = 'M'\n  AND Laboratory.GOT < 60",
+      "graph_method": "declared",
+      "n_edges": 2,
+      "sources": [
+        "Patient",
+        "Laboratory"
+      ],
+      "destinations": [
+        "Patient"
+      ],
+      "linked_tables": [
+        "Examination",
+        "Laboratory",
+        "Patient"
+      ],
+      "chosen_path": [
+        "Patient"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Examination",
+        "Laboratory"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.9249,
+        "values": 3.8074,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=2",
+        "anchor: src=['Patient', 'Laboratory'] dst=['Patient'] literals=['M', '60']",
+        "belief0: colH=3.925 valH=3.807 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Patient']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['Examination', 'Laboratory'] -> ['Examination', 'Laboratory', 'Patient']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1332",
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "question": "How much did the Student_Club members spend on food in September Meeting?",
+      "gold_sql": "SELECT T2.spent FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'September Meeting' AND T2.category = 'Food' AND SUBSTR(T1.event_date, 6, 2) = '09'",
+      "pred_sql": "SELECT SUM(b.spent) AS total_spent\nFROM budget b\nJOIN event e ON b.link_to_event = e.event_id\nJOIN expense ex ON ex.link_to_budget = b.budget_id\nJOIN member m ON ex.link_to_member = m.member_id\nWHERE b.category = 'Food'\n  AND e.event_name = 'September Meeting'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "budget",
+        "event"
+      ],
+      "destinations": [
+        "budget"
+      ],
+      "linked_tables": [
+        "budget",
+        "event",
+        "expense",
+        "member"
+      ],
+      "chosen_path": [
+        "budget"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "event",
+        "expense",
+        "member"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.3609,
+        "values": 0.9602,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['budget', 'event'] dst=['budget'] literals=['Food', 'September Meeting']",
+        "belief0: colH=3.361 valH=0.960 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['budget']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['event', 'expense', 'member'] -> ['budget', 'event', 'expense', 'member']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1339",
+      "db_id": "student_club",
+      "difficulty": "challenging",
+      "question": "Calculate the total average cost that Elijah Allen spent in the events on September and October.",
+      "gold_sql": "SELECT AVG(T2.cost) FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.last_name = 'Allen' AND T1.first_name = 'Elijah' AND (SUBSTR(T2.expense_date, 6, 2) = '09' OR SUBSTR(T2.expense_date, 6, 2) = '10')",
+      "pred_sql": "SELECT AVG(e.cost) AS total_average_cost\nFROM expense e\nJOIN member m ON e.link_to_member = m.member_id\nWHERE m.first_name = 'Elijah'\n  AND m.last_name = 'Allen'\n  AND (CAST(SUBSTR(e.expense_date, 6, 2) AS INTEGER) = 9\n       OR CAST(SUBSTR(e.expense_date, 6, 2) AS INTEGER) = 10)",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "expense",
+        "member"
+      ],
+      "destinations": [
+        "expense"
+      ],
+      "linked_tables": [
+        "event",
+        "expense",
+        "member"
+      ],
+      "chosen_path": [
+        "expense"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "member",
+        "event"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.2446,
+        "values": 0.5271,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['expense', 'member'] dst=['expense'] literals=['Elijah', 'Allen', '9', '10']",
+        "belief0: colH=3.245 valH=0.527 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['expense']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['member', 'event'] -> ['event', 'expense', 'member']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1359",
+      "db_id": "student_club",
+      "difficulty": "challenging",
+      "question": "How many times was the budget in Advertisement for \"Yearly Kickoff\" meeting more than \"October Meeting\"?",
+      "gold_sql": "SELECT CAST(SUM(CASE WHEN T2.event_name = 'Yearly Kickoff' THEN T1.amount ELSE 0 END) AS REAL) / SUM(CASE WHEN T2.event_name = 'October Meeting' THEN T1.amount ELSE 0 END) FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T1.category = 'Advertisement' AND T2.type = 'Meeting'",
+      "pred_sql": "SELECT \n    CAST(SUM(CASE WHEN e.event_name = 'Yearly Kickoff' THEN b.amount ELSE 0 END) AS REAL) / \n    NULLIF(SUM(CASE WHEN e.event_name = 'October Meeting' THEN b.amount ELSE 0 END), 0) AS ratio\nFROM budget b\nJOIN event e ON b.link_to_event = e.event_id\nWHERE b.category = 'Advertisement'\n  AND e.event_name IN ('Yearly Kickoff', 'October Meeting')",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "budget",
+        "event"
+      ],
+      "destinations": [
+        "budget"
+      ],
+      "linked_tables": [
+        "budget",
+        "event"
+      ],
+      "chosen_path": [
+        "budget"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "event"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.9401,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['budget', 'event'] dst=['budget'] literals=['Advertisement', 'Yearly Kickoff', 'October Meeting']",
+        "belief0: colH=2.940 valH=0.000 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['budget']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['event'] -> ['budget', 'event']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1388",
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "question": "Which students manage to generate the highest income. State his/her full name along with the income source.",
+      "gold_sql": "SELECT T1.first_name, T1.last_name, T2.source FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member GROUP BY T1.first_name, T1.last_name, T2.source ORDER BY SUM(T2.amount) DESC LIMIT 1",
+      "pred_sql": "SELECT \n    m.first_name || ' ' || m.last_name AS full_name,\n    i.source\nFROM income i\nJOIN member m ON i.link_to_member = m.member_id\nWHERE i.amount = (SELECT MAX(amount) FROM income)\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "income"
+      ],
+      "destinations": [
+        "member",
+        "income"
+      ],
+      "linked_tables": [
+        "income",
+        "member"
+      ],
+      "chosen_path": [
+        "income",
+        "member"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.4009,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['income'] dst=['member', 'income'] literals=[]",
+        "belief0: colH=3.401 valH=0.000 hosts=0",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['income', 'member']: {'ok': True, 'nonempty': True, 'count': 33}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "bird_1393",
+      "db_id": "student_club",
+      "difficulty": "simple",
+      "question": "Provide the full name and email address of the Student_Club's Secretary.",
+      "gold_sql": "SELECT first_name, last_name, email FROM member WHERE position = 'Secretary'",
+      "pred_sql": "SELECT first_name || ' ' || last_name AS full_name, email\nFROM member\nWHERE position = 'Secretary'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "member"
+      ],
+      "destinations": [
+        "member"
+      ],
+      "linked_tables": [
+        "member"
+      ],
+      "chosen_path": [
+        "member"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.41,
+        "values": 1.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['member'] dst=['member'] literals=['Secretary']",
+        "belief0: colH=3.410 valH=1.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1425",
+      "db_id": "student_club",
+      "difficulty": "simple",
+      "question": "In the College of Agriculture and Applied Sciences, how many majors are under the department of School of Applied Sciences, Technology and Education?",
+      "gold_sql": "SELECT COUNT(major_id) FROM major WHERE department = 'School of Applied Sciences, Technology and Education' AND college = 'College of Agriculture and Applied Sciences'",
+      "pred_sql": "SELECT COUNT(DISTINCT m.major_id)\nFROM major m\nWHERE m.college = 'College of Agriculture and Applied Sciences'\n  AND m.department = 'School of Applied Sciences, Technology and Education'",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "member"
+      ],
+      "destinations": [
+        "major"
+      ],
+      "linked_tables": [
+        "member",
+        "major"
+      ],
+      "chosen_path": [
+        "member",
+        "major"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.938,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['member'] dst=['major'] literals=['College of Agriculture and Applied Sciences', 'School of Applied Sciences, Technology and Education']",
+        "belief0: colH=2.938 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1427",
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "question": "What are the budget category of the events located at MU 215 and a guest speaker type with a 0 budget spent?",
+      "gold_sql": "SELECT DISTINCT T2.category, T1.type FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.location = 'MU 215' AND T2.spent = 0 AND T1.type = 'Guest Speaker'",
+      "pred_sql": "SELECT b.category\nFROM budget b\nJOIN event e ON b.link_to_event = e.event_id\nWHERE e.location = 'MU 215'\n  AND e.type = 'Guest Speaker'\n  AND b.spent = 0",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "event",
+        "budget"
+      ],
+      "destinations": [
+        "budget"
+      ],
+      "linked_tables": [
+        "budget",
+        "event",
+        "expense",
+        "member"
+      ],
+      "chosen_path": [
+        "budget"
+      ],
+      "n_probes": 2,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "event",
+        "member",
+        "expense"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 16,
+      "belief_entropy": {
+        "columns": 3.2265,
+        "values": 0.0,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['event', 'budget'] dst=['budget'] literals=['MU 215', 'Guest Speaker', '0']",
+        "belief0: colH=3.227 valH=0.000 hosts=1",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['event', 'budget']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: budget.link_to_event'}",
+        "explore: probe P1 ['event', 'attendance', 'member', 'expense', 'budget']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: attendance.link_to_event'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['event', 'member', 'expense'] -> ['budget', 'event', 'expense', 'member']",
+        "commit: generate -> ok=True rows=16"
+      ]
+    },
+    {
+      "instance_id": "bird_1446",
+      "db_id": "student_club",
+      "difficulty": "simple",
+      "question": "Calculate the percentage of zip codes that are PO boxes.",
+      "gold_sql": "SELECT CAST(SUM(CASE WHEN type = 'PO Box' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(zip_code) FROM zip_code",
+      "pred_sql": "SELECT (CAST(SUM(CASE WHEN type = 'PO Box' THEN 1 ELSE 0 END) AS REAL) / COUNT(zip_code)) * 100 AS percentage_po_boxes\nFROM zip_code",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "zip_code"
+      ],
+      "destinations": [
+        "zip_code"
+      ],
+      "linked_tables": [
+        "zip_code"
+      ],
+      "chosen_path": [
+        "zip_code"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.9086,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['zip_code'] dst=['zip_code'] literals=['PO Box']",
+        "belief0: colH=2.909 valH=0.000 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1448",
+      "db_id": "student_club",
+      "difficulty": "challenging",
+      "question": "Find the name and date of events with expenses for pizza that were more than fifty dollars but less than a hundred dollars.",
+      "gold_sql": "SELECT T1.event_name, T1.event_date FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T3.expense_description = 'Pizza' AND T3.cost > 50 AND T3.cost < 100",
+      "pred_sql": "SELECT e.event_name, e.event_date\nFROM event e\nJOIN budget b ON e.event_id = b.link_to_event\nJOIN expense ex ON b.budget_id = ex.link_to_budget\nWHERE ex.expense_description = 'Pizza'\n  AND ex.cost > 50\n  AND ex.cost < 100",
+      "graph_method": "declared",
+      "n_edges": 8,
+      "sources": [
+        "expense"
+      ],
+      "destinations": [
+        "event"
+      ],
+      "linked_tables": [
+        "expense",
+        "budget",
+        "event"
+      ],
+      "chosen_path": [
+        "expense",
+        "budget",
+        "event"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 4,
+      "belief_entropy": {
+        "columns": 3.5439,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=8",
+        "anchor: src=['expense'] dst=['event'] literals=['Pizza']",
+        "belief0: colH=3.544 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['expense', 'budget', 'event']: {'ok': True, 'nonempty': True, 'count': 32}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=4"
+      ]
+    },
+    {
+      "instance_id": "bird_1474",
+      "db_id": "debit_card_specializing",
+      "difficulty": "moderate",
+      "question": "Which customers, paying in CZK, consumed the most gas in 2011?",
+      "gold_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'CZK' AND T2.Date BETWEEN 201101 AND 201112 GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1",
+      "pred_sql": "SELECT \n    c.CustomerID,\n    SUM(ym.Consumption) AS total_consumption\nFROM yearmonth ym\nJOIN customers c ON ym.CustomerID = c.CustomerID\nWHERE c.Currency = 'CZK'\n  AND ym.Date BETWEEN '201101' AND '201112'\nGROUP BY c.CustomerID\nORDER BY total_consumption DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "customers",
+        "yearmonth"
+      ],
+      "destinations": [
+        "customers"
+      ],
+      "linked_tables": [
+        "customers",
+        "gasstations",
+        "products",
+        "transactions_1k",
+        "yearmonth"
+      ],
+      "chosen_path": [
+        "customers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "gasstations",
+        "products",
+        "transactions_1k",
+        "yearmonth"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.513,
+        "values": 1.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['customers', 'yearmonth'] dst=['customers'] literals=['CZK', '201101', '201112']",
+        "belief0: colH=2.513 valH=1.000 hosts=2",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['customers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['gasstations', 'products', 'transactions_1k', 'yearmonth'] -> ['customers', 'gasstations', 'products', 'transactions_1k', 'yearmonth']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1476",
+      "db_id": "debit_card_specializing",
+      "difficulty": "challenging",
+      "question": "What was the difference in gas consumption between CZK-paying customers and EUR-paying customers in 2012?",
+      "gold_sql": "SELECT SUM(IIF(T1.Currency = 'CZK', T2.Consumption, 0)) - SUM(IIF(T1.Currency = 'EUR', T2.Consumption, 0)) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE SUBSTR(T2.Date, 1, 4) = '2012'",
+      "pred_sql": "SELECT \n    COALESCE(SUM(CASE WHEN c.Currency = 'CZK' THEN ym.Consumption END), 0) -\n    COALESCE(SUM(CASE WHEN c.Currency = 'EUR' THEN ym.Consumption END), 0) AS difference\nFROM yearmonth ym\nJOIN customers c ON ym.CustomerID = c.CustomerID\nWHERE ym.Date BETWEEN '201201' AND '201212'",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "customers",
+        "yearmonth"
+      ],
+      "destinations": [
+        "yearmonth"
+      ],
+      "linked_tables": [
+        "customers",
+        "gasstations",
+        "products",
+        "transactions_1k",
+        "yearmonth"
+      ],
+      "chosen_path": [
+        "yearmonth"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "customers",
+        "gasstations",
+        "products",
+        "transactions_1k"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.6423,
+        "values": 1.9602,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['customers', 'yearmonth'] dst=['yearmonth'] literals=['CZK', 'EUR', '2012']",
+        "belief0: colH=1.642 valH=1.960 hosts=3",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['customers', 'yearmonth']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: yearmonth.CustomerID'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['customers', 'gasstations', 'products', 'transactions_1k'] -> ['customers', 'gasstations', 'products', 'transactions_1k', 'yearmonth']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1481",
+      "db_id": "debit_card_specializing",
+      "difficulty": "challenging",
+      "question": "What is the difference in the annual average consumption of the customers with the least amount of consumption paid in CZK for 2013 between SME and LAM, LAM and KAM, and KAM and SME?",
+      "gold_sql": "SELECT CAST(SUM(IIF(T1.Segment = 'SME', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) - CAST(SUM(IIF(T1.Segment = 'LAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) , CAST(SUM(IIF(T1.Segment = 'LAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) - CAST(SUM(IIF(T1.Segment = 'KAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) , CAST(SUM(IIF(T1.Segment = 'KAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) - CAST(SUM(IIF(T1.Segment = 'SME', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'CZK' AND T2.Consumption = ( SELECT MIN(Consumption) FROM yearmonth ) AND T2.Date BETWEEN 201301 AND 201312",
+      "pred_sql": "-- Compute annual average consumption for the customer with the lowest consumption in each segment for 2013\nWITH segment_lowest AS (\n    SELECT \n        c.Segment,\n        ym.CustomerID,\n        SUM(ym.Consumption) AS total_consumption\n    FROM yearmonth ym\n    JOIN customers c ON ym.CustomerID = c.CustomerID\n    WHERE SUBSTR(ym.Date, 1, 4) = '2013'\n      AND c.Currency = 'CZK'\n    GROUP BY c.Segment, ym.CustomerID\n    ORDER BY total_consumption ASC\n    LIMIT 1\n),\nannual_avg AS (\n    SELECT \n        Segment,\n        total_consumption / 1.0 AS annual_avg_consumption\n    FROM segment_lowest\n)\nSELECT \n    MAX(CASE WHEN Segment = 'SME' THEN annual_avg_consumption END) - \n    MAX(CASE WHEN Segment = 'LAM' THEN annual_avg_consumption END) AS diff_SME_LAM,\n    MAX(CASE WHEN Segment = 'LAM' THEN annual_avg_consumption END) - \n    MAX(CASE WHEN Segment = 'KAM' THEN annual_avg_consumption END) AS diff_LAM_KAM,\n    MAX(CASE WHEN Segment = 'KAM' THEN annual_avg_consumption END) - \n    MAX(CASE WHEN Segment = 'SME' THEN annual_avg_consumption END) AS diff_KAM_SME\nFROM annual_avg",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "customers",
+        "yearmonth"
+      ],
+      "destinations": [
+        "customers",
+        "yearmonth"
+      ],
+      "linked_tables": [
+        "customers",
+        "yearmonth"
+      ],
+      "chosen_path": [
+        "customers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "yearmonth"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.136,
+        "values": 1.9484,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['customers', 'yearmonth'] dst=['customers', 'yearmonth'] literals=['SME', 'LAM', 'KAM', 'CZK', '2013']",
+        "belief0: colH=0.136 valH=1.948 hosts=3",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['customers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['yearmonth'] -> ['customers', 'yearmonth']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1487",
+      "db_id": "debit_card_specializing",
+      "difficulty": "moderate",
+      "question": "Which LAM customer used the Euro as their currency and had the highest consumption in October 2013?",
+      "gold_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'LAM' AND T2.Date = '201310' AND T1.Currency = 'EUR' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1",
+      "pred_sql": "SELECT c.CustomerID\nFROM customers c\nJOIN yearmonth y ON c.CustomerID = y.CustomerID\nWHERE c.Segment = 'LAM'\n  AND c.Currency = 'Euro'\n  AND y.Date = '201310'\nORDER BY y.Consumption DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "customers",
+        "yearmonth"
+      ],
+      "destinations": [
+        "customers",
+        "yearmonth"
+      ],
+      "linked_tables": [
+        "customers",
+        "yearmonth"
+      ],
+      "chosen_path": [
+        "customers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "yearmonth"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 1.3491,
+        "values": 1.5271,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['customers', 'yearmonth'] dst=['customers', 'yearmonth'] literals=['LAM', 'Euro', '201310']",
+        "belief0: colH=1.349 valH=1.527 hosts=3",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['customers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['yearmonth'] -> ['customers', 'yearmonth']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "bird_1488",
+      "db_id": "debit_card_specializing",
+      "difficulty": "simple",
+      "question": "Who among KAM's customers consumed the most? How much did it consume?",
+      "gold_sql": "SELECT T2.CustomerID, SUM(T2.Consumption) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'KAM' GROUP BY T2.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1",
+      "pred_sql": "SELECT \n    c.CustomerID,\n    SUM(ym.Consumption) AS total_consumption\nFROM yearmonth ym\nJOIN customers c ON ym.CustomerID = c.CustomerID\nWHERE c.Segment = 'KAM'\nGROUP BY c.CustomerID\nORDER BY total_consumption DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "customers"
+      ],
+      "destinations": [
+        "customers",
+        "yearmonth"
+      ],
+      "linked_tables": [
+        "customers",
+        "gasstations",
+        "products",
+        "transactions_1k",
+        "yearmonth"
+      ],
+      "chosen_path": [
+        "customers"
+      ],
+      "n_probes": 1,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "transactions_1k",
+        "gasstations",
+        "products",
+        "yearmonth"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.2463,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['customers'] dst=['customers', 'yearmonth'] literals=['KAM']",
+        "belief0: colH=2.246 valH=0.000 hosts=1",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['customers']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "commit: [propose=MISSING] added missing tables ['transactions_1k', 'gasstations', 'products', 'yearmonth'] -> ['customers', 'gasstations', 'products', 'transactions_1k', 'yearmonth']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1498",
+      "db_id": "debit_card_specializing",
+      "difficulty": "simple",
+      "question": "What is the highest monthly consumption in the year 2012?",
+      "gold_sql": "SELECT SUM(Consumption) FROM yearmonth WHERE SUBSTR(Date, 1, 4) = '2012' GROUP BY SUBSTR(Date, 5, 2) ORDER BY SUM(Consumption) DESC LIMIT 1",
+      "pred_sql": "SELECT MAX(Consumption) AS highest_monthly_consumption\nFROM yearmonth\nWHERE substr(Date, 1, 4) = '2012'",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "yearmonth"
+      ],
+      "destinations": [
+        "yearmonth"
+      ],
+      "linked_tables": [
+        "yearmonth"
+      ],
+      "chosen_path": [
+        "yearmonth"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.3158,
+        "values": 1.585,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['yearmonth'] dst=['yearmonth'] literals=['2012']",
+        "belief0: colH=2.316 valH=1.585 hosts=1",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1506",
+      "db_id": "debit_card_specializing",
+      "difficulty": "moderate",
+      "question": "Please list the product descriptions of the transactions taken place in the gas stations in the Czech Republic.",
+      "gold_sql": "SELECT DISTINCT T3.Description FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Country = 'CZE'",
+      "pred_sql": "SELECT DISTINCT p.Description\nFROM transactions_1k t\nJOIN gasstations g ON t.GasStationID = g.GasStationID\nJOIN products p ON t.ProductID = p.ProductID\nWHERE g.Country = 'CZE'",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "gasstations"
+      ],
+      "destinations": [
+        "products"
+      ],
+      "linked_tables": [
+        "gasstations",
+        "products",
+        "transactions_1k"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "transactions_1k"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 21,
+      "belief_entropy": {
+        "columns": 2.3255,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['gasstations'] dst=['products'] literals=['CZE']",
+        "belief0: colH=2.325 valH=0.000 hosts=1",
+        "explore: no path between anchors; union fallback -> ['gasstations', 'products']",
+        "commit: [propose=MISSING] added missing tables ['transactions_1k'] -> ['gasstations', 'products', 'transactions_1k']",
+        "commit: generate -> ok=True rows=21"
+      ]
+    },
+    {
+      "instance_id": "bird_1519",
+      "db_id": "debit_card_specializing",
+      "difficulty": "simple",
+      "question": "What was the product id of the transaction happened at 2012/8/23 21:20:00?",
+      "gold_sql": "SELECT T1.ProductID FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-23' AND T1.Time = '21:20:00'",
+      "pred_sql": "SELECT ProductID\nFROM transactions_1k\nWHERE Date = '2012-08-23' AND Time = '21:20:00'",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "transactions_1k"
+      ],
+      "destinations": [
+        "transactions_1k"
+      ],
+      "linked_tables": [
+        "transactions_1k"
+      ],
+      "chosen_path": [
+        "transactions_1k"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.3691,
+        "values": 0.5271,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['transactions_1k'] dst=['transactions_1k'] literals=['2012-08-23', '21:20:00']",
+        "belief0: colH=2.369 valH=0.527 hosts=2",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "bird_1526",
+      "db_id": "debit_card_specializing",
+      "difficulty": "challenging",
+      "question": "For the customer who paid 634.8 in 2012/8/25, what was the consumption decrease rate from Year 2012 to 2013?",
+      "gold_sql": "SELECT CAST(SUM(IIF(SUBSTR(Date, 1, 4) = '2012', Consumption, 0)) - SUM(IIF(SUBSTR(Date, 1, 4) = '2013', Consumption, 0)) AS FLOAT) / SUM(IIF(SUBSTR(Date, 1, 4) = '2012', Consumption, 0)) FROM yearmonth WHERE CustomerID = ( SELECT T1.CustomerID FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-25' AND T1.Price = 634.8 )",
+      "pred_sql": "-- Step 1: Find the customer who paid 634.8 on 2012/8/25\n-- Step 2: Get consumption for that customer in 2012 and 2013 from yearmonth\n-- Step 3: Calculate decrease rate = (consumption_2012 - consumption_2013) / consumption_2012\n\nWITH customer_payment AS (\n    SELECT CustomerID\n    FROM transactions_1k\n    WHERE Price = 634.8 AND Date = '2012-08-25'\n),\nconsumption_2012 AS (\n    SELECT ym.CustomerID, SUM(ym.Consumption) AS total_2012\n    FROM yearmonth ym\n    JOIN customer_payment cp ON ym.CustomerID = cp.CustomerID\n    WHERE ym.Date LIKE '2012%'\n    GROUP BY ym.CustomerID\n),\nconsumption_2013 AS (\n    SELECT ym.CustomerID, SUM(ym.Consumption) AS total_2013\n    FROM yearmonth ym\n    JOIN customer_payment cp ON ym.CustomerID = cp.CustomerID\n    WHERE ym.Date LIKE '2013%'\n    GROUP BY ym.CustomerID\n)\nSELECT \n    ROUND((c12.total_2012 - COALESCE(c13.total_2013, 0)) / CAST(c12.total_2012 AS REAL), 4) AS consumption_decrease_rate\nFROM consumption_2012 c12\nLEFT JOIN consumption_2013 c13 ON c12.CustomerID = c13.CustomerID",
+      "graph_method": "declared",
+      "n_edges": 1,
+      "sources": [
+        "transactions_1k"
+      ],
+      "destinations": [
+        "yearmonth"
+      ],
+      "linked_tables": [
+        "transactions_1k",
+        "yearmonth"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 1.4618,
+        "values": 1.585,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=declared edges=1",
+        "anchor: src=['transactions_1k'] dst=['yearmonth'] literals=['634.8', '2012/8/25', '2012', '2013']",
+        "belief0: colH=1.462 valH=1.585 hosts=1",
+        "explore: no path between anchors; union fallback -> ['transactions_1k', 'yearmonth']",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+[bird_colalign_deepseek-chat_fix_seed42] 20 questions | model=deepseek-chat seed=42 ablation=colalign workers=4
+  [20/20] latest=bird_1117 exec=ok  (61s)
+[bird_colalign_deepseek-chat_fix_seed42] running official bird evaluator ...
+[bird_colalign_deepseek-chat_fix_seed42] EX = 50.0  (n=20)
+[bird_colalign_deepseek-chat_fix_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_colalign_deepseek-chat_fix_seed42.json
+[bird_colalign_deepseek-chat_fix_seed42] LLM: {'num_calls': 65, 'input_tokens': 41448, 'output_tokens': 4153} | 61.1s

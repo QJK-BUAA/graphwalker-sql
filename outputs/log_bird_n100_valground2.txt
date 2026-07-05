@@ -1,0 +1,9 @@
+[bird_valground_deepseek-chat_n100vg2_seed42] 100 questions | model=deepseek-chat seed=42 ablation=valground workers=6
+  [25/100] latest=bird_325 exec=ok  (56s)
+  [50/100] latest=bird_694 exec=ok  (101s)
+  [75/100] latest=bird_1177 exec=ok  (187s)
+  [100/100] latest=bird_1481 exec=ok  (209s)
+[bird_valground_deepseek-chat_n100vg2_seed42] running official bird evaluator ...
+[bird_valground_deepseek-chat_n100vg2_seed42] EX = 45.0  (n=100)
+[bird_valground_deepseek-chat_n100vg2_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_valground_deepseek-chat_n100vg2_seed42.json
+[bird_valground_deepseek-chat_n100vg2_seed42] LLM: {'num_calls': 308, 'input_tokens': 183815, 'output_tokens': 11501} | 208.9s

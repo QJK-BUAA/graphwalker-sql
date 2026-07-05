@@ -1,0 +1,9 @@
+[bird_nopropgate_deepseek-chat_nopropgate_n100_rerun_seed42] 100 questions | model=deepseek-chat seed=42 ablation=nopropgate workers=6
+  [25/100] latest=bird_226 exec=ok  (16s)
+  [50/100] latest=bird_782 exec=ok  (54s)
+  [75/100] latest=bird_1151 exec=ok  (134s)
+  [100/100] latest=bird_1526 exec=ok  (148s)
+[bird_nopropgate_deepseek-chat_nopropgate_n100_rerun_seed42] running official bird evaluator ...
+[bird_nopropgate_deepseek-chat_nopropgate_n100_rerun_seed42] EX = 48.0  (n=100)
+[bird_nopropgate_deepseek-chat_nopropgate_n100_rerun_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_nopropgate_deepseek-chat_nopropgate_n100_rerun_seed42.json
+[bird_nopropgate_deepseek-chat_nopropgate_n100_rerun_seed42] LLM: {'num_calls': 308, 'input_tokens': 182067, 'output_tokens': 11166} | 148.4s

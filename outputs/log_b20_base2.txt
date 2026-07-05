@@ -1,0 +1,6 @@
+[bird_full_deepseek-chat_base2_seed42] 20 questions | model=deepseek-chat seed=42 ablation=full workers=4
+  [20/20] latest=bird_1117 exec=ok  (73s)
+[bird_full_deepseek-chat_base2_seed42] running official bird evaluator ...
+[bird_full_deepseek-chat_base2_seed42] EX = 35.0  (n=20)
+[bird_full_deepseek-chat_base2_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_full_deepseek-chat_base2_seed42.json
+[bird_full_deepseek-chat_base2_seed42] LLM: {'num_calls': 61, 'input_tokens': 39644, 'output_tokens': 2387} | 72.7s

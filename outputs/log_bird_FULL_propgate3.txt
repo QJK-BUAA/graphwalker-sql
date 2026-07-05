@@ -1,0 +1,7 @@
+[bird_full_deepseek-chat_propgate_FULL3_seed42] 1534 questions | model=deepseek-chat seed=42 ablation=full workers=6
+  [25/1534] latest=bird_22 exec=ok  (84s)
+  [50/1534] latest=bird_46 exec=ok  (177s)
+  [75/1534] latest=bird_78 exec=ok  (317s)
+  [100/1534] latest=bird_103 exec=ok  (525s)
+  [125/1534] latest=bird_125 exec=ok  (1273s)
+  [150/1534] latest=bird_153 exec=ok  (1974s)

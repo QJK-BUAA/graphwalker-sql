@@ -1,0 +1,1032 @@
+{
+  "run_id": "spider2-lite_noprobe_deepseek-chat_seed42",
+  "timestamp": "2026-07-01T11:21:23",
+  "args": {
+    "dataset": "spider2-lite",
+    "limit": 20,
+    "seed": 42,
+    "model": "deepseek-chat",
+    "ablation": "noprobe",
+    "outdir": "outputs",
+    "no_eval": false,
+    "with_snapshot": false,
+    "tag": ""
+  },
+  "model": "deepseek-chat",
+  "seed": 42,
+  "ablation": "noprobe",
+  "ablation_config": {
+    "use_inferred_graph": true,
+    "use_belief_walk": true,
+    "use_topk": true,
+    "use_probes": false,
+    "use_entropy_stop": true,
+    "use_propose": true,
+    "value_verify": true,
+    "value_probe": true,
+    "max_repairs": 1,
+    "repair_on_empty": true
+  },
+  "dataset": "spider2-lite",
+  "n_questions": 20,
+  "elapsed_sec": 176.6,
+  "llm_stats": {
+    "num_calls": 95,
+    "input_tokens": 62875,
+    "output_tokens": 9712
+  },
+  "official_eval": {
+    "n": 20,
+    "raw_tail": " and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/snowflake/connector/vendored/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n",
+    "ex": 30.0,
+    "correct": 6,
+    "scored": 20
+  },
+  "records": [
+    {
+      "instance_id": "local003",
+      "db_id": "E_commerce",
+      "difficulty": "",
+      "question": "According to the RFM definition document, calculate the average sales per order for each customer within distinct RFM segments, considering only 'delivered' orders. Use the customer unique identifier. Clearly define how to calculate Recency based on the latest purchase timestamp and specify the criteria for classifying RFM segments. The average sales should be computed as the total spend divided by the total number of orders. Please analyze and report the differences in average sales across the RFM segments",
+      "gold_sql": "WITH RecencyScore AS (\n    SELECT customer_unique_id,\n           MAX(order_purchase_timestamp) AS last_purchase,\n           NTILE(5) OVER (ORDER BY MAX(order_purchase_timestamp) DESC) AS recency\n    FROM orders\n        JOIN customers USING (customer_id)\n    WHERE order_status = 'delivered'\n    GROUP BY customer_unique_id\n),\nFrequencyScore AS (\n    SELECT customer_unique_id,\n           COUNT(order_id) AS total_orders,\n           NTILE(5) OVER (ORDER BY COUNT(order_id) DESC) AS frequency\n    FROM orders\n        JOIN customers USING (customer_id)\n    WHERE order_status = 'delivered'\n    GROUP BY customer_unique_id\n),\nMonetaryScore AS (\n    SELECT customer_unique_id,\n           SUM(price) AS total_spent,\n           NTILE(5) OVER (ORDER BY SUM(price) DESC) AS monetary\n    FROM orders\n        JOIN order_items USING (order_id)\n        JOIN customers USING (customer_id)\n    WHERE order_status = 'delivered'\n    GROUP BY customer_unique_id\n),\n\n-- 2. Assign each customer to a group\nRFM AS (\n    SELECT last_purchase, total_orders, total_spent,\n        CASE\n            WHEN recency = 1 AND frequency + monetary IN (1, 2, 3, 4) THEN \"Champions\"\n            WHEN recency IN (4, 5) AND frequency + monetary IN (1, 2) THEN \"Can't Lose Them\"\n            WHEN recency IN (4, 5) AND frequency + monetary IN (3, 4, 5, 6) THEN \"Hibernating\"\n            WHEN recency IN (4, 5) AND frequency + monetary IN (7, 8, 9, 10) THEN \"Lost\"\n            WHEN recency IN (2, 3) AND frequency + monetary IN (1, 2, 3, 4) THEN \"Loyal Customers\"\n            WHEN recency = 3 AND frequency + monetary IN (5, 6) THEN \"Needs Attention\"\n            WHEN recency = 1 AND frequency + monetary IN (7, 8) THEN \"Recent Users\"\n            WHEN recency = 1 AND frequency + monetary IN (5, 6) OR\n                recency = 2 AND frequency + monetary IN (5, 6, 7, 8) THEN \"Potentital Loyalists\"\n            WHEN recency = 1 AND frequency + monetary IN (9, 10) THEN \"Price Sensitive\"\n            WHEN recency = 2 AND frequency + monetary IN (9, 10) THEN \"Promising\"\n            WHEN recency = 3 AND frequency + monetary IN (7, 8, 9, 10) THEN \"About to Sleep\"\n        END AS RFM_Bucket\n    FROM RecencyScore\n        JOIN FrequencyScore USING (customer_unique_id)\n        JOIN MonetaryScore USING (customer_unique_id)\n)\n\nSELECT RFM_Bucket, \n       AVG(total_spent / total_orders) AS avg_sales_per_customer\nFROM RFM\nGROUP BY RFM_Bucket",
+      "pred_sql": "-- Step 1: Compute customer-level RFM metrics and total spend/orders for delivered orders\nWITH customer_metrics AS (\n    SELECT \n        c.customer_unique_id,\n        -- Recency: days since last purchase (using latest order_purchase_timestamp)\n        JULIANDAY('2018-10-17') - JULIANDAY(MAX(o.order_purchase_timestamp)) AS recency_days,\n        -- Frequency: total number of delivered orders\n        COUNT(DISTINCT o.order_id) AS frequency,\n        -- Monetary: total spend (sum of payment_value for delivered orders)\n        SUM(op.payment_value) AS monetary\n    FROM customers c\n    JOIN orders o ON c.customer_id = o.customer_id\n    JOIN order_payments op ON o.order_id = op.order_id\n    WHERE o.order_status = 'delivered'\n    GROUP BY c.customer_unique_id\n),\n-- Step 2: Assign RFM segments based on quintile-like thresholds (common e-commerce approach)\nrfm_segments AS (\n    SELECT \n        customer_unique_id,\n        recency_days,\n        frequency,\n        monetary,\n        -- Recency score: 1 (most recent) to 4 (least recent)\n        CASE \n            WHEN recency_days <= 30 THEN 4\n            WHEN recency_days <= 90 THEN 3\n            WHEN recency_days <= 180 THEN 2\n            ELSE 1\n        END AS r_score,\n        -- Frequency score: 1 (low) to 4 (high)\n        CASE \n            WHEN frequency >= 10 THEN 4\n            WHEN frequency >= 5 THEN 3\n            WHEN frequency >= 2 THEN 2\n            ELSE 1\n        END AS f_score,\n        -- Monetary score: 1 (low) to 4 (high)\n        CASE \n            WHEN monetary >= 1000 THEN 4\n            WHEN monetary >= 500 THEN 3\n            WHEN monetary >= 200 THEN 2\n            ELSE 1\n        END AS m_score\n    FROM customer_metrics\n),\n-- Step 3: Create RFM segments (concatenated scores)\nrfm_combined AS (\n    SELECT \n        customer_unique_id,\n        CAST(r_score AS TEXT) || CAST(f_score AS TEXT) || CAST(m_score AS TEXT) AS rfm_segment,\n        monetary,\n        frequency\n    FROM rfm_segments\n)\n-- Step 4: Calculate average sales per order per segment\nSELECT \n    rfm_segment,\n    SUM(monetary) / SUM(frequency) AS avg_sales_per_order\nFROM rfm_combined\nGROUP BY rfm_segment\nORDER BY avg_sales_per_order DESC",
+      "graph_method": "inferred",
+      "n_edges": 9,
+      "sources": [
+        "orders"
+      ],
+      "destinations": [
+        "customers",
+        "orders",
+        "order_payments"
+      ],
+      "linked_tables": [
+        "customers",
+        "order_items",
+        "order_payments",
+        "orders"
+      ],
+      "chosen_path": [
+        "orders",
+        "customers"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "order_items",
+        "order_payments"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 34,
+      "belief_entropy": {
+        "columns": 2.9641,
+        "values": 0.0,
+        "paths": 1.5812
+      },
+      "trace": [
+        "ground: graph=inferred edges=9",
+        "anchor: src=['orders'] dst=['customers', 'orders', 'order_payments'] literals=['delivered']",
+        "belief0: colH=2.964 valH=0.000",
+        "explore: path entropy=1.581 top_gap=0.15 (3 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['orders', 'customers']",
+        "commit: [propose=MISSING] added missing tables ['order_items', 'order_payments'] -> ['customers', 'order_items', 'order_payments', 'orders']",
+        "commit: generate -> ok=True rows=34"
+      ]
+    },
+    {
+      "instance_id": "local004",
+      "db_id": "E_commerce",
+      "difficulty": "",
+      "question": "Could you tell me the number of orders, average payment per order and customer lifespan in weeks of the 3 custumers with the highest average payment per order, where the lifespan is calculated by subtracting the earliest purchase date from the latest purchase date in days, dividing by seven, and if the result is less than seven days, setting it to 1.0?",
+      "gold_sql": "WITH CustomerData AS (\n    SELECT\n        customer_unique_id,\n        COUNT(DISTINCT orders.order_id) AS order_count,\n        SUM(payment_value) AS total_payment,\n        JULIANDAY(MIN(order_purchase_timestamp)) AS first_order_day,\n        JULIANDAY(MAX(order_purchase_timestamp)) AS last_order_day\n    FROM customers\n        JOIN orders USING (customer_id)\n        JOIN order_payments USING (order_id)\n    GROUP BY customer_unique_id\n)\nSELECT\n    customer_unique_id,\n    order_count AS PF,\n    ROUND(total_payment / order_count, 2) AS AOV,\n    CASE\n        WHEN (last_order_day - first_order_day) < 7 THEN\n            1\n        ELSE\n            (last_order_day - first_order_day) / 7\n        END AS ACL\nFROM CustomerData\nORDER BY AOV DESC\nLIMIT 3\n",
+      "pred_sql": "WITH customer_metrics AS (\n    SELECT \n        c.customer_unique_id,\n        COUNT(DISTINCT o.order_id) AS num_orders,\n        AVG(p.payment_value) AS avg_payment_per_order,\n        (JULIANDAY(MAX(o.order_purchase_timestamp)) - JULIANDAY(MIN(o.order_purchase_timestamp))) / 7.0 AS raw_lifespan_weeks,\n        CASE \n            WHEN (JULIANDAY(MAX(o.order_purchase_timestamp)) - JULIANDAY(MIN(o.order_purchase_timestamp))) / 7.0 < 1.0 \n            THEN 1.0 \n            ELSE (JULIANDAY(MAX(o.order_purchase_timestamp)) - JULIANDAY(MIN(o.order_purchase_timestamp))) / 7.0 \n        END AS customer_lifespan_weeks\n    FROM customers c\n    JOIN orders o ON c.customer_id = o.customer_id\n    JOIN order_payments p ON o.order_id = p.order_id\n    GROUP BY c.customer_unique_id\n)\nSELECT \n    num_orders,\n    ROUND(avg_payment_per_order, 4) AS avg_payment_per_order,\n    ROUND(customer_lifespan_weeks, 4) AS customer_lifespan_weeks\nFROM customer_metrics\nORDER BY avg_payment_per_order DESC\nLIMIT 3",
+      "graph_method": "inferred",
+      "n_edges": 9,
+      "sources": [
+        "orders",
+        "order_payments"
+      ],
+      "destinations": [
+        "customers",
+        "orders",
+        "order_payments"
+      ],
+      "linked_tables": [
+        "customers",
+        "order_payments",
+        "orders"
+      ],
+      "chosen_path": [
+        "orders",
+        "customers"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "order_payments"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 2.9557,
+        "values": 0.0,
+        "paths": 2.5782
+      },
+      "trace": [
+        "ground: graph=inferred edges=9",
+        "anchor: src=['orders', 'order_payments'] dst=['customers', 'orders', 'order_payments'] literals=[]",
+        "belief0: colH=2.956 valH=0.000",
+        "explore: path entropy=2.578 top_gap=0.00 (6 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['orders', 'customers']",
+        "commit: [propose=MISSING] added missing tables ['order_payments'] -> ['customers', 'order_payments', 'orders']",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "local008",
+      "db_id": "Baseball",
+      "difficulty": "",
+      "question": "I would like to know the given names of baseball players who have achieved the highest value of games played, runs, hits, and home runs, with their corresponding score values.",
+      "gold_sql": "WITH player_stats AS (\n    SELECT\n        b.player_id,\n        p.name_given AS player_name,\n        SUM(b.g) AS games_played,\n        SUM(b.r) AS runs,\n        SUM(b.h) AS hits,\n        SUM(b.hr) AS home_runs\n    FROM player p\n    JOIN batting b ON p.player_id = b.player_id\n    GROUP BY b.player_id, p.name_given\n)\n\nSELECT 'Games Played' AS Category, player_name AS Player_Name, games_played AS Batting_Table_Topper\nFROM player_stats\nWHERE games_played = (SELECT MAX(games_played) FROM player_stats)\n\nUNION ALL\n\nSELECT 'Runs' AS Category, player_name AS Player_Name, runs AS Batting_Table_Topper\nFROM player_stats\nWHERE runs = (SELECT MAX(runs) FROM player_stats)\n\nUNION ALL\n\nSELECT 'Hits' AS Category, player_name AS Player_Name, hits AS Batting_Table_Topper\nFROM player_stats\nWHERE hits = (SELECT MAX(hits) FROM player_stats)\n\nUNION ALL\n\nSELECT 'Home Runs' AS Category, player_name AS Player_Name, home_runs AS Batting_Table_Topper\nFROM player_stats\nWHERE home_runs = (SELECT MAX(home_runs) FROM player_stats);\n",
+      "pred_sql": "SELECT \n    p.name_given,\n    (b.g + b.r + b.h + b.hr) AS score\nFROM batting b\nJOIN player p ON b.player_id = p.player_id\nORDER BY score DESC\nLIMIT 1",
+      "graph_method": "inferred",
+      "n_edges": 21,
+      "sources": [
+        "batting"
+      ],
+      "destinations": [
+        "player"
+      ],
+      "linked_tables": [
+        "batting",
+        "player"
+      ],
+      "chosen_path": [
+        "batting",
+        "player"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0001,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=21",
+        "anchor: src=['batting'] dst=['player'] literals=[]",
+        "belief0: colH=0.000 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local017",
+      "db_id": "California_Traffic_Collision",
+      "difficulty": "",
+      "question": "In which year were the two most common causes of traffic accidents different from those in other years?",
+      "gold_sql": "WITH AnnualTotals AS (\n    SELECT \n        STRFTIME('%Y', collision_date) AS Year, \n        COUNT(case_id) AS AnnualTotal\n    FROM \n        collisions\n    GROUP BY \n        Year\n),\nCategoryTotals AS (\n    SELECT \n        STRFTIME('%Y', collision_date) AS Year,\n        pcf_violation_category AS Category,\n        COUNT(case_id) AS Subtotal\n    FROM \n        collisions\n    GROUP BY \n        Year, Category\n),\nCategoryPercentages AS (\n    SELECT \n        ct.Year,\n        ct.Category,\n        ROUND((ct.Subtotal * 100.0) / at.AnnualTotal, 1) AS PercentageOfAnnualRoadIncidents\n    FROM \n        CategoryTotals ct\n    JOIN \n        AnnualTotals at ON ct.Year = at.Year\n),\nRankedCategories AS (\n    SELECT\n        Year,\n        Category,\n        PercentageOfAnnualRoadIncidents,\n        ROW_NUMBER() OVER (PARTITION BY Year ORDER BY PercentageOfAnnualRoadIncidents DESC) AS Rank\n    FROM\n        CategoryPercentages\n),\nTopTwoCategories AS (\n    SELECT\n        Year,\n        GROUP_CONCAT(Category, ', ') AS TopCategories\n    FROM\n        RankedCategories\n    WHERE\n        Rank <= 2\n    GROUP BY\n        Year\n),\nUniqueYear AS (\n    SELECT\n        Year\n    FROM\n        TopTwoCategories\n    GROUP BY\n        TopCategories\n    HAVING COUNT(Year) = 1\n),\nresults AS (\nSELECT \n    rc.Year, \n    rc.Category, \n    rc.PercentageOfAnnualRoadIncidents\nFROM \n    UniqueYear u\nJOIN \n    RankedCategories rc ON u.Year = rc.Year\nWHERE \n    rc.Rank <= 2\n)\n\nSELECT distinct Year FROM results",
+      "pred_sql": "-- For each year, find the top 2 most common primary_collision_factor values\n-- Then find the year(s) where that pair is unique compared to all other years\nWITH yearly_top2 AS (\n  SELECT \n    strftime('%Y', collisions.collision_date) AS year,\n    collisions.primary_collision_factor,\n    COUNT(*) AS cnt,\n    ROW_NUMBER() OVER (PARTITION BY strftime('%Y', collisions.collision_date) ORDER BY COUNT(*) DESC) AS rn\n  FROM collisions\n  WHERE collisions.primary_collision_factor IS NOT NULL\n  GROUP BY year, collisions.primary_collision_factor\n),\nyearly_pair AS (\n  SELECT \n    year,\n    GROUP_CONCAT(primary_collision_factor, ', ' ORDER BY primary_collision_factor) AS top2_factors\n  FROM yearly_top2\n  WHERE rn <= 2\n  GROUP BY year\n)\nSELECT yp1.year\nFROM yearly_pair yp1\nWHERE yp1.top2_factors NOT IN (\n  SELECT yp2.top2_factors\n  FROM yearly_pair yp2\n  WHERE yp2.year != yp1.year\n)",
+      "graph_method": "inferred",
+      "n_edges": 0,
+      "sources": [
+        "collisions"
+      ],
+      "destinations": [
+        "collisions"
+      ],
+      "linked_tables": [
+        "collisions"
+      ],
+      "chosen_path": [
+        "collisions"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.44,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=0",
+        "anchor: src=['collisions'] dst=['collisions'] literals=[]",
+        "belief0: colH=3.440 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local019",
+      "db_id": "WWE",
+      "difficulty": "",
+      "question": "For the NXT title that had the shortest match (excluding titles with \"title change\"), what were the names of the two wrestlers involved?",
+      "gold_sql": "WITH MatchDetails AS (\n    SELECT\n        b.name AS titles,\n        m.duration AS match_duration,\n        w1.name || ' vs ' || w2.name AS matches,\n        m.win_type AS win_type,\n        l.name AS location,\n        e.name AS event,\n        ROW_NUMBER() OVER (PARTITION BY b.name ORDER BY m.duration ASC) AS rank\n    FROM \n        Belts b\n    INNER JOIN Matches m ON m.title_id = b.id\n    INNER JOIN Wrestlers w1 ON w1.id = m.winner_id\n    INNER JOIN Wrestlers w2 ON w2.id = m.loser_id\n    INNER JOIN Cards c ON c.id = m.card_id\n    INNER JOIN Locations l ON l.id = c.location_id\n    INNER JOIN Events e ON e.id = c.event_id\n    INNER JOIN Promotions p ON p.id = c.promotion_id\n    WHERE\n        p.name = 'NXT'\n        AND m.duration <> ''\n        AND b.name <> ''\n        AND b.name NOT IN (\n            SELECT name \n            FROM Belts \n            WHERE name LIKE '%title change%'\n        )\n),\nRank1 AS (\nSELECT \n    titles,\n    match_duration,\n    matches,\n    win_type,\n    location,\n    event\nFROM \n    MatchDetails\nWHERE \n    rank = 1\n)\nSELECT\n    SUBSTR(matches, 1, INSTR(matches, ' vs ') - 1) AS wrestler1,\n    SUBSTR(matches, INSTR(matches, ' vs ') + 4) AS wrestler2\nFROM\nRank1\nORDER BY match_duration \nLIMIT 1",
+      "pred_sql": "SELECT w1.name AS winner_name, w2.name AS loser_name\nFROM Matches m\nJOIN Wrestlers w1 ON m.winner_id = w1.id\nJOIN Wrestlers w2 ON m.loser_id = w2.id\nWHERE m.title_id = (SELECT id FROM Belts WHERE name = 'NXT')\n  AND (m.title_change IS NULL OR m.title_change = 0)\nORDER BY CAST(SUBSTR(m.duration, 1, INSTR(m.duration, ':') - 1) AS INTEGER) * 60 + CAST(SUBSTR(m.duration, INSTR(m.duration, ':') + 1) AS INTEGER) ASC\nLIMIT 1",
+      "graph_method": "inferred",
+      "n_edges": 5,
+      "sources": [
+        "Matches",
+        "Belts"
+      ],
+      "destinations": [
+        "Wrestlers"
+      ],
+      "linked_tables": [
+        "Belts",
+        "Match_Types",
+        "Matches",
+        "Wrestlers"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Match_Types"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.7096,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=5",
+        "anchor: src=['Matches', 'Belts'] dst=['Wrestlers'] literals=['NXT']",
+        "belief0: colH=3.710 valH=0.000",
+        "explore: no path between anchors; union fallback -> ['Belts', 'Matches', 'Wrestlers']",
+        "commit: [propose=MISSING] added missing tables ['Match_Types'] -> ['Belts', 'Match_Types', 'Matches', 'Wrestlers']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local022",
+      "db_id": "IPL",
+      "difficulty": "",
+      "question": "Retrieve the names of players who scored no less than 100 runs in a match while playing for the team that lost that match.",
+      "gold_sql": "-- Step 1: Calculate players' total runs in each match\nWITH player_runs AS (\n    SELECT \n        bbb.striker AS player_id, \n        bbb.match_id, \n        SUM(bsc.runs_scored) AS total_runs \n    FROM \n        ball_by_ball AS bbb\n    JOIN \n        batsman_scored AS bsc\n    ON \n        bbb.match_id = bsc.match_id \n        AND bbb.over_id = bsc.over_id \n        AND bbb.ball_id = bsc.ball_id \n        AND bbb.innings_no = bsc.innings_no\n    GROUP BY \n        bbb.striker, bbb.match_id\n    HAVING \n        SUM(bsc.runs_scored) >= 100\n),\n\n-- Step 2: Identify losing teams for each match\nlosing_teams AS (\n    SELECT \n        match_id, \n        CASE \n            WHEN match_winner = team_1 THEN team_2 \n            ELSE team_1 \n        END AS loser \n    FROM \n        match\n),\n\n-- Step 3: Combine the above results to get players who scored 100 or more runs in losing teams\nplayers_in_losing_teams AS (\n    SELECT \n        pr.player_id, \n        pr.match_id \n    FROM \n        player_runs AS pr\n    JOIN \n        losing_teams AS lt\n    ON \n        pr.match_id = lt.match_id\n    JOIN \n        player_match AS pm\n    ON \n        pr.player_id = pm.player_id \n        AND pr.match_id = pm.match_id \n        AND lt.loser = pm.team_id\n)\n\n-- Step 4: Select distinct player names from the player table\nSELECT DISTINCT \n    p.player_name \nFROM \n    player AS p\nJOIN \n    players_in_losing_teams AS plt\nON \n    p.player_id = plt.player_id\nORDER BY \n    p.player_name;",
+      "pred_sql": "SELECT DISTINCT p.player_name\nFROM player p\nJOIN player_match pm ON p.player_id = pm.player_id\nJOIN match m ON pm.match_id = m.match_id\nJOIN batsman_scored bs ON m.match_id = bs.match_id\nWHERE m.match_winner != pm.team_id\n  AND pm.team_id != m.match_winner\nGROUP BY p.player_id, m.match_id\nHAVING SUM(bs.runs_scored) >= 100",
+      "graph_method": "inferred",
+      "n_edges": 12,
+      "sources": [
+        "player",
+        "team",
+        "match",
+        "batsman_scored"
+      ],
+      "destinations": [
+        "player"
+      ],
+      "linked_tables": [
+        "batsman_scored",
+        "match",
+        "player",
+        "player_match"
+      ],
+      "chosen_path": [
+        "match",
+        "player_match",
+        "player"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "batsman_scored"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 447,
+      "belief_entropy": {
+        "columns": 0.7603,
+        "values": 1.0,
+        "paths": 3.2965
+      },
+      "trace": [
+        "ground: graph=inferred edges=12",
+        "anchor: src=['player', 'team', 'match', 'batsman_scored'] dst=['player'] literals=['100']",
+        "belief0: colH=0.760 valH=1.000",
+        "explore: path entropy=3.297 top_gap=0.28 (10 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P5 ['match', 'player_match', 'player']",
+        "commit: [propose=MISSING] added missing tables ['batsman_scored'] -> ['batsman_scored', 'match', 'player', 'player_match']",
+        "commit: generate -> ok=True rows=447"
+      ]
+    },
+    {
+      "instance_id": "local023",
+      "db_id": "IPL",
+      "difficulty": "",
+      "question": "Please help me find the names of top 5 players with the highest average runs per match in season 5, along with their batting averages.",
+      "gold_sql": "WITH runs_scored AS (\n    SELECT \n        bb.striker AS player_id,\n        bb.match_id,\n        bs.runs_scored AS runs\n    FROM \n        ball_by_ball AS bb\n    JOIN \n        batsman_scored AS bs ON bb.match_id = bs.match_id \n            AND bb.over_id = bs.over_id \n            AND bb.ball_id = bs.ball_id \n            AND bb.innings_no = bs.innings_no\n    WHERE \n        bb.match_id IN (SELECT match_id FROM match WHERE season_id = 5)\n),\ntotal_runs AS (\n    SELECT \n        player_id, \n        match_id, \n        SUM(runs) AS total_runs \n    FROM \n        runs_scored \n    GROUP BY \n        player_id, match_id\n),\nbatting_averages AS (\n    SELECT \n        player_id, \n        SUM(total_runs) AS runs, \n        COUNT(match_id) AS num_matches,\n        ROUND(SUM(total_runs) / CAST(COUNT(match_id) AS FLOAT), 3) AS batting_avg\n    FROM \n        total_runs \n    GROUP BY \n        player_id \n    ORDER BY \n        batting_avg DESC \n    LIMIT 5\n)\nSELECT \n    p.player_name,\n    b.batting_avg\nFROM \n    player AS p\nJOIN \n    batting_averages AS b ON p.player_id = b.player_id\nORDER BY \n    b.batting_avg DESC;",
+      "pred_sql": "SELECT \n    p.player_name,\n    ROUND(SUM(bs.runs_scored) * 1.0 / COUNT(DISTINCT m.match_id), 4) AS batting_average\nFROM batsman_scored bs\nJOIN match m ON bs.match_id = m.match_id\nJOIN player_match pm ON m.match_id = pm.match_id\nJOIN player p ON pm.player_id = p.player_id\nWHERE m.season_id = 5\nGROUP BY p.player_id, p.player_name\nORDER BY batting_average DESC\nLIMIT 5",
+      "graph_method": "inferred",
+      "n_edges": 12,
+      "sources": [
+        "player",
+        "batsman_scored"
+      ],
+      "destinations": [
+        "player"
+      ],
+      "linked_tables": [
+        "batsman_scored",
+        "match",
+        "player_match",
+        "player"
+      ],
+      "chosen_path": [
+        "batsman_scored",
+        "match",
+        "player_match",
+        "player"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 5,
+      "belief_entropy": {
+        "columns": 1.7208,
+        "values": 2.585,
+        "paths": 1.9623
+      },
+      "trace": [
+        "ground: graph=inferred edges=12",
+        "anchor: src=['player', 'batsman_scored'] dst=['player'] literals=['5']",
+        "belief0: colH=1.721 valH=2.585",
+        "explore: path entropy=1.962 top_gap=0.39 (4 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P2 ['batsman_scored', 'match', 'player_match', 'player']",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=5"
+      ]
+    },
+    {
+      "instance_id": "local029",
+      "db_id": "Brazilian_E_Commerce",
+      "difficulty": "",
+      "question": "Please identify the top three customers, based on their customer_unique_id, who have the highest number of delivered orders, and provide the average payment value, city, and state for each of these customers.",
+      "gold_sql": "WITH customer_orders AS (\n    SELECT\n        c.customer_unique_id,\n        COUNT(o.order_id) AS Total_Orders_By_Customers,\n        AVG(p.payment_value) AS Average_Payment_By_Customer,\n        c.customer_city,\n        c.customer_state\n    FROM olist_customers c\n    JOIN olist_orders o ON c.customer_id = o.customer_id\n    JOIN olist_order_payments p ON o.order_id = p.order_id\n    WHERE o.order_status = 'delivered'\n    GROUP BY c.customer_unique_id, c.customer_city, c.customer_state\n)\n\nSELECT \n    Average_Payment_By_Customer,\n    customer_city,\n    customer_state\nFROM customer_orders\nORDER BY Total_Orders_By_Customers DESC\nLIMIT 3;",
+      "pred_sql": "SELECT \n    c.customer_unique_id,\n    AVG(p.payment_value) AS avg_payment_value,\n    c.customer_city,\n    c.customer_state\nFROM olist_customers c\nJOIN olist_orders o ON c.customer_id = o.customer_id\nJOIN olist_order_payments p ON o.order_id = p.order_id\nWHERE o.order_status = 'delivered'\nGROUP BY c.customer_unique_id, c.customer_city, c.customer_state\nORDER BY COUNT(o.order_id) DESC\nLIMIT 3",
+      "graph_method": "inferred",
+      "n_edges": 7,
+      "sources": [
+        "olist_orders",
+        "olist_order_payments"
+      ],
+      "destinations": [
+        "olist_customers",
+        "olist_order_payments"
+      ],
+      "linked_tables": [
+        "olist_customers",
+        "olist_order_payments",
+        "olist_orders"
+      ],
+      "chosen_path": [
+        "olist_orders",
+        "olist_order_payments"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "olist_customers"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 4.2857,
+        "values": 0.0,
+        "paths": 1.993
+      },
+      "trace": [
+        "ground: graph=inferred edges=7",
+        "anchor: src=['olist_orders', 'olist_order_payments'] dst=['olist_customers', 'olist_order_payments'] literals=['delivered']",
+        "belief0: colH=4.286 valH=0.000",
+        "explore: path entropy=1.993 top_gap=0.15 (4 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P1 ['olist_orders', 'olist_order_payments']",
+        "commit: [propose=MISSING] added missing tables ['olist_customers'] -> ['olist_customers', 'olist_order_payments', 'olist_orders']",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "local038",
+      "db_id": "Pagila",
+      "difficulty": "",
+      "question": "Could you help me determine which actor starred most frequently in English-language children's category films that were rated either G or PG, had a running time of 120 minutes or less, and were released between 2000 and 2010? Please provide the actor's full name.",
+      "gold_sql": "SELECT\n    actor.first_name || ' ' || actor.last_name AS full_name\nFROM\n    actor\nINNER JOIN film_actor ON actor.actor_id = film_actor.actor_id\nINNER JOIN film ON film_actor.film_id = film.film_id\nINNER JOIN film_category ON film.film_id = film_category.film_id\nINNER JOIN category ON film_category.category_id = category.category_id\n-- Join with the language table\nINNER JOIN language ON film.language_id = language.language_id\nWHERE\n    category.name = 'Children' AND\n    film.release_year BETWEEN 2000 AND 2010 AND\n    film.rating IN ('G', 'PG') AND\n    language.name = 'English' AND\n    film.length <= 120\nGROUP BY\n    actor.actor_id, actor.first_name, actor.last_name\nORDER BY\n    COUNT(film.film_id) DESC\nLIMIT 1;\n",
+      "pred_sql": "SELECT a.first_name || ' ' || a.last_name AS full_name\nFROM actor a\nJOIN film_actor fa ON a.actor_id = fa.actor_id\nJOIN film f ON fa.film_id = f.film_id\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nJOIN language l ON f.language_id = l.language_id\nWHERE c.name = 'Children'\n  AND f.rating IN ('G', 'PG')\n  AND f.length <= 120\n  AND f.release_year BETWEEN '2000' AND '2010'\n  AND l.name = 'English'\nGROUP BY a.actor_id\nORDER BY COUNT(*) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "film",
+        "language",
+        "category"
+      ],
+      "destinations": [
+        "actor"
+      ],
+      "linked_tables": [
+        "category",
+        "film_category",
+        "film",
+        "film_actor",
+        "actor"
+      ],
+      "chosen_path": [
+        "category",
+        "film_category",
+        "film",
+        "film_actor",
+        "actor"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 4.0395,
+        "values": 0.0,
+        "paths": 1.585
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['film', 'language', 'category'] dst=['actor'] literals=['English', 'children', 'G', 'PG', '120', '2000', '2010']",
+        "belief0: colH=4.040 valH=0.000",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P2 ['category', 'film_category', 'film', 'film_actor', 'actor']",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local039",
+      "db_id": "Pagila",
+      "difficulty": "",
+      "question": "Please help me find the film category with the highest total rental hours in cities where the city's name either starts with \"A\" or contains a hyphen. ",
+      "gold_sql": "SELECT\n    category.name\nFROM\n    category\nINNER JOIN film_category USING (category_id)\nINNER JOIN film USING (film_id)\nINNER JOIN inventory USING (film_id)\nINNER JOIN rental USING (inventory_id)\nINNER JOIN customer USING (customer_id)\nINNER JOIN address USING (address_id)\nINNER JOIN city USING (city_id)\nWHERE\n    LOWER(city.city) LIKE 'a%' OR city.city LIKE '%-%'\nGROUP BY\n    category.name\nORDER BY\n    SUM(CAST((julianday(rental.return_date) - julianday(rental.rental_date)) * 24 AS INTEGER)) DESC\nLIMIT\n    1;",
+      "pred_sql": "SELECT c.name AS category_name,\n       ROUND(SUM(julianday(r.return_date) - julianday(r.rental_date)) * 24, 4) AS total_rental_hours\nFROM rental r\nJOIN inventory i ON r.inventory_id = i.inventory_id\nJOIN film f ON i.film_id = f.film_id\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nJOIN store s ON i.store_id = s.store_id\nJOIN address a ON s.address_id = a.address_id\nJOIN city ci ON a.city_id = ci.city_id\nWHERE ci.city LIKE 'A%' OR ci.city LIKE '%-%'\nGROUP BY c.category_id, c.name\nORDER BY total_rental_hours DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "city"
+      ],
+      "destinations": [
+        "film_category",
+        "film",
+        "rental",
+        "inventory"
+      ],
+      "linked_tables": [
+        "address",
+        "category",
+        "city",
+        "film",
+        "film_category",
+        "inventory",
+        "rental",
+        "store"
+      ],
+      "chosen_path": [
+        "city",
+        "address",
+        "store",
+        "inventory",
+        "film"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "film_category",
+        "category",
+        "rental"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.7022,
+        "values": 1.0,
+        "paths": 2.8074
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['city'] dst=['film_category', 'film', 'rental', 'inventory'] literals=['A', '-']",
+        "belief0: colH=3.702 valH=1.000",
+        "explore: path entropy=2.807 top_gap=0.00 (7 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['city', 'address', 'store', 'inventory', 'film']",
+        "commit: [propose=MISSING] added missing tables ['film_category', 'category', 'rental'] -> ['address', 'category', 'city', 'film', 'film_category', 'inventory', 'rental', 'store']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local058",
+      "db_id": "education_business",
+      "difficulty": "",
+      "question": "Can you provide a list of hardware product segments along with their unique product counts for 2020 in the output, ordered by the highest percentage increase in unique fact sales products from 2020 to 2021?",
+      "gold_sql": "WITH UniqueProducts2020 AS (\n    SELECT\n        dp.segment,\n        COUNT(DISTINCT fsm.product_code) AS unique_products_2020\n    FROM\n        hardware_fact_sales_monthly fsm\n    JOIN\n        hardware_dim_product dp ON fsm.product_code = dp.product_code\n    WHERE\n        fsm.fiscal_year = 2020\n    GROUP BY\n        dp.segment\n),\nUniqueProducts2021 AS (\n    SELECT\n        dp.segment,\n        COUNT(DISTINCT fsm.product_code) AS unique_products_2021\n    FROM\n        hardware_fact_sales_monthly fsm\n    JOIN\n        hardware_dim_product dp ON fsm.product_code = dp.product_code\n    WHERE\n        fsm.fiscal_year = 2021\n    GROUP BY\n        dp.segment\n)\nSELECT\n    spc.segment,\n    spc.unique_products_2020 AS product_count_2020\nFROM\n    UniqueProducts2020 spc\nJOIN\n    UniqueProducts2021 fup ON spc.segment = fup.segment\nORDER BY\n    ((fup.unique_products_2021 - spc.unique_products_2020) * 100.0) / (spc.unique_products_2020) DESC;\n",
+      "pred_sql": "-- We need to compute unique product counts per segment for 2020 and 2021,\n-- then calculate percentage increase from 2020 to 2021, and order by that increase descending.\n-- Since only hardware_dim_product is provided, we assume product_code is the key.\n-- The question asks for segments and their unique product counts for 2020,\n-- but also requires ordering by percentage increase from 2020 to 2021.\n-- This implies we need data from both years, but the output only shows 2020 counts.\n-- We'll compute counts per segment for each year, then join and compute increase.\n\nWITH counts_2020 AS (\n    SELECT \n        p.segment,\n        COUNT(DISTINCT p.product_code) AS product_count_2020\n    FROM hardware_dim_product p\n    WHERE p.product_code LIKE '%2020%'  -- filter for 2020 products\n    GROUP BY p.segment\n),\ncounts_2021 AS (\n    SELECT \n        p.segment,\n        COUNT(DISTINCT p.product_code) AS product_count_2021\n    FROM hardware_dim_product p\n    WHERE p.product_code LIKE '%2021%'  -- filter for 2021 products\n    GROUP BY p.segment\n)\nSELECT \n    c20.segment,\n    c20.product_count_2020\nFROM counts_2020 c20\nLEFT JOIN counts_2021 c21 ON c20.segment = c21.segment\nORDER BY \n    (COALESCE(c21.product_count_2021, 0) - c20.product_count_2020) * 1.0 / NULLIF(c20.product_count_2020, 0) DESC",
+      "graph_method": "inferred",
+      "n_edges": 3,
+      "sources": [
+        "hardware_fact_sales_monthly",
+        "hardware_dim_product"
+      ],
+      "destinations": [
+        "hardware_dim_product"
+      ],
+      "linked_tables": [
+        "hardware_dim_product"
+      ],
+      "chosen_path": [
+        "hardware_dim_product"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0768,
+        "values": 2.585,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=3",
+        "anchor: src=['hardware_fact_sales_monthly', 'hardware_dim_product'] dst=['hardware_dim_product'] literals=['2020', '2021']",
+        "belief0: colH=0.077 valH=2.585",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local065",
+      "db_id": "modern_data",
+      "difficulty": "",
+      "question": "Calculate the total income from Meat Lovers pizzas priced at $12 and Vegetarian pizzas at $10. Include any extra toppings charged at $1 each. Ensure that canceled orders are filtered out. How much money has Pizza Runner earned in total?",
+      "gold_sql": "WITH get_extras_count AS (\n    WITH RECURSIVE split_extras AS (\n        SELECT\n            order_id,\n            TRIM(SUBSTR(extras, 1, INSTR(extras || ',', ',') - 1)) AS each_extra,\n            SUBSTR(extras || ',', INSTR(extras || ',', ',') + 1) AS remaining_extras\n        FROM\n            pizza_clean_customer_orders\n        UNION ALL\n        SELECT\n            order_id,\n            TRIM(SUBSTR(remaining_extras, 1, INSTR(remaining_extras, ',') - 1)) AS each_extra,\n            SUBSTR(remaining_extras, INSTR(remaining_extras, ',') + 1)\n        FROM\n            split_extras\n        WHERE\n            remaining_extras <> ''\n    )\n    SELECT\n        order_id,\n        COUNT(each_extra) AS total_extras\n    FROM\n        split_extras\n    GROUP BY\n        order_id\n),\ncalculate_totals AS (\n    SELECT\n        t1.order_id,\n        t1.pizza_id,\n        SUM(\n            CASE\n                WHEN pizza_id = 1 THEN 12\n                WHEN pizza_id = 2 THEN 10\n            END\n        ) AS total_price,\n        t3.total_extras\n    FROM \n        pizza_clean_customer_orders AS t1\n    JOIN\n        pizza_clean_runner_orders AS t2 \n    ON\n        t2.order_id = t1.order_id\n    LEFT JOIN\n        get_extras_count AS t3\n    ON\n        t3.order_id = t1.order_id\n    WHERE\n        t2.cancellation IS NULL\n    GROUP BY \n        t1.order_id,\n        t1.pizza_id,\n        t3.total_extras\n)\nSELECT \n    SUM(total_price) + SUM(total_extras) AS total_income\nFROM \n    calculate_totals;\n",
+      "pred_sql": "-- Calculate total income from Meat Lovers ($12) and Vegetarian ($10) pizzas, plus $1 per extra topping, excluding canceled orders\nSELECT \n    SUM(\n        CASE \n            WHEN pizza_id = 1 THEN 12  -- Meat Lovers\n            WHEN pizza_id = 2 THEN 10  -- Vegetarian\n        END\n        + \n        CASE \n            WHEN extras IS NOT NULL AND extras != '' AND extras != 'null' \n            THEN (LENGTH(extras) - LENGTH(REPLACE(extras, ',', '')) + 1) * 1\n            ELSE 0\n        END\n    ) AS total_income\nFROM pizza_clean_customer_orders\nWHERE pizza_id IN (1, 2)\n  AND (exclusions IS NULL OR exclusions = '' OR exclusions = 'null' OR exclusions NOT LIKE '%cancel%')",
+      "graph_method": "inferred",
+      "n_edges": 14,
+      "sources": [
+        "pizza_clean_customer_orders",
+        "pizza_clean_runner_orders",
+        "pizza_names"
+      ],
+      "destinations": [
+        "pizza_clean_customer_orders",
+        "pizza_clean_runner_orders",
+        "pizza_names"
+      ],
+      "linked_tables": [
+        "pizza_clean_customer_orders"
+      ],
+      "chosen_path": [
+        "pizza_clean_customer_orders"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.8161,
+        "values": 0.0,
+        "paths": 4.171
+      },
+      "trace": [
+        "ground: graph=inferred edges=14",
+        "anchor: src=['pizza_clean_customer_orders', 'pizza_clean_runner_orders', 'pizza_names'] dst=['pizza_clean_customer_orders', 'pizza_clean_runner_orders', 'pizza_names'] literals=['Meat Lovers', 'Vegetarian', '12', '10', '1']",
+        "belief0: colH=2.816 valH=0.000",
+        "explore: path entropy=4.171 top_gap=0.00 (19 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['pizza_clean_customer_orders']",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local075",
+      "db_id": "bank_sales_trading",
+      "difficulty": "",
+      "question": "Can you provide a breakdown of how many times each product was viewed, how many times they were added to the shopping cart, and how many times they were left in the cart without being purchased? Also, give me the count of actual purchases for each product. Ensure that products with a page id in (1, 2, 12, 13) are filtered out.",
+      "gold_sql": "WITH product_viewed AS (\n    SELECT\n        t1.page_id,\n        SUM(CASE WHEN event_type = 1 THEN 1 ELSE 0 END) AS n_page_views,\n        SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) AS n_added_to_cart\n    FROM\n        shopping_cart_page_hierarchy AS t1\n    JOIN\n        shopping_cart_events AS t2\n    ON\n        t1.page_id = t2.page_id\n    WHERE\n        t1.product_id IS NOT NULL\n    GROUP BY\n        t1.page_id\n),\nproduct_purchased AS (\n    SELECT\n        t2.page_id,\n        SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) AS purchased_from_cart\n    FROM\n        shopping_cart_page_hierarchy AS t1\n    JOIN\n        shopping_cart_events AS t2\n    ON\n        t1.page_id = t2.page_id\n    WHERE\n        t1.product_id IS NOT NULL\n        AND EXISTS (\n            SELECT\n                visit_id\n            FROM\n                shopping_cart_events\n            WHERE\n                event_type = 3\n                AND t2.visit_id = visit_id\n        )\n        AND t1.page_id NOT IN (1, 2, 12, 13)\n    GROUP BY\n        t2.page_id\n),\nproduct_abandoned AS (\n    SELECT\n        t2.page_id,\n        SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) AS abandoned_in_cart\n    FROM\n        shopping_cart_page_hierarchy AS t1\n    JOIN\n        shopping_cart_events AS t2\n    ON\n        t1.page_id = t2.page_id\n    WHERE\n        t1.product_id IS NOT NULL\n        AND NOT EXISTS (\n            SELECT\n                visit_id\n            FROM\n                shopping_cart_events\n            WHERE\n                event_type = 3\n                AND t2.visit_id = visit_id\n        )\n        AND t1.page_id NOT IN (1, 2, 12, 13)\n    GROUP BY\n        t2.page_id\n)\nSELECT\n    t1.page_id,\n    t1.page_name,\n    t2.n_page_views AS 'number of product being viewed',\n    t2.n_added_to_cart AS 'number added to the cart',\n    t4.abandoned_in_cart AS 'without being purchased in cart',\n    t3.purchased_from_cart AS 'count of actual purchases'\nFROM\n    shopping_cart_page_hierarchy AS t1\nJOIN\n    product_viewed AS t2 \nON\n    t2.page_id = t1.page_id\nJOIN\n    product_purchased AS t3 \nON \n    t3.page_id = t1.page_id\nJOIN\n    product_abandoned AS t4 \nON \n    t4.page_id = t1.page_id;\n",
+      "pred_sql": "SELECT \n    h.page_name AS product,\n    SUM(CASE WHEN e.event_type = 1 THEN 1 ELSE 0 END) AS page_views,\n    SUM(CASE WHEN e.event_type = 2 THEN 1 ELSE 0 END) AS cart_adds,\n    SUM(CASE WHEN e.event_type = 2 AND NOT EXISTS (\n        SELECT 1 FROM shopping_cart_events e2 \n        WHERE e2.cookie_id = e.cookie_id \n        AND e2.event_type = 3 \n        AND e2.event_time > e.event_time\n    ) THEN 1 ELSE 0 END) AS abandoned_in_cart,\n    SUM(CASE WHEN e.event_type = 3 THEN 1 ELSE 0 END) AS purchases\nFROM shopping_cart_page_hierarchy h\nJOIN shopping_cart_events e ON h.page_id = e.page_id\nJOIN shopping_cart_event_identifier ei ON e.event_type = ei.event_type\nWHERE h.page_id NOT IN (1, 2, 12, 13)\nGROUP BY h.page_id, h.page_name\nORDER BY h.page_name",
+      "graph_method": "inferred",
+      "n_edges": 8,
+      "sources": [
+        "shopping_cart_page_hierarchy"
+      ],
+      "destinations": [
+        "shopping_cart_page_hierarchy",
+        "shopping_cart_events",
+        "shopping_cart_event_identifier"
+      ],
+      "linked_tables": [
+        "shopping_cart_page_hierarchy",
+        "shopping_cart_events",
+        "shopping_cart_event_identifier"
+      ],
+      "chosen_path": [
+        "shopping_cart_page_hierarchy",
+        "shopping_cart_events",
+        "shopping_cart_event_identifier"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 9,
+      "belief_entropy": {
+        "columns": 2.1676,
+        "values": 3.1699,
+        "paths": 1.5379
+      },
+      "trace": [
+        "ground: graph=inferred edges=8",
+        "anchor: src=['shopping_cart_page_hierarchy'] dst=['shopping_cart_page_hierarchy', 'shopping_cart_events', 'shopping_cart_event_identifier'] literals=['1', '2', '12', '13']",
+        "belief0: colH=2.168 valH=3.170",
+        "explore: path entropy=1.538 top_gap=0.15 (3 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P2 ['shopping_cart_page_hierarchy', 'shopping_cart_events', 'shopping_cart_event_identifier']",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=9"
+      ]
+    },
+    {
+      "instance_id": "local099",
+      "db_id": "Db-IMDB",
+      "difficulty": "",
+      "question": "I need you to look into the actor collaborations and tell me how many actors have made more films with Yash Chopra than with any other director. This will help us understand his influence on the industry better.",
+      "gold_sql": "WITH YASH_CHOPRAS_PID AS (\n    SELECT\n        TRIM(P.PID) AS PID\n    FROM\n        Person P\n    WHERE\n        TRIM(P.Name) = 'Yash Chopra'\n),\nNUM_OF_MOV_BY_ACTOR_DIRECTOR AS (\n    SELECT\n        TRIM(MC.PID) AS ACTOR_PID,\n        TRIM(MD.PID) AS DIRECTOR_PID,\n        COUNT(DISTINCT TRIM(MD.MID)) AS NUM_OF_MOV\n    FROM\n        M_Cast MC\n    JOIN\n        M_Director MD ON TRIM(MC.MID) = TRIM(MD.MID)\n    GROUP BY\n        ACTOR_PID,\n        DIRECTOR_PID\n),\nNUM_OF_MOVIES_BY_YC AS (\n    SELECT\n        NM.ACTOR_PID,\n        NM.DIRECTOR_PID,\n        NM.NUM_OF_MOV AS NUM_OF_MOV_BY_YC\n    FROM\n        NUM_OF_MOV_BY_ACTOR_DIRECTOR NM\n    JOIN\n        YASH_CHOPRAS_PID YCP ON NM.DIRECTOR_PID = YCP.PID\n),\nMAX_MOV_BY_OTHER_DIRECTORS AS (\n    SELECT\n        ACTOR_PID,\n        MAX(NUM_OF_MOV) AS MAX_NUM_OF_MOV\n    FROM\n        NUM_OF_MOV_BY_ACTOR_DIRECTOR NM\n    JOIN\n        YASH_CHOPRAS_PID YCP ON NM.DIRECTOR_PID <> YCP.PID\n    GROUP BY\n        ACTOR_PID\n),\nACTORS_MOV_COMPARISION AS (\n    SELECT\n        NMY.ACTOR_PID,\n        CASE WHEN NMY.NUM_OF_MOV_BY_YC > IFNULL(NMO.MAX_NUM_OF_MOV, 0) THEN 'Y' ELSE 'N' END AS MORE_MOV_BY_YC\n    FROM\n        NUM_OF_MOVIES_BY_YC NMY\n    LEFT OUTER JOIN\n        MAX_MOV_BY_OTHER_DIRECTORS NMO ON NMY.ACTOR_PID = NMO.ACTOR_PID\n)\nSELECT\n    COUNT(DISTINCT TRIM(P.PID)) AS \"Number of actor\"\nFROM\n    Person P\nWHERE\n    TRIM(P.PID) IN (\n        SELECT\n            DISTINCT ACTOR_PID\n        FROM\n            ACTORS_MOV_COMPARISION\n        WHERE\n            MORE_MOV_BY_YC = 'Y'\n    );\n",
+      "pred_sql": "-- Count actors who have more films with Yash Chopra than with any other director\nWITH actor_film_counts AS (\n    SELECT \n        mc.PID,\n        md.PID AS director_PID,\n        COUNT(DISTINCT mc.MID) AS film_count\n    FROM M_Cast mc\n    JOIN M_Director md ON mc.MID = md.MID\n    GROUP BY mc.PID, md.PID\n),\nyash_chopra_films AS (\n    SELECT \n        mc.PID,\n        COUNT(DISTINCT mc.MID) AS yash_films\n    FROM M_Cast mc\n    JOIN M_Director md ON mc.MID = md.MID\n    JOIN Person p ON md.PID = p.PID\n    WHERE p.Name = 'Yash Chopra'\n    GROUP BY mc.PID\n),\nother_director_max AS (\n    SELECT \n        afc.PID,\n        MAX(afc.film_count) AS max_other_films\n    FROM actor_film_counts afc\n    JOIN Person p ON afc.director_PID = p.PID\n    WHERE p.Name != 'Yash Chopra'\n    GROUP BY afc.PID\n)\nSELECT COUNT(DISTINCT ycf.PID) AS actor_count\nFROM yash_chopra_films ycf\nLEFT JOIN other_director_max odm ON ycf.PID = odm.PID\nWHERE ycf.yash_films > COALESCE(odm.max_other_films, 0)",
+      "graph_method": "inferred",
+      "n_edges": 5,
+      "sources": [
+        "M_Cast",
+        "M_Director"
+      ],
+      "destinations": [
+        "Person"
+      ],
+      "linked_tables": [
+        "M_Cast",
+        "M_Director",
+        "Movie",
+        "Person"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Movie"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.8794,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=5",
+        "anchor: src=['M_Cast', 'M_Director'] dst=['Person'] literals=['Yash Chopra']",
+        "belief0: colH=2.879 valH=0.000",
+        "explore: no path between anchors; union fallback -> ['M_Cast', 'M_Director', 'Person']",
+        "commit: [propose=MISSING] added missing tables ['Movie'] -> ['M_Cast', 'M_Director', 'Movie', 'Person']",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local131",
+      "db_id": "EntertainmentAgency",
+      "difficulty": "",
+      "question": "Could you list each musical style with the number of times it appears as a 1st, 2nd, or 3rd preference in a single row per style?",
+      "gold_sql": "SELECT \n  Musical_Styles.StyleName,\n  COUNT(RankedPreferences.FirstStyle)\n    AS FirstPreference,\n  COUNT(RankedPreferences.SecondStyle)\n    AS SecondPreference,\n  COUNT(RankedPreferences.ThirdStyle)\n    AS ThirdPreference\nFROM Musical_Styles,\n (SELECT (CASE WHEN\n    Musical_Preferences.PreferenceSeq = 1\n               THEN Musical_Preferences.StyleID\n               ELSE Null END) As FirstStyle,\n         (CASE WHEN\n    Musical_Preferences.PreferenceSeq = 2\n               THEN Musical_Preferences.StyleID\n               ELSE Null END) As SecondStyle,\n         (CASE WHEN\n    Musical_Preferences.PreferenceSeq = 3\n               THEN Musical_Preferences.StyleID\n               ELSE Null END) AS ThirdStyle\n   FROM Musical_Preferences)  AS RankedPreferences\nWHERE Musical_Styles.StyleID =\n         RankedPreferences.FirstStyle\n  OR Musical_Styles.StyleID =\n         RankedPreferences.SecondStyle\n  OR Musical_Styles.StyleID =\n         RankedPreferences.ThirdStyle\nGROUP BY StyleID, StyleName\nHAVING COUNT(FirstStyle) > 0\n     OR     COUNT(SecondStyle) > 0\n     OR     COUNT(ThirdStyle) > 0\nORDER BY FirstPreference DESC,\n        SecondPreference DESC,\n        ThirdPreference DESC, StyleID;",
+      "pred_sql": "SELECT \n    ms.StyleName,\n    SUM(CASE WHEN mp.PreferenceSeq = 1 THEN 1 ELSE 0 END) AS FirstPrefCount,\n    SUM(CASE WHEN mp.PreferenceSeq = 2 THEN 1 ELSE 0 END) AS SecondPrefCount,\n    SUM(CASE WHEN mp.PreferenceSeq = 3 THEN 1 ELSE 0 END) AS ThirdPrefCount\nFROM Musical_Styles ms\nJOIN Musical_Preferences mp ON ms.StyleID = mp.StyleID\nWHERE mp.PreferenceSeq IN (1, 2, 3)\nGROUP BY ms.StyleID, ms.StyleName",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "Musical_Preferences"
+      ],
+      "destinations": [
+        "Musical_Styles",
+        "Musical_Preferences"
+      ],
+      "linked_tables": [
+        "Musical_Preferences",
+        "Musical_Styles"
+      ],
+      "chosen_path": [
+        "Musical_Preferences",
+        "Musical_Styles"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 20,
+      "belief_entropy": {
+        "columns": 2.9489,
+        "values": 0.0,
+        "paths": 1.0
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['Musical_Preferences'] dst=['Musical_Styles', 'Musical_Preferences'] literals=['1st', '2nd', '3rd']",
+        "belief0: colH=2.949 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['Musical_Preferences', 'Musical_Styles']",
+        "commit: [propose=OK] no change",
+        "commit: generate -> ok=True rows=20"
+      ]
+    },
+    {
+      "instance_id": "local197",
+      "db_id": "sqlite-sakila",
+      "difficulty": "",
+      "question": "Among our top 10 paying customers, can you identify the largest change in payment amounts from one month to the immediately following month? Specifically, please determine for which customer and during which month this maximum month-over-month difference occurred, and provide the difference rounded to two decimal places.",
+      "gold_sql": "WITH result_table AS (\n  SELECT \n    strftime('%m', pm.payment_date) AS pay_mon, \n    customer_id,\n    COUNT(pm.amount) AS pay_countpermon, \n    SUM(pm.amount) AS pay_amount \n  FROM \n    payment AS pm \n  GROUP BY \n    pay_mon, \n    customer_id\n), \ntop10_customer AS (\n  SELECT \n    customer_id,\n    SUM(tb.pay_amount) AS total_payments \n  FROM \n    result_table AS tb \n  GROUP BY \n    customer_id\n  ORDER BY \n    SUM(tb.pay_amount) DESC \n  LIMIT \n    10\n), \ndifference_per_mon AS (\n  SELECT \n    pay_mon AS month_number, \n    pay_mon AS month, \n    tb.pay_countpermon, \n    tb.pay_amount, \n    ABS(tb.pay_amount - LAG(tb.pay_amount) OVER (PARTITION BY tb.customer_id)) AS diff \n  FROM \n    result_table tb \n    JOIN top10_customer top ON top.customer_id = tb.customer_id\n) \nSELECT \n  month, \n  ROUND(max_diff, 2) AS max_diff \nFROM (\n  SELECT \n    month, \n    diff, \n    month_number, \n    MAX(diff) OVER (PARTITION BY month) AS max_diff \n  FROM \n    difference_per_mon\n) AS max_per_mon \nWHERE \n  diff = max_diff \nORDER BY \n  max_diff DESC \nLIMIT \n  1;\n",
+      "pred_sql": "WITH customer_monthly AS (\n    SELECT \n        c.customer_id,\n        c.first_name,\n        c.last_name,\n        strftime('%Y-%m', p.payment_date) AS month,\n        SUM(p.amount) AS total_amount\n    FROM customer c\n    JOIN payment p ON c.customer_id = p.customer_id\n    GROUP BY c.customer_id, strftime('%Y-%m', p.payment_date)\n),\ntop_customers AS (\n    SELECT \n        customer_id,\n        first_name,\n        last_name,\n        SUM(total_amount) AS lifetime_total\n    FROM customer_monthly\n    GROUP BY customer_id\n    ORDER BY lifetime_total DESC\n    LIMIT 10\n),\nmonthly_with_prev AS (\n    SELECT \n        cm.customer_id,\n        cm.first_name,\n        cm.last_name,\n        cm.month,\n        cm.total_amount,\n        LAG(cm.total_amount) OVER (PARTITION BY cm.customer_id ORDER BY cm.month) AS prev_month_amount\n    FROM customer_monthly cm\n    WHERE cm.customer_id IN (SELECT customer_id FROM top_customers)\n),\ndifferences AS (\n    SELECT \n        customer_id,\n        first_name,\n        last_name,\n        month,\n        ROUND(ABS(total_amount - prev_month_amount), 2) AS month_diff\n    FROM monthly_with_prev\n    WHERE prev_month_amount IS NOT NULL\n)\nSELECT \n    customer_id,\n    first_name,\n    last_name,\n    month,\n    month_diff\nFROM differences\nORDER BY month_diff DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "customer",
+        "payment"
+      ],
+      "destinations": [
+        "customer",
+        "payment"
+      ],
+      "linked_tables": [
+        "customer",
+        "payment"
+      ],
+      "chosen_path": [
+        "customer",
+        "payment"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.9854,
+        "values": 0.0,
+        "paths": 3.0
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['customer', 'payment'] dst=['customer', 'payment'] literals=[]",
+        "belief0: colH=3.985 valH=0.000",
+        "explore: path entropy=3.000 top_gap=0.00 (8 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P1 ['customer', 'payment']",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local210",
+      "db_id": "delivery_center",
+      "difficulty": "",
+      "question": "Can you identify the hubs that saw more than a 20% increase in finished orders from February to March?",
+      "gold_sql": "WITH february_orders AS (\n    SELECT\n        h.hub_name AS hub_name,\n        COUNT(*) AS orders_february\n    FROM \n        orders o \n    LEFT JOIN\n        stores s ON o.store_id = s.store_id \n    LEFT JOIN \n        hubs h ON s.hub_id = h.hub_id \n    WHERE o.order_created_month = 2 AND o.order_status = 'FINISHED'\n    GROUP BY\n        h.hub_name\n),\nmarch_orders AS (\n    SELECT\n        h.hub_name AS hub_name,\n        COUNT(*) AS orders_march\n    FROM \n        orders o \n    LEFT JOIN\n        stores s ON o.store_id = s.store_id \n    LEFT JOIN \n        hubs h ON s.hub_id = h.hub_id \n    WHERE o.order_created_month = 3 AND o.order_status = 'FINISHED'\n    GROUP BY\n        h.hub_name\n)\nSELECT\n    fo.hub_name\nFROM\n    february_orders fo\nLEFT JOIN \n    march_orders mo ON fo.hub_name = mo.hub_name\nWHERE \n    fo.orders_february > 0 AND \n    mo.orders_march > 0 AND\n    (CAST((mo.orders_march - fo.orders_february) AS REAL) / CAST(fo.orders_february AS REAL)) > 0.2  -- Filter for hubs with more than a 20% increase",
+      "pred_sql": "SELECT h.hub_name\nFROM hubs h\nJOIN stores s ON h.hub_id = s.hub_id\nJOIN orders o ON s.store_id = o.store_id\nWHERE o.order_status = 'finished'\n  AND o.order_moment_finished IS NOT NULL\n  AND (\n    (o.order_created_month = 2 AND o.order_created_year = 2017)\n    OR (o.order_created_month = 3 AND o.order_created_year = 2017)\n  )\nGROUP BY h.hub_id, h.hub_name\nHAVING \n  (SUM(CASE WHEN o.order_created_month = 3 THEN 1 ELSE 0 END) * 1.0 / \n   NULLIF(SUM(CASE WHEN o.order_created_month = 2 THEN 1 ELSE 0 END), 0) - 1) > 0.2",
+      "graph_method": "inferred",
+      "n_edges": 6,
+      "sources": [
+        "orders",
+        "hubs"
+      ],
+      "destinations": [
+        "hubs"
+      ],
+      "linked_tables": [
+        "channels",
+        "hubs",
+        "orders",
+        "stores"
+      ],
+      "chosen_path": [
+        "orders",
+        "stores",
+        "hubs"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "channels"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 4.0071,
+        "values": 0.0,
+        "paths": 0.9862
+      },
+      "trace": [
+        "ground: graph=inferred edges=6",
+        "anchor: src=['orders', 'hubs'] dst=['hubs'] literals=['February', 'March']",
+        "belief0: colH=4.007 valH=0.000",
+        "explore: path entropy=0.986 top_gap=0.28 (2 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['orders', 'stores', 'hubs']",
+        "commit: [propose=MISSING] added missing tables ['channels'] -> ['channels', 'hubs', 'orders', 'stores']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local219",
+      "db_id": "EU_soccer",
+      "difficulty": "",
+      "question": "In each league, considering all seasons, which single team has the fewest total match wins based on comparing home and away goals, including teams with zero wins, ensuring that if multiple teams tie for the fewest wins, only one team is returned for each league?",
+      "gold_sql": "WITH match_view AS(\nSELECT\n    M.id,\n    L.name AS league,\n    M.season,\n    M.match_api_id,\n    T.team_long_name AS home_team,\n    TM.team_long_name AS away_team,\n    M.home_team_goal,\n    M.away_team_goal,\n    P1.player_name AS home_gk,\n    P2.player_name AS home_center_back_1,\n    P3.player_name AS home_center_back_2,\n    P4.player_name AS home_right_back,\n    P5.player_name AS home_left_back,\n    P6.player_name AS home_midfield_1,\n    P7.player_name AS home_midfield_2,\n    P8.player_name AS home_midfield_3,\n    P9.player_name AS home_midfield_4,\n    P10.player_name AS home_second_forward,\n    P11.player_name AS home_center_forward,\n    P12.player_name AS away_gk,\n    P13.player_name AS away_center_back_1,\n    P14.player_name AS away_center_back_2,\n    P15.player_name AS away_right_back,\n    P16.player_name AS away_left_back,\n    P17.player_name AS away_midfield_1,\n    P18.player_name AS away_midfield_2,\n    P19.player_name AS away_midfield_3,\n    P20.player_name AS away_midfield_4,\n    P21.player_name AS away_second_forward,\n    P22.player_name AS away_center_forward,\n    M.goal,\n    M.card\nFROM\n    match M\nLEFT JOIN\n    league L ON M.league_id = L.id\nLEFT JOIN\n    team T ON M.home_team_api_id = T.team_api_id\nLEFT JOIN\n    team TM ON M.away_team_api_id = TM.team_api_id\nLEFT JOIN\n    player P1 ON M.home_player_1 = P1.player_api_id\nLEFT JOIN\n    player P2 ON M.home_player_2 = P2.player_api_id\nLEFT JOIN\n    player P3 ON M.home_player_3 = P3.player_api_id\nLEFT JOIN\n    player P4 ON M.home_player_4 = P4.player_api_id\nLEFT JOIN\n    player P5 ON M.home_player_5 = P5.player_api_id\nLEFT JOIN\n    player P6 ON M.home_player_6 = P6.player_api_id\nLEFT JOIN\n    player P7 ON M.home_player_7 = P7.player_api_id\nLEFT JOIN\n    player P8 ON M.home_player_8 = P8.player_api_id\nLEFT JOIN\n    player P9 ON M.home_player_9 = P9.player_api_id\nLEFT JOIN\n    player P10 ON M.home_player_10 = P10.player_api_id\nLEFT JOIN\n    player P11 ON M.home_player_11 = P11.player_api_id\nLEFT JOIN\n    player P12 ON M.away_player_1 = P12.player_api_id\nLEFT JOIN\n    player P13 ON M.away_player_2 = P13.player_api_id\nLEFT JOIN\n    player P14 ON M.away_player_3 = P14.player_api_id\nLEFT JOIN\n    player P15 ON M.away_player_4 = P15.player_api_id\nLEFT JOIN\n    player P16 ON M.away_player_5 = P16.player_api_id\nLEFT JOIN\n    player P17 ON M.away_player_6 = P17.player_api_id\nLEFT JOIN\n    player P18 ON M.away_player_7 = P18.player_api_id\nLEFT JOIN\n    player P19 ON M.away_player_8 = P19.player_api_id\nLEFT JOIN\n    player P20 ON M.away_player_9 = P20.player_api_id\nLEFT JOIN\n    player P21 ON M.away_player_10 = P21.player_api_id\nLEFT JOIN\n    player P22 ON M.away_player_11 = P22.player_api_id\n),\nmatch_score AS\n(\n    SELECT  -- Displaying teams and their goals as home_team\n        id,\n        home_team AS team,\n        CASE\n            WHEN home_team_goal > away_team_goal THEN 1 ELSE 0 END AS Winning_match\n    FROM\n        match_view\n\n    UNION ALL\n\n    SELECT  -- Displaying teams and their goals as away_team\n        id,\n        away_team AS team,\n        CASE\n            WHEN away_team_goal > home_team_goal THEN 1 ELSE 0 END AS Winning_match\n    FROM\n        match_view\n),\nwinning_matches AS\n(\n    SELECT  -- Displaying total match wins for each team\n        MV.league,\n        M.team,\n        COUNT(CASE WHEN M.Winning_match = 1 THEN 1 END) AS wins,\n        ROW_NUMBER() OVER(PARTITION BY MV.league ORDER BY COUNT(CASE WHEN M.Winning_match = 1 THEN 1 END) ASC) AS rn\n    FROM\n        match_score M\n    JOIN\n        match_view MV\n    ON\n        M.id = MV.id\n    GROUP BY\n        MV.league,\n        team\n    ORDER BY\n        league,\n        wins ASC\n)\nSELECT\n    league,\n    team\nFROM\n    winning_matches\nWHERE\n    rn = 1  -- Getting the team with the least number of wins in each league\nORDER BY\n    league;",
+      "pred_sql": "WITH team_wins AS (\n    SELECT \n        l.name AS league_name,\n        t.team_long_name AS team_name,\n        SUM(\n            CASE \n                WHEN m.home_team_api_id = t.team_api_id AND m.home_team_goal > m.away_team_goal THEN 1\n                WHEN m.away_team_api_id = t.team_api_id AND m.away_team_goal > m.home_team_goal THEN 1\n                ELSE 0\n            END\n        ) AS total_wins\n    FROM League l\n    JOIN Match m ON m.league_id = l.id\n    JOIN Team t ON t.team_api_id IN (m.home_team_api_id, m.away_team_api_id)\n    GROUP BY l.id, t.team_api_id\n),\nmin_wins_per_league AS (\n    SELECT \n        league_name,\n        MIN(total_wins) AS min_wins\n    FROM team_wins\n    GROUP BY league_name\n)\nSELECT \n    tw.league_name,\n    MIN(tw.team_name) AS team_name\nFROM team_wins tw\nJOIN min_wins_per_league mw ON tw.league_name = mw.league_name AND tw.total_wins = mw.min_wins\nGROUP BY tw.league_name\nORDER BY tw.league_name",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [
+        "Match",
+        "League"
+      ],
+      "destinations": [
+        "Team",
+        "League"
+      ],
+      "linked_tables": [
+        "League",
+        "Match",
+        "Team"
+      ],
+      "chosen_path": [
+        "League",
+        "Match",
+        "Team"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 11,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 2.0
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=['Match', 'League'] dst=['Team', 'League'] literals=[]",
+        "belief0: colH=0.000 valH=0.000",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P2 ['League', 'Match', 'Team']",
+        "commit: [propose=MISSING] no change",
+        "commit: generate -> ok=True rows=11"
+      ]
+    },
+    {
+      "instance_id": "local301",
+      "db_id": "bank_sales_trading",
+      "difficulty": "",
+      "question": "For weekly-sales data, I need an analysis of our sales performance around mid-June for the years 2018, 2019, and 2020. Specifically, calculate the percentage change in sales between the four weeks leading up to June 15 and the four weeks following June 15 for each year.",
+      "gold_sql": "SELECT \n    before_effect,\n    after_effect,\n    after_effect - before_effect AS change_amount,\n    ROUND(((after_effect * 1.0 / before_effect) - 1) * 100, 2) AS percent_change,\n    '2018' AS year\nFROM (\n    SELECT \n        SUM(CASE WHEN delta_weeks BETWEEN 1 AND 4 THEN sales END) AS after_effect,\n        SUM(CASE WHEN delta_weeks BETWEEN -3 AND 0 THEN sales END) AS before_effect\n    FROM (\n        SELECT \n            week_date,\n            ROUND((JULIANDAY(week_date) - JULIANDAY('2018-06-15')) / 7.0) + 1 AS delta_weeks,\n            sales \n        FROM cleaned_weekly_sales\n    ) add_delta_weeks\n) AS add_before_after\nUNION ALL\nSELECT \n    before_effect,\n    after_effect,\n    after_effect - before_effect AS change_amount,\n    ROUND(((after_effect * 1.0 / before_effect) - 1) * 100, 2) AS percent_change,\n    '2019' AS year\nFROM (\n    SELECT \n        SUM(CASE WHEN delta_weeks BETWEEN 1 AND 4 THEN sales END) AS after_effect,\n        SUM(CASE WHEN delta_weeks BETWEEN -3 AND 0 THEN sales END) AS before_effect\n    FROM (\n        SELECT \n            week_date,\n            ROUND((JULIANDAY(week_date) - JULIANDAY('2019-06-15')) / 7.0) + 1 AS delta_weeks,\n            sales \n        FROM cleaned_weekly_sales\n    ) add_delta_weeks\n) AS add_before_after\nUNION ALL\nSELECT \n    before_effect,\n    after_effect,\n    after_effect - before_effect AS change_amount,\n    ROUND(((after_effect * 1.0 / before_effect) - 1) * 100, 2) AS percent_change,\n    '2020' AS year\nFROM (\n    SELECT \n        SUM(CASE WHEN delta_weeks BETWEEN 1 AND 4 THEN sales END) AS after_effect,\n        SUM(CASE WHEN delta_weeks BETWEEN -3 AND 0 THEN sales END) AS before_effect\n    FROM (\n        SELECT \n            week_date,\n            ROUND((JULIANDAY(week_date) - JULIANDAY('2020-06-15')) / 7.0) + 1 AS delta_weeks,\n            sales \n        FROM cleaned_weekly_sales\n    ) add_delta_weeks\n) AS add_before_after\nORDER BY year;\n",
+      "pred_sql": "WITH weeks_before AS (\n    SELECT \n        calendar_year,\n        SUM(sales) AS sales_before\n    FROM cleaned_weekly_sales\n    WHERE \n        calendar_year IN (2018, 2019, 2020)\n        AND week_date_formatted >= date(calendar_year || '-05-18')\n        AND week_date_formatted < date(calendar_year || '-06-15')\n    GROUP BY calendar_year\n),\nweeks_after AS (\n    SELECT \n        calendar_year,\n        SUM(sales) AS sales_after\n    FROM cleaned_weekly_sales\n    WHERE \n        calendar_year IN (2018, 2019, 2020)\n        AND week_date_formatted > date(calendar_year || '-06-15')\n        AND week_date_formatted <= date(calendar_year || '-07-13')\n    GROUP BY calendar_year\n)\nSELECT \n    b.calendar_year,\n    ROUND(((a.sales_after - b.sales_before) * 1.0 / b.sales_before) * 100, 4) AS pct_change\nFROM weeks_before b\nJOIN weeks_after a ON b.calendar_year = a.calendar_year\nORDER BY b.calendar_year",
+      "graph_method": "inferred",
+      "n_edges": 8,
+      "sources": [
+        "cleaned_weekly_sales"
+      ],
+      "destinations": [
+        "cleaned_weekly_sales"
+      ],
+      "linked_tables": [
+        "cleaned_weekly_sales",
+        "veg_cat"
+      ],
+      "chosen_path": [
+        "cleaned_weekly_sales"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "veg_cat"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 4.0614,
+        "values": 2.3219,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=8",
+        "anchor: src=['cleaned_weekly_sales'] dst=['cleaned_weekly_sales'] literals=['2018', '2019', '2020', 'June 15']",
+        "belief0: colH=4.061 valH=2.322",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "commit: [propose=MISSING] added missing tables ['veg_cat'] -> ['cleaned_weekly_sales', 'veg_cat']",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local309",
+      "db_id": "f1",
+      "difficulty": "",
+      "question": "For each year, which driver and which constructor scored the most points? I want the full name of each driver.",
+      "gold_sql": "with year_points as (\n    select races.year,\n           drivers.forename || ' ' || drivers.surname as driver,\n           constructors.name as constructor,\n           sum(results.points) as points\n    from results\n    left join races on results.race_id = races.race_id  -- Ensure these columns exist in your schema\n    left join drivers on results.driver_id = drivers.driver_id  -- Ensure these columns exist in your schema\n    left join constructors on results.constructor_id = constructors.constructor_id  -- Ensure these columns exist in your schema\n    group by races.year, driver\n    union\n    select races.year,\n           null as driver,\n           constructors.name as constructor,\n           sum(results.points) as points\n    from results\n    left join races on results.race_id = races.race_id  -- Ensure these columns exist in your schema\n    left join drivers on results.driver_id = drivers.driver_id  -- Ensure these columns exist in your schema\n    left join constructors on results.constructor_id = constructors.constructor_id  -- Ensure these columns exist in your schema\n    group by races.year, constructor\n),\nmax_points as (\n    select year,\n           max(case when driver is not null then points else null end) as max_driver_points,\n           max(case when constructor is not null then points else null end) as max_constructor_points\n    from year_points\n    group by year\n)\nselect max_points.year,\n       drivers_year_points.driver,\n       constructors_year_points.constructor\nfrom max_points\nleft join year_points as drivers_year_points on\n    max_points.year = drivers_year_points.year and\n    max_points.max_driver_points = drivers_year_points.points and\n    drivers_year_points.driver is not null\nleft join year_points as constructors_year_points on\n    max_points.year = constructors_year_points.year and\n    max_points.max_constructor_points = constructors_year_points.points and\n    constructors_year_points.constructor is not null\norder by max_points.year;",
+      "pred_sql": "SELECT \n    r.year,\n    d.full_name AS driver_name,\n    c.name AS constructor_name\nFROM (\n    SELECT \n        race_id,\n        driver_id,\n        points,\n        ROW_NUMBER() OVER (PARTITION BY race_id ORDER BY points DESC) AS rn\n    FROM driver_standings\n) ds\nJOIN races r ON ds.race_id = r.race_id\nJOIN drivers d ON ds.driver_id = d.driver_id\nJOIN (\n    SELECT \n        race_id,\n        constructor_id,\n        points,\n        ROW_NUMBER() OVER (PARTITION BY race_id ORDER BY points DESC) AS rn\n    FROM constructor_standings\n) cs ON ds.race_id = cs.race_id AND cs.rn = 1\nJOIN constructors c ON cs.constructor_id = c.constructor_id\nWHERE ds.rn = 1\nORDER BY r.year",
+      "graph_method": "inferred",
+      "n_edges": 49,
+      "sources": [
+        "driver_standings",
+        "constructor_standings"
+      ],
+      "destinations": [
+        "drivers",
+        "constructors"
+      ],
+      "linked_tables": [
+        "constructor_standings",
+        "constructors",
+        "driver_standings",
+        "drivers",
+        "races",
+        "seasons"
+      ],
+      "chosen_path": [
+        "driver_standings",
+        "drivers"
+      ],
+      "n_probes": 0,
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "constructors",
+        "constructor_standings",
+        "races",
+        "seasons"
+      ],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1049,
+      "belief_entropy": {
+        "columns": 0.4386,
+        "values": 0.0,
+        "paths": 3.5788
+      },
+      "trace": [
+        "ground: graph=inferred edges=49",
+        "anchor: src=['driver_standings', 'constructor_standings'] dst=['drivers', 'constructors'] literals=[]",
+        "belief0: colH=0.439 valH=0.000",
+        "explore: path entropy=3.579 top_gap=0.00 (12 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: LLM tie-break -> P0 ['driver_standings', 'drivers']",
+        "commit: [propose=MISSING] added missing tables ['constructors', 'constructor_standings', 'races', 'seasons'] -> ['constructor_standings', 'constructors', 'driver_standings', 'drivers', 'races', 'seasons']",
+        "commit: generate -> ok=True rows=1049"
+      ]
+    }
+  ]
+}

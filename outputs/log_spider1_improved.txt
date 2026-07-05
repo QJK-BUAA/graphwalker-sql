@@ -1,0 +1,25 @@
+[spider1_full_deepseek-chat_improved_seed42] 20 questions | model=deepseek-chat seed=42 ablation=full
+  [1/20] spider1_40 (-) declared probes=0 exec=ok
+  [2/20] spider1_47 (-) declared probes=1 exec=ok
+  [3/20] spider1_174 (-) declared probes=0 exec=ok
+  [4/20] spider1_187 (-) declared probes=0 exec=ok
+  [5/20] spider1_262 (-) declared probes=0 exec=ok
+  [6/20] spider1_304 (-) declared probes=0 exec=ok
+  [7/20] spider1_398 (-) declared probes=0 exec=ok
+  [8/20] spider1_418 (-) declared probes=0 exec=ok
+  [9/20] spider1_443 (-) declared probes=0 exec=ERR
+  [10/20] spider1_500 (-) declared probes=0 exec=ok
+  [11/20] spider1_558 (-) declared probes=0 exec=ok
+  [12/20] spider1_642 (-) declared probes=0 exec=ok
+  [13/20] spider1_664 (-) declared probes=0 exec=ok
+  [14/20] spider1_698 (-) declared probes=0 exec=ok
+  [15/20] spider1_762 (-) declared probes=0 exec=ok
+  [16/20] spider1_852 (-) declared probes=0 exec=ok
+  [17/20] spider1_865 (-) declared probes=0 exec=ok
+  [18/20] spider1_938 (-) declared probes=1 exec=ok
+  [19/20] spider1_1013 (-) declared probes=0 exec=ok
+  [20/20] spider1_1033 (-) declared probes=0 exec=ok
+[spider1_full_deepseek-chat_improved_seed42] running official spider1 evaluator ...
+[spider1_full_deepseek-chat_improved_seed42] EX = 70.0  (n=20)
+[spider1_full_deepseek-chat_improved_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider1_full_deepseek-chat_improved_seed42.json
+[spider1_full_deepseek-chat_improved_seed42] LLM: {'num_calls': 64, 'input_tokens': 23541, 'output_tokens': 1411} | 86.1s

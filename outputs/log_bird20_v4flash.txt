@@ -1,0 +1,6 @@
+[bird_full_deepseek-v4-flash_seed42] 20 questions | model=deepseek-v4-flash seed=42 ablation=full workers=6
+  [20/20] latest=bird_1481 exec=ok  (136s)
+[bird_full_deepseek-v4-flash_seed42] running official bird evaluator ...
+[bird_full_deepseek-v4-flash_seed42] EX = 40.0  (n=20)
+[bird_full_deepseek-v4-flash_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_full_deepseek-v4-flash_seed42.json
+[bird_full_deepseek-v4-flash_seed42] LLM: {'num_calls': 60, 'input_tokens': 38654, 'output_tokens': 57486} | 135.6s

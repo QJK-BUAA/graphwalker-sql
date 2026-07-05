@@ -1,0 +1,25 @@
+[spider2-lite_full_deepseek-chat_improved_seed42] 20 questions | model=deepseek-chat seed=42 ablation=full
+  [1/20] local003 (-) inferred probes=1 exec=ok
+  [2/20] local004 (-) inferred probes=1 exec=ok
+  [3/20] local008 (-) inferred probes=0 exec=ok
+  [4/20] local017 (-) inferred probes=0 exec=ok
+  [5/20] local019 (-) inferred probes=0 exec=ok
+  [6/20] local022 (-) inferred probes=1 exec=ok
+  [7/20] local023 (-) inferred probes=1 exec=ERR
+  [8/20] local029 (-) inferred probes=1 exec=ok
+  [9/20] local038 (-) declared probes=2 exec=ok
+  [10/20] local039 (-) declared probes=4 exec=ERR
+  [11/20] local058 (-) inferred probes=0 exec=ok
+  [12/20] local065 (-) inferred probes=1 exec=ok
+  [13/20] local075 (-) inferred probes=1 exec=ok
+  [14/20] local099 (-) inferred probes=0 exec=ok
+  [15/20] local131 (-) declared probes=1 exec=ok
+  [16/20] local197 (-) declared probes=1 exec=ok
+  [17/20] local210 (-) inferred probes=1 exec=ok
+  [18/20] local219 (-) declared probes=1 exec=ok
+  [19/20] local301 (-) inferred probes=0 exec=ok
+  [20/20] local309 (-) inferred probes=4 exec=ok
+[spider2-lite_full_deepseek-chat_improved_seed42] running official spider2-lite evaluator ...
+[spider2-lite_full_deepseek-chat_improved_seed42] EX = 45.0  (n=20)
+[spider2-lite_full_deepseek-chat_improved_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider2-lite_full_deepseek-chat_improved_seed42.json
+[spider2-lite_full_deepseek-chat_improved_seed42] LLM: {'num_calls': 84, 'input_tokens': 62344, 'output_tokens': 10915} | 198.2s

@@ -1,0 +1,25 @@
+[bird_full_deepseek-chat_improved_seed42] 20 questions | model=deepseek-chat seed=42 ablation=full
+  [1/20] bird_28 (challenging) declared probes=1 exec=ok
+  [2/20] bird_40 (moderate) declared probes=0 exec=ok
+  [3/20] bird_64 (simple) declared probes=0 exec=ok
+  [4/20] bird_135 (moderate) declared probes=1 exec=ok
+  [5/20] bird_153 (simple) declared probes=0 exec=ERR
+  [6/20] bird_173 (challenging) declared probes=0 exec=ok
+  [7/20] bird_466 (moderate) declared probes=0 exec=ok
+  [8/20] bird_485 (simple) declared probes=1 exec=ok
+  [9/20] bird_506 (challenging) declared probes=1 exec=ok
+  [10/20] bird_565 (moderate) declared probes=1 exec=ok
+  [11/20] bird_576 (simple) declared probes=1 exec=ok
+  [12/20] bird_639 (challenging) declared probes=4 exec=ok
+  [13/20] bird_879 (moderate) declared probes=1 exec=ok
+  [14/20] bird_988 (challenging) declared probes=1 exec=ok
+  [15/20] bird_1031 (challenging) declared probes=1 exec=ok
+  [16/20] bird_1080 (moderate) declared probes=0 exec=ok
+  [17/20] bird_1117 (simple) declared probes=0 exec=ok
+  [18/20] bird_1474 (moderate) declared probes=1 exec=ok
+  [19/20] bird_1481 (challenging) declared probes=1 exec=ok
+  [20/20] bird_1519 (simple) declared probes=0 exec=ok
+[bird_full_deepseek-chat_improved_seed42] running official bird evaluator ...
+[bird_full_deepseek-chat_improved_seed42] EX = 40.0  (n=20)
+[bird_full_deepseek-chat_improved_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/bird_full_deepseek-chat_improved_seed42.json
+[bird_full_deepseek-chat_improved_seed42] LLM: {'num_calls': 62, 'input_tokens': 39097, 'output_tokens': 2953} | 165.5s

@@ -9,8 +9,6 @@ __pycache__/
 venv/
 env/
 
-outputs/
-eval_work/
 *.log
 
 .pytest_cache/
