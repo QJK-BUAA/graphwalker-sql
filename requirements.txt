@@ -1,0 +1,11 @@
+# GraphWalker-SQL 2.0 core
+openai>=1.0.0
+networkx>=3.0
+
+# Official evaluators (already satisfied on this machine):
+#   BIRD          -> func_timeout
+#   Spider 1.0    -> nltk           (test-suite-sql-eval)
+#   Spider 2.0    -> pandas, duckdb, google-cloud-bigquery, snowflake-connector-python
+func_timeout>=4.3.5
+nltk>=3.8
+pandas>=1.3

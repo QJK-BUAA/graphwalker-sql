@@ -1,0 +1,82 @@
+"""Central configuration: dataset paths, evaluator paths, and default hyper-parameters.
+
+All paths are resolved relative to the repository root of the surrounding
+workspace (``研二下``) so the code runs without further setup on this machine.
+Override any of them with environment variables of the same name if needed.
+"""
+from __future__ import annotations
+
+import os
+
+# --------------------------------------------------------------------------- #
+# Workspace roots
+# --------------------------------------------------------------------------- #
+# .../研二下/GraphWalker-SQL-2.0/gws2/config.py -> .../研二下
+_THIS = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(_THIS, "..", ".."))
+
+
+def _p(*parts: str) -> str:
+    return os.path.join(PROJECT_ROOT, *parts)
+
+
+# --------------------------------------------------------------------------- #
+# Dataset locations (discovered on this machine)
+# --------------------------------------------------------------------------- #
+_ITS = _p("论文复现", "Interactive-Text-to-SQL", "dataset", "_extracted")
+
+# BIRD-Dev (declared FKs): 1,534 questions / 11 databases.
+BIRD_ROOT = os.environ.get("GWS2_BIRD_ROOT", _p(_ITS, "bird_dev", "dev_20240627"))
+BIRD_DEV_JSON = os.path.join(BIRD_ROOT, "dev.json")
+BIRD_DEV_GOLD = os.path.join(BIRD_ROOT, "dev.sql")
+BIRD_DB_DIR = os.path.join(BIRD_ROOT, "dev_databases")
+
+# Spider 1.0-Dev (declared FKs): 1,034 questions / 166 databases.
+SPIDER1_ROOT = os.environ.get("GWS2_SPIDER1_ROOT", os.path.join(_ITS, "spider_data"))
+SPIDER1_DEV_JSON = os.path.join(SPIDER1_ROOT, "dev.json")
+SPIDER1_DEV_GOLD = os.path.join(SPIDER1_ROOT, "dev_gold.sql")
+SPIDER1_DB_DIR = os.path.join(SPIDER1_ROOT, "database")
+SPIDER1_TABLES = os.path.join(SPIDER1_ROOT, "tables.json")
+
+# Spider 2.0-Lite (FK-sparse; local SQLite subset with gold SQL).
+SPIDER2_ROOT = os.environ.get("GWS2_SPIDER2_ROOT", _p("ReFoRCE", "spider2-lite"))
+SPIDER2_JSONL = os.path.join(SPIDER2_ROOT, "spider2-lite.jsonl")
+SPIDER2_GOLD_SQL_DIR = os.path.join(SPIDER2_ROOT, "evaluation_suite", "gold", "sql")
+SPIDER2_LOCALDB = os.path.join(SPIDER2_ROOT, "resource", "databases", "spider2-localdb")
+
+# --------------------------------------------------------------------------- #
+# Official evaluators
+# --------------------------------------------------------------------------- #
+BIRD_EVAL_SCRIPT = _p("论文复现", "Interactive-Text-to-SQL", "evaluation",
+                      "bird_evaluation_raw.py")
+SPIDER1_TESTSUITE = _p("论文复现", "Interactive-Text-to-SQL", "dataset", "_external",
+                       "test-suite-sql-eval")
+SPIDER2_EVAL_DIR = os.path.join(SPIDER2_ROOT, "evaluation_suite")
+
+# --------------------------------------------------------------------------- #
+# Default hyper-parameters (GraphWalker-SQL 2.0)
+# --------------------------------------------------------------------------- #
+DEFAULT_MODEL = os.environ.get("GWS2_MODEL", "deepseek-chat")
+DEFAULT_BASE_URL = os.environ.get("GWS2_BASE_URL", "https://api.deepseek.com")
+DEFAULT_TEMPERATURE = float(os.environ.get("GWS2_TEMPERATURE", "0.0"))
+DEFAULT_SEED = int(os.environ.get("GWS2_SEED", "42"))
+
+# Graph / belief thresholds.
+EDGE_CONF_THRESHOLD = 0.30      # delta: minimum conf(edge) to enter the graph.
+VALUE_OVERLAP_SAMPLE = 300      # rows sampled for data-level overlap.
+VALUE_OVERLAP_THRESHOLD = 0.50  # containment ratio marking a "data-supported" edge.
+
+# Explore phase.
+TOPK_PATHS = 3                  # k in top-k shortest paths.
+MAX_PATH_EDGES = 4              # path length cap.
+PATH_ENTROPY_PROBE = 0.60       # trigger execution probe only above this entropy (bits).
+PROBE_LIMIT = 1000              # LIMIT used inside lightweight join probes.
+LAMBDA_COST = 0.15              # R = info_gain - lambda * call_cost (exploration gate).
+MAX_EXPLORE_STEPS = 4           # hard cap on explore iterations.
+
+# Commit phase.
+MAX_REPAIRS = 1                 # at most one targeted repair (kept minimal by design).
+
+# Execution.
+EXEC_TIMEOUT = 30.0
+EXEC_MAX_ROWS = 2000
