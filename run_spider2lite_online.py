@@ -32,6 +32,7 @@ from pathlib import Path
 
 from gws2 import config
 from gws2.cloud_execute import close_cloud, run_cloud
+from gws2.cloud_probe import probe_tables
 from gws2.datasets import Example, load_spider2_lite_local
 from gws2.llm import LLM
 from gws2.online_schema import build_compressed_context, load_online_schema
@@ -182,52 +183,46 @@ def _snowflake_schema_context(db_id: str, max_chars: int = 28000) -> str:
     return "\n\n".join(chunks)[:max_chars] if chunks else f"(No DDL.csv under {db_root})"
 
 
-def schema_context_for(ex: Spider2OnlineExample) -> tuple[str, str, list[str]]:
-    """Return (dialect, schema_context, selected_table_trace).
+def schema_context_for(ex: Spider2OnlineExample) -> tuple[str, str, list[str], list]:
+    """Return (dialect, schema_context, selected_table_trace, selected_tables).
 
     P0: cloud schemas are compressed via a white-box confidence table ranking
     (gws2.online_schema) instead of blind head-truncation, so relevant tables on
     large (140+ table) schemas survive into the prompt. Falls back to the legacy
-    truncated context if ranking finds no tables at all.
+    truncated context if ranking finds no tables at all. ``selected_tables`` are
+    the OnlineTable objects (for P2 remote probing).
     """
     if ex.backend == "bigquery":
         dialect = "BigQuery"
     elif ex.backend == "snowflake":
         dialect = "Snowflake"
     else:
-        return "SQLite", "(local SQLite schema handled by GraphWalker pipeline)", []
+        return "SQLite", "(local SQLite schema handled by GraphWalker pipeline)", [], []
 
     schema = load_online_schema(ex.backend, ex.db_id, DB_DIR)
     if schema.n_tables == 0:
         legacy = (_bigquery_schema_context(ex.db_id) if ex.backend == "bigquery"
                   else _snowflake_schema_context(ex.db_id))
-        return dialect, legacy, []
+        return dialect, legacy, [], []
     context, selected = build_compressed_context(
         schema, ex.question, ex.external_knowledge or "", top_n=8)
     trace = [f"{t.table_name.strip()}({t.score:.2f})" for t in selected]
-    return dialect, context, trace
+    return dialect, context, trace, selected
 
 
 def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
                         use_repair: bool = True,
+                        use_probe: bool = True,
                         max_repairs: int = config.CLOUD_MAX_REPAIRS) -> tuple[str, dict]:
-    """Generate one cloud SQL, then run a bounded belief-repair loop (P1).
+    """Generate one cloud SQL with P2 remote probes + P1 bounded repair.
 
-    Mirrors the local Commit execute->feedback->repair discipline against the
-    cloud backend: execute (cost-guarded), and on error / empty / cost-refusal
-    ask for a targeted fix, at most ``max_repairs`` times. A repair is kept only
-    if it does not regress (an executing non-empty result beats the prior state).
+    P2: before generation, run a bounded, cost-guarded remote column/value walk
+    on the top compressed tables and inject the evidence as grounding hints.
+    P1: after generation, execute (cost-guarded) and apply at most ``max_repairs``
+    targeted repairs on error/empty/cost-refusal, kept only if non-regressing.
     """
-    dialect, schema_context, table_trace = schema_context_for(ex)
+    dialect, schema_context, table_trace, selected = schema_context_for(ex)
     external = _read_external_doc(ex.external_knowledge)
-    system = PROMPT_SPIDER2_ONLINE_SQL.format(
-        dialect=dialect,
-        schema_context=schema_context,
-        external_knowledge=external,
-        question=ex.question,
-    )
-    resp = llm.complete(system, "Generate the SQL.", temperature=0.0)
-    sql = _extract_sql(resp)
 
     meta = {
         "backend": ex.backend,
@@ -235,9 +230,34 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
         "schema_context_chars": len(schema_context),
         "selected_tables": table_trace,
         "repairs": 0,
+        "probe_sql": 0,
+        "probe_hints": [],
+        "probe_trace": [],
         "exec_trace": [],
         "est_gb": None,
     }
+
+    # --- P2: remote belief probes -> grounding hints ------------------------ #
+    probe_hints: list[str] = []
+    if use_probe and selected:
+        probe_hints, probe_trace = probe_tables(
+            ex.backend, ex.db_id, selected, ex.question, ex.external_knowledge or "")
+        meta["probe_hints"] = probe_hints
+        meta["probe_trace"] = probe_trace
+        meta["probe_sql"] = sum(1 for t in probe_trace if t.startswith("probe ")
+                                or "literal-" in t)
+
+    hints_block = ("\n".join(probe_hints) if probe_hints
+                   else "(no remote probe evidence)")
+    system = PROMPT_SPIDER2_ONLINE_SQL.format(
+        dialect=dialect,
+        schema_context=schema_context + "\n\nRemote probe evidence (sampled live "
+        "from the database; prefer these real columns/values):\n" + hints_block,
+        external_knowledge=external,
+        question=ex.question,
+    )
+    resp = llm.complete(system, "Generate the SQL.", temperature=0.0)
+    sql = _extract_sql(resp)
 
     if not use_repair:
         return sql, meta
@@ -392,6 +412,8 @@ def main() -> int:
     ap.add_argument("--no-eval", action="store_true")
     ap.add_argument("--no-repair", action="store_true",
                     help="disable the P1 cloud bounded belief-repair loop (ablation)")
+    ap.add_argument("--no-probe", action="store_true",
+                    help="disable the P2 remote belief probes (ablation)")
     args = ap.parse_args()
 
     prefixes = set(args.prefix or VALID_PREFIXES)
@@ -417,7 +439,9 @@ def main() -> int:
             if ex.backend == "local":
                 sql, meta = run_local_graphwalker(ex, llm, schema_cache, cache_lock)
             else:
-                sql, meta = generate_online_sql(ex, llm, use_repair=not args.no_repair)
+                sql, meta = generate_online_sql(
+                    ex, llm, use_repair=not args.no_repair,
+                    use_probe=not args.no_probe)
             (result_dir / f"{ex.instance_id}.sql").write_text(sql)
             return ex.instance_id, {
                 "instance_id": ex.instance_id,
@@ -453,7 +477,8 @@ def main() -> int:
     records = [records_by_id[ex.instance_id] for ex in examples]
     close_cloud()
     n_repairs = sum(r.get("repairs", 0) for r in records)
-    print(f"[{run_id}] cloud repairs triggered: {n_repairs}")
+    n_probes = sum(r.get("probe_sql", 0) for r in records)
+    print(f"[{run_id}] cloud repairs triggered: {n_repairs} | probe SQLs: {n_probes}")
     eval_result = {}
     if not args.no_eval:
         print(f"[{run_id}] running official Spider2-Lite evaluator ...")

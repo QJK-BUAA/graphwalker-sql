@@ -100,3 +100,11 @@ BQ_DRYRUN_MAX_GB = float(os.environ.get("GWS2_BQ_DRYRUN_MAX_GB", "5.0"))
 CLOUD_EXEC_TIMEOUT = float(os.environ.get("GWS2_CLOUD_EXEC_TIMEOUT", "120"))
 CLOUD_EXEC_MAX_ROWS = int(os.environ.get("GWS2_CLOUD_EXEC_MAX_ROWS", "50"))
 CLOUD_MAX_REPAIRS = int(os.environ.get("GWS2_CLOUD_MAX_REPAIRS", "2"))
+
+# P2: remote belief probes (cloud column/value walk). Bounded to control cost;
+# every probe is dry-run-gated on BigQuery and LIMIT-capped on both backends.
+CLOUD_PROBE_MAX_TABLES = int(os.environ.get("GWS2_CLOUD_PROBE_MAX_TABLES", "2"))
+CLOUD_PROBE_MAX_COLUMNS = int(os.environ.get("GWS2_CLOUD_PROBE_MAX_COLUMNS", "6"))
+CLOUD_PROBE_MAX_SQL = int(os.environ.get("GWS2_CLOUD_PROBE_MAX_SQL", "8"))
+CLOUD_PROBE_SAMPLE_VALUES = int(os.environ.get("GWS2_CLOUD_PROBE_SAMPLE_VALUES", "5"))
+CLOUD_PROBE_MAX_GB = float(os.environ.get("GWS2_CLOUD_PROBE_MAX_GB", "2.0"))

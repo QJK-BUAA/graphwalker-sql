@@ -78,6 +78,60 @@ class OnlineTable:
             toks |= _tokens(c)
         return toks
 
+    def fqn(self) -> str:
+        """Fully-qualified name usable in SQL, parsed from the CREATE statement.
+
+        BigQuery: `project.dataset.table` inside backticks.
+        Snowflake: bare TABLE name after CREATE ... TABLE (database set via
+        USE DATABASE at execution time); we return SCHEMA.TABLE when the dataset
+        looks like a schema.
+        """
+        m = re.search(r"create\s+(?:or\s+replace\s+)?table\s+`([^`]+)`",
+                      self.ddl, re.I)
+        if m:
+            return "`" + m.group(1) + "`"
+        m = re.search(r"create\s+(?:or\s+replace\s+)?table\s+([A-Za-z0-9_\.\"]+)",
+                      self.ddl, re.I)
+        if m:
+            name = m.group(1).strip('"')
+            if self.dataset and "." not in name:
+                return f'"{self.dataset}"."{name}"'
+            return name
+        return self.table_name.strip()
+
+    def columns(self) -> list[tuple[str, str]]:
+        """Return [(column_name, type)] parsed from the DDL body.
+
+        Handles BigQuery (unquoted name + TYPE, optional OPTIONS(...)) and
+        Snowflake (double-quoted name + TYPE). Column names are returned without
+        surrounding quotes; callers re-quote per dialect.
+        """
+        body = self.ddl
+        start = body.find("(")
+        if start == -1:
+            return []
+        body = body[start + 1:]
+        out: list[tuple[str, str]] = []
+        seen: set[str] = set()
+        for line in body.splitlines():
+            line = line.strip().rstrip(",")
+            if not line or line.startswith(")") or line.startswith("--"):
+                continue
+            m = re.match(r'"?([A-Za-z_][A-Za-z0-9_]*)"?\s+'
+                         r'([A-Za-z0-9_]+(?:\([^)]*\))?)', line)
+            if not m:
+                continue
+            name, typ = m.group(1), m.group(2)
+            low = name.lower()
+            if low in {"primary", "foreign", "constraint", "cluster", "partition",
+                       "options", "unique", "key"}:
+                continue
+            if name in seen:
+                continue
+            seen.add(name)
+            out.append((name, typ.upper()))
+        return out
+
 
 @dataclass
 class OnlineSchema:
