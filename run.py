@@ -45,6 +45,10 @@ def main():
     print(f"Belief H     : {res.belief_entropy}  | path_probes={res.n_probes} "
           f"| column_probes={res.n_column_probes} "
           f"| propose={res.propose_verdict} | repaired={res.repaired}")
+    if res.query_skeleton:
+        print(f"Query skeleton: {res.query_skeleton}")
+    if res.structural_feedback:
+        print(f"Structural feedback: {res.structural_feedback}")
     if res.column_hints:
         print("Column hints :")
         for h in res.column_hints[:8]:

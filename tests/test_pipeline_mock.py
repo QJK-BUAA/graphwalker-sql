@@ -46,6 +46,10 @@ class MockLLM:
             return "path=P0"
         if "auditing a grounded" in s or "verdict=" in system.lower():
             return "verdict=OK\nmissing="
+        if "query-structure planner" in s or "return json only" in s:
+            return ('{"set_op":"none","nested":false,"group_by":false,'
+                    '"having":false,"order_by":false,"limit":false,'
+                    '"select_arity":1,"aggregation":true,"notes":"count"}')
         if "query-generation specialist" in s or "corrected" in s:
             m = re.search(r'CREATE TABLE "?(\w+)"?', user)
             t = m.group(1) if m else "sqlite_master"
@@ -83,6 +87,7 @@ def main():
                     ("notopk", dict(use_topk=False)),
                     ("noprobe", dict(use_probes=False)),
                     ("nocolprobe", dict(use_column_probes=False)),
+                    ("nostruct", dict(use_structure_plan=False)),
                     ("nostop", dict(use_entropy_stop=False)),
                     ("nopropose", dict(use_propose=False)),
                     ("propgate", dict(use_propose_evidence_gate=True)),

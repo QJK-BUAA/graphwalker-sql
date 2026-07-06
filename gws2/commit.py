@@ -14,6 +14,7 @@ The Commit phase turns the belief MAP into exactly one SQL:
 """
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 
@@ -24,7 +25,7 @@ from .explore import ExploreResult
 from .graph_builder import SchemaGraph
 from .llm import LLM
 from .prompts import (PROMPT_COLUMN_ALIGN, PROMPT_GENERATE, PROMPT_PROPOSE,
-                      PROMPT_REPAIR)
+                      PROMPT_REPAIR, PROMPT_STRUCTURE_PLAN)
 from .schema import Schema
 
 _SQL_BLOCK = re.compile(r"```sql\s*(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -33,7 +34,12 @@ _ANY_BLOCK = re.compile(r"```\s*(.*?)```", re.DOTALL)
 
 def _extract_sql(text: str) -> str:
     m = _SQL_BLOCK.search(text) or _ANY_BLOCK.search(text)
-    return (m.group(1) if m else text).strip().rstrip(";").strip()
+    sql = (m.group(1) if m else text).strip()
+    # Some model repairs occasionally emit an opening fence without a closing
+    # fence. Strip fence markers defensively before execution/evaluation.
+    sql = re.sub(r"^```(?:sql)?\s*", "", sql, flags=re.I).strip()
+    sql = re.sub(r"\s*```$", "", sql).strip()
+    return sql.rstrip(";").strip()
 
 
 @dataclass
@@ -43,6 +49,8 @@ class CommitResult:
     linked_tables: list[str]
     join_conditions: list[str]
     grounding_hints: str
+    query_skeleton: dict = field(default_factory=dict)
+    structural_feedback: list[str] = field(default_factory=list)
     propose_verdict: str = ""
     missing_added: list[str] = field(default_factory=list)
     missing_rejected: list[str] = field(default_factory=list)
@@ -201,26 +209,178 @@ def _gate_propose_additions(graph_obj: SchemaGraph, linked_tables: list[str],
     return accepted, pending
 
 
+def _extract_json_object(text: str) -> dict:
+    """Parse the first JSON object in an LLM response, best-effort."""
+    if not text:
+        return {}
+    text = text.strip()
+    m = re.search(r"```(?:json)?\s*(.*?)```", text, re.S | re.I)
+    if m:
+        text = m.group(1).strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return {}
+    try:
+        return json.loads(text[start:end + 1])
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _as_bool(v) -> bool:
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, str):
+        return v.strip().lower() in {"true", "yes", "1", "y"}
+    return bool(v)
+
+
+def _normalise_skeleton(raw: dict) -> dict:
+    if not isinstance(raw, dict):
+        return {}
+    set_op = str(raw.get("set_op", "none")).strip().lower()
+    if set_op not in {"none", "intersect", "union", "except"}:
+        set_op = "none"
+    try:
+        arity = int(raw.get("select_arity", 0))
+    except Exception:  # noqa: BLE001
+        arity = 0
+    if arity <= 0 or arity > 8:
+        arity = None
+    return {
+        "set_op": set_op,
+        "nested": _as_bool(raw.get("nested", False)),
+        "group_by": _as_bool(raw.get("group_by", False)),
+        "having": _as_bool(raw.get("having", False)),
+        "order_by": _as_bool(raw.get("order_by", False)),
+        "limit": _as_bool(raw.get("limit", False)),
+        "select_arity": arity,
+        "aggregation": _as_bool(raw.get("aggregation", False)),
+        "notes": str(raw.get("notes", ""))[:200],
+    }
+
+
+def _skeleton_text(skeleton: dict) -> str:
+    if not skeleton:
+        return "(none)"
+    return json.dumps(skeleton, ensure_ascii=False, sort_keys=True)
+
+
+def plan_query_structure(question: str, schema: Schema, linked_tables: list[str],
+                         join_conditions: list[str], hints: str, llm: LLM,
+                         dialect: str = "SQLite",
+                         schema_context: str | None = None,
+                         evidence: str = "") -> dict:
+    """Plan a compact query skeleton before SQL generation.
+
+    Ground/Explore decide what to query; this step decides how to query (set op,
+    nesting, grouping, ordering, select arity). It remains parseable and small so
+    structural verification can check the generated SQL against it.
+    """
+    schema_text = schema_context or schema.to_ddl_text(linked_tables)
+    join_str = "\n".join(join_conditions) if join_conditions else \
+        "(no explicit join; tables may be standalone)"
+    system = PROMPT_STRUCTURE_PLAN.format(
+        dialect=dialect, schema=schema_text, join_path=join_str,
+        evidence=evidence.strip() or "(none)", hints=hints, question=question)
+    resp = llm.complete(system, "Plan the SQL structure.", temperature=0.0)
+    return _normalise_skeleton(_extract_json_object(resp))
+
+
+def _sql_body(sql: str) -> str:
+    return _extract_sql(sql).lower()
+
+
+def _count_selects(sql: str) -> int:
+    return len(re.findall(r"\bselect\b", _sql_body(sql), flags=re.I))
+
+
+def _top_level_select_arity(sql: str) -> int | None:
+    s = _extract_sql(sql)
+    m = re.search(r"\bselect\b", s, re.I)
+    if not m:
+        return None
+    i = m.end()
+    depth = 0
+    start = i
+    end = len(s)
+    for j in range(i, len(s)):
+        ch = s[j]
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth = max(0, depth - 1)
+        elif depth == 0 and re.match(r"\sfrom\b", s[j:], re.I):
+            end = j
+            break
+    select_part = s[start:end].strip()
+    select_part = re.sub(r"^distinct\s+", "", select_part, flags=re.I)
+    if not select_part:
+        return None
+    depth = 0
+    arity = 1
+    for ch in select_part:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth = max(0, depth - 1)
+        elif ch == "," and depth == 0:
+            arity += 1
+    return arity
+
+
+def structural_feedback(sql: str, skeleton: dict) -> list[str]:
+    """Return structural mismatches between generated SQL and planned skeleton."""
+    if not skeleton:
+        return []
+    s = _sql_body(sql)
+    feedback: list[str] = []
+    set_op = skeleton.get("set_op", "none")
+    if set_op != "none" and not re.search(rf"\b{re.escape(set_op)}\b", s, re.I):
+        feedback.append(f"planned set_op={set_op}, but SQL does not contain {set_op.upper()}")
+    if skeleton.get("nested") and _count_selects(sql) <= 1:
+        feedback.append("planned nested=true, but SQL has no subquery")
+    if skeleton.get("group_by") and not re.search(r"\bgroup\s+by\b", s, re.I):
+        feedback.append("planned group_by=true, but SQL has no GROUP BY")
+    if skeleton.get("having") and not re.search(r"\bhaving\b", s, re.I):
+        feedback.append("planned having=true, but SQL has no HAVING")
+    if skeleton.get("order_by") and not re.search(r"\border\s+by\b", s, re.I):
+        feedback.append("planned order_by=true, but SQL has no ORDER BY")
+    if skeleton.get("limit") and not re.search(r"\blimit\b", s, re.I):
+        feedback.append("planned limit=true, but SQL has no LIMIT")
+    if skeleton.get("aggregation") and not re.search(
+            r"\b(count|sum|avg|max|min)\s*\(", s, re.I):
+        feedback.append("planned aggregation=true, but SQL has no aggregate function")
+    arity = skeleton.get("select_arity")
+    got = _top_level_select_arity(sql)
+    if arity and got and got != arity:
+        feedback.append(f"planned select_arity={arity}, but SQL selects {got} columns")
+    return feedback
+
+
 def generate_sql(question: str, schema: Schema, linked_tables: list[str],
                  join_conditions: list[str], hints: str, llm: LLM,
                  dialect: str = "SQLite", schema_context: str | None = None,
-                 evidence: str = "") -> str:
+                 evidence: str = "", skeleton: dict | None = None) -> str:
     schema_text = schema_context or schema.to_ddl_text(linked_tables)
     join_str = "\n".join(join_conditions) if join_conditions else \
         "(no explicit join; tables may be standalone)"
     system = PROMPT_GENERATE.format(
         dialect=dialect, schema=schema_text, join_path=join_str,
-        evidence=evidence.strip() or "(none)", hints=hints, question=question)
+        evidence=evidence.strip() or "(none)", hints=hints,
+        skeleton=_skeleton_text(skeleton or {}), question=question)
     resp = llm.complete(system, f"Question: {question}", temperature=0.0)
     return _extract_sql(resp)
 
 
 def _repair(question: str, schema: Schema, linked_tables: list[str], sql: str,
             problem: str, feedback: str, llm: LLM, dialect: str,
-            schema_context: str | None = None, evidence: str = "") -> str:
+            schema_context: str | None = None, evidence: str = "",
+            skeleton: dict | None = None) -> str:
     system = PROMPT_REPAIR.format(
         dialect=dialect, problem=problem,
         schema=schema_context or schema.to_ddl_text(linked_tables),
+        skeleton=_skeleton_text(skeleton or {}),
         evidence=evidence.strip() or "(none)",
         question=question, sql=sql, feedback=feedback)
     return _extract_sql(llm.complete(system, "Repair the query.", temperature=0.0))
@@ -271,7 +431,8 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
            allow_repair_on_empty: bool = True,
            evidence: str = "", use_evidence_injection: bool = True,
            use_column_align: bool = False,
-           use_propose_evidence_gate: bool = True) -> CommitResult:
+           use_propose_evidence_gate: bool = True,
+           use_structure_plan: bool = True) -> CommitResult:
     steps: list[str] = []
     linked = list(explore_res.linked_tables)
     joins = list(explore_res.join_conditions)
@@ -303,27 +464,48 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
         hints += "\n\nColumn probe evidence (from low-cost SQL probes):\n" + \
             "\n".join(explore_res.column_hints)
     ctx = schema_context if schema_context else schema.to_ddl_text(linked)
+
+    skeleton: dict = {}
+    if use_structure_plan:
+        skeleton = plan_query_structure(question, schema, linked, joins, hints, llm,
+                                        dialect=dialect, schema_context=ctx,
+                                        evidence=ev)
+        steps.append(f"structure-plan -> {_skeleton_text(skeleton)}")
+
     sql = generate_sql(question, schema, linked, joins, hints, llm,
-                       dialect=dialect, schema_context=ctx, evidence=ev)
+                       dialect=dialect, schema_context=ctx, evidence=ev,
+                       skeleton=skeleton)
+    struct_feedback = structural_feedback(sql, skeleton) if use_structure_plan else []
     ex = run_query(sqlite_path, sql)
     steps.append(f"generate -> ok={ex.get('ok')} "
                  f"rows={ex.get('n_shown') if ex.get('ok') else ex.get('error')}")
+    if struct_feedback:
+        steps.append("structure-check -> " + " | ".join(struct_feedback))
 
     # 3) Confirm: at most one targeted repair -------------------------------- #
     repaired = False
     if max_repairs > 0:
-        need_repair = (not ex.get("ok")) or (
+        need_repair = bool(struct_feedback) or (not ex.get("ok")) or (
             allow_repair_on_empty and ex.get("ok") and ex.get("n_shown", 0) == 0)
         if need_repair:
-            problem = ("failed to execute" if not ex.get("ok")
-                       else "executed but returned an empty result")
-            feedback = ex.get("error", "empty result set")
+            if struct_feedback:
+                problem = "does not match the planned query skeleton"
+                feedback = "; ".join(struct_feedback)
+            else:
+                problem = ("failed to execute" if not ex.get("ok")
+                           else "executed but returned an empty result")
+                feedback = ex.get("error", "empty result set")
             sql2 = _repair(question, schema, linked, sql, problem, feedback, llm,
-                           dialect, schema_context=ctx, evidence=ev)
+                           dialect, schema_context=ctx, evidence=ev,
+                           skeleton=skeleton)
             ex2 = run_query(sqlite_path, sql2)
+            struct_feedback2 = structural_feedback(sql2, skeleton) \
+                if use_structure_plan else []
             # keep the repair only if it did not regress
-            if ex2.get("ok") and (not ex.get("ok") or ex2.get("n_shown", 0) > 0):
+            if ex2.get("ok") and not struct_feedback2 and (
+                    struct_feedback or not ex.get("ok") or ex2.get("n_shown", 0) > 0):
                 sql, ex, repaired = sql2, ex2, True
+                struct_feedback = struct_feedback2
                 steps.append(f"repair -> ok={ex.get('ok')} rows={ex.get('n_shown')}")
             else:
                 steps.append("repair discarded (no improvement)")
@@ -353,6 +535,8 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
 
     return CommitResult(sql=sql, execution=ex, linked_tables=linked,
                         join_conditions=joins, grounding_hints=hints,
+                        query_skeleton=skeleton,
+                        structural_feedback=struct_feedback,
                         propose_verdict=verdict, missing_added=add,
                         missing_rejected=rejected, repaired=repaired,
                         col_aligned=col_aligned, steps=steps)

@@ -34,6 +34,7 @@ class AblationConfig:
     use_topk: bool = True             # top-k paths vs single shortest
     use_probes: bool = True           # conditional execution probes
     use_column_probes: bool = True    # active column/value SQL probes in Explore
+    use_structure_plan: bool = True   # query skeleton before SQL generation
     use_entropy_stop: bool = True     # cost-gated early stop
     use_propose: bool = True          # evidence checkpoint before generation
     # Optional variant: require join evidence for Propose-added tables. BIRD n=100
@@ -58,7 +59,8 @@ class AblationConfig:
         # suffixes because full-run evidence did not support making them default.
         core_full = all([self.use_inferred_graph, self.use_belief_walk,
                          self.use_topk, self.use_probes, self.use_column_probes,
-                         self.use_entropy_stop, self.use_propose])
+                         self.use_structure_plan, self.use_entropy_stop,
+                         self.use_propose])
         variants = []
         if self.use_evidence_injection: variants.append("evidenceblock")
         if self.use_propose_evidence_gate: variants.append("propgate")
@@ -71,6 +73,7 @@ class AblationConfig:
         if not self.use_topk: off.append("notopk")
         if not self.use_probes: off.append("noprobe")
         if not self.use_column_probes: off.append("nocolprobe")
+        if not self.use_structure_plan: off.append("nostruct")
         if not self.use_entropy_stop: off.append("nostop")
         if not self.use_propose: off.append("nopropose")
         return "+".join(off + variants) if (off or variants) else "full"
@@ -91,6 +94,8 @@ class GWSResult:
     n_probes: int = 0
     n_column_probes: int = 0
     column_hints: list[str] = field(default_factory=list)
+    query_skeleton: dict = field(default_factory=dict)
+    structural_feedback: list[str] = field(default_factory=list)
     propose_verdict: str = ""
     missing_added: list[str] = field(default_factory=list)
     missing_rejected: list[str] = field(default_factory=list)
@@ -165,7 +170,8 @@ def run_pipeline(
                 allow_repair_on_empty=ab.repair_on_empty,
                 evidence=evidence, use_evidence_injection=ab.use_evidence_injection,
                 use_column_align=ab.use_column_align,
-                use_propose_evidence_gate=ab.use_propose_evidence_gate)
+                use_propose_evidence_gate=ab.use_propose_evidence_gate,
+                use_structure_plan=ab.use_structure_plan)
     trace.extend(f"commit: {s}" for s in cm.steps)
 
     return GWSResult(
@@ -175,7 +181,9 @@ def run_pipeline(
         linked_tables=cm.linked_tables, join_conditions=cm.join_conditions,
         chosen_path=ex_res.chosen_path.tables if ex_res.chosen_path else [],
         n_probes=ex_res.n_probes, n_column_probes=ex_res.n_column_probes,
-        column_hints=ex_res.column_hints, propose_verdict=cm.propose_verdict,
+        column_hints=ex_res.column_hints, query_skeleton=cm.query_skeleton,
+        structural_feedback=cm.structural_feedback,
+        propose_verdict=cm.propose_verdict,
         missing_added=cm.missing_added, missing_rejected=cm.missing_rejected,
         repaired=cm.repaired, sql=cm.sql, execution=cm.execution,
         belief_entropy={

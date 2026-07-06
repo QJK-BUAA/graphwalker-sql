@@ -72,12 +72,61 @@ verdict=OK|MISSING
 missing=<comma-separated table names to add, or empty>"""
 
 # --------------------------------------------------------------------------- #
+# Commit: structure-aware SQL planning before final generation.
+# This is deliberately a small, parseable skeleton rather than a full SQL draft:
+# Ground/Explore decide "what to query"; this step decides "how to query".
+# --------------------------------------------------------------------------- #
+PROMPT_STRUCTURE_PLAN = """You are a {dialect} query-structure planner for Text-to-SQL.
+Given the question, grounded schema, validated join path and belief evidence, decide \
+the minimal SQL STRUCTURE needed before writing SQL.
+
+Grounded Schema:
+{schema}
+
+Validated Join Path / Conditions:
+{join_path}
+
+External Knowledge:
+{evidence}
+
+Grounding Hints:
+{hints}
+
+Question:
+{question}
+
+Return JSON ONLY, with exactly these keys:
+{{
+  "set_op": "none|intersect|union|except",
+  "nested": true|false,
+  "group_by": true|false,
+  "having": true|false,
+  "order_by": true|false,
+  "limit": true|false,
+  "select_arity": 1,
+  "aggregation": true|false,
+  "notes": "short reason"
+}}
+
+Rules:
+- Use "intersect" for questions asking for entities satisfying BOTH separate conditions \
+that are naturally expressed as two result sets (e.g. "A and B", "both cat and dog").
+- Use "except" for "A but not B", "does not have", "without", unless NOT IN is clearly simpler.
+- Mark nested=true for superlatives, comparisons against aggregate values, NOT IN/EXISTS, \
+or questions requiring a subquery.
+- Mark group_by/having for per-group aggregation or group filters.
+- Mark order_by/limit for top-k, highest/lowest, most/least, maximum/minimum entity queries.
+- select_arity is the number of result columns asked by the question, not helper columns.
+- aggregation=true only when the final answer needs COUNT/SUM/AVG/MAX/MIN or grouped aggregation.
+- Do not invent columns. Do not output SQL."""
+
+# --------------------------------------------------------------------------- #
 # Commit: final SQL generation from the grounded subgraph. One SQL only.
 # --------------------------------------------------------------------------- #
 PROMPT_GENERATE = """Task Overview:
 You are a {dialect} query-generation specialist. Given a FILTERED schema (only the \
-grounded tables), a validated join path and grounding hints, generate exactly ONE \
-valid {dialect} query answering the question.
+grounded tables), a validated join path, grounding hints and a planned query skeleton, \
+generate exactly ONE valid {dialect} query answering the question.
 
 Database Engine:
 {dialect}
@@ -94,10 +143,16 @@ External Knowledge (MUST be applied literally):
 Grounding Hints (belief-derived; prefer these bindings):
 {hints}
 
+Planned Query Skeleton (MUST follow unless contradicted by schema evidence):
+{skeleton}
+
 Question:
 {question}
 
 Instructions:
+- Follow the Planned Query Skeleton: if it requires INTERSECT/UNION/EXCEPT, nested query, \
+GROUP BY/HAVING, ORDER BY/LIMIT, aggregation, or a specific SELECT arity, reflect that \
+structure in the SQL.
 - The External Knowledge above is authoritative: apply every definition, formula and \
 value mapping it gives (e.g. if it says a concept equals column=VALUE, add that filter; \
 if it defines a ratio as a/b, compute exactly that expression).
@@ -125,6 +180,9 @@ the failed query and the feedback, output ONE corrected {dialect} query. Do not 
 
 Grounded Schema:
 {schema}
+
+Planned Query Skeleton:
+{skeleton}
 
 External Knowledge (MUST be applied literally):
 {evidence}
