@@ -1,0 +1,72 @@
+  0%|          | 0/4 [00:00<?, ?it/s]/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/cloud/bigquery/table.py:2086: UserWarning: BigQuery Storage module not found, fetch data with the REST endpoint instead.
+  warnings.warn(
+GB processed: 0.05424 GB
+Total GB processed: 0.05424 GB
+ 25%|██▌       | 1/4 [00:03<00:09,  3.15s/it]/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/cloud/bigquery/table.py:2086: UserWarning: BigQuery Storage module not found, fetch data with the REST endpoint instead.
+  warnings.warn(
+GB processed: 0.10080 GB
+Total GB processed: 0.15504 GB
+ 50%|█████     | 2/4 [00:06<00:07,  3.50s/it]An error occurred: Execution failed on sql '-- Step 1: Filter orders and order_items for the date range and join with products for toy category
+-- Step 2: Aggregate daily sales (sum of price) for each day in the training period
+-- Step 3: Compute linear regression coefficients (slope and intercept) using daily sales data
+-- Step 4: Predict sales for Dec 5-8, 2018 using the regression model
+-- Step 5: Compute 5-day symmetric moving average for each of those 4 days
+-- Step 6: Sum the four moving averages
+
+WITH daily_sales AS (
+    SELECT 
+        DATE(o.order_purchase_timestamp) AS sale_date,
+        SUM(oi.price) AS total_sales
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    WHERE p.product_category_name = 'toys'
+      AND DATE(o.order_purchase_timestamp) >= '2017-01-01'
+      AND DATE(o.order_purchase_timestamp) <= '2018-08-29'
+    GROUP BY DATE(o.order_purchase_timestamp)
+),
+stats AS (
+    SELECT 
+        COUNT(*) AS n,
+        SUM(CAST(julianday(sale_date) AS REAL)) AS sum_x,
+        SUM(total_sales) AS sum_y,
+        SUM(CAST(julianday(sale_date) AS REAL) * total_sales) AS sum_xy,
+        SUM(CAST(julianday(sale_date) AS REAL) * CAST(julianday(sale_date) AS REAL)) AS sum_x2
+    FROM daily_sales
+),
+regression AS (
+    SELECT 
+        (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x) AS slope,
+        (sum_y - ((n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)) * sum_x) / n AS intercept
+    FROM stats
+),
+predicted_sales AS (
+    SELECT 
+        target_date,
+        intercept + slope * CAST(julianday(target_date) AS REAL) AS predicted_sale
+    FROM regression,
+    (VALUES 
+        ('2018-12-05'),
+        ('2018-12-06'),
+        ('2018-12-07'),
+        ('2018-12-08')
+    ) AS dates(target_date)
+),
+moving_avg AS (
+    SELECT 
+        target_date,
+        predicted_sale,
+        AVG(predicted_sale) OVER (
+            ORDER BY julianday(target_date)
+            ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING
+        ) AS symmetric_ma
+    FROM predicted_sales
+)
+SELECT SUM(symmetric_ma) AS sum_of_moving_averages
+FROM moving_avg': near "(": syntax error
+/Users/bytedance/Library/Python/3.9/lib/python/site-packages/boto3/compat.py:89: PythonDeprecationWarning: Boto3 will no longer support Python 3.9 starting April 29, 2026. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.10 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+100%|██████████| 4/4 [00:13<00:00,  3.23s/it]100%|██████████| 4/4 [00:13<00:00,  3.26s/it]
+Final score: 0.25, Correct examples: 1, Total examples: 4
+Real score: 0.0018281535648994515, Correct examples: 1, Total examples: 547
+TOTAL_GB_PROCESSED:  0.15504361223429441

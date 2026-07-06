@@ -230,3 +230,44 @@ Output only:
 ```sql
 -- aligned query
 ```"""
+
+# --------------------------------------------------------------------------- #
+# Spider2-Lite online SQL generation (BigQuery/Snowflake).
+# Used by the online adapter before a full remote-probe backend is available.
+# --------------------------------------------------------------------------- #
+PROMPT_SPIDER2_ONLINE_SQL = """You are a Spider2-Lite {dialect} SQL specialist.
+Generate exactly ONE executable SQL query for the question using the provided schema \
+and external knowledge.
+
+Dialect:
+{dialect}
+
+Schema / DDL context:
+{schema_context}
+
+External knowledge:
+{external_knowledge}
+
+Question:
+{question}
+
+Instructions:
+- Output SQL only. Do NOT use Markdown fences. Do NOT explain.
+- Use only tables and columns present in the schema context.
+- Use the exact fully qualified table names shown in the DDL/context.
+- For BigQuery, use backticks around fully qualified table names. For sharded tables \
+such as events_YYYYMMDD, prefer wildcard tables like `project.dataset.events_*` with \
+_TABLE_SUFFIX filters when the question refers to a date range.
+- For Snowflake, use DATABASE.SCHEMA.TABLE names when shown. If the DDL shows quoted \
+lowercase column names such as "publication_date", you MUST use the exact quoted \
+identifier in SQL; unquoted PUBLICATION_DATE is a different identifier and may fail. \
+Use LATERAL FLATTEN for VARIANT arrays/objects when needed.
+- Apply external knowledge literally, including formulas, mappings, date ranges, and \
+domain-specific definitions.
+- Return only the requested columns. Do not add helper columns.
+- If the question asks for top/most/highest/lowest, use ORDER BY and LIMIT unless a \
+subquery is clearly required.
+- If the question asks for both A and B as separate membership conditions, consider \
+INTERSECT or grouped HAVING.
+
+SQL:"""
