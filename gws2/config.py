@@ -108,3 +108,9 @@ CLOUD_PROBE_MAX_COLUMNS = int(os.environ.get("GWS2_CLOUD_PROBE_MAX_COLUMNS", "6"
 CLOUD_PROBE_MAX_SQL = int(os.environ.get("GWS2_CLOUD_PROBE_MAX_SQL", "8"))
 CLOUD_PROBE_SAMPLE_VALUES = int(os.environ.get("GWS2_CLOUD_PROBE_SAMPLE_VALUES", "5"))
 CLOUD_PROBE_MAX_GB = float(os.environ.get("GWS2_CLOUD_PROBE_MAX_GB", "2.0"))
+
+# P3: belief-gated selective consensus. Only low-confidence answers trigger extra
+# candidates + a majority vote, so simple questions stay single-shot (cost-safe).
+CLOUD_CONSENSUS_CANDIDATES = int(os.environ.get("GWS2_CLOUD_CONSENSUS_CANDIDATES", "2"))
+CLOUD_CONSENSUS_TEMPERATURE = float(os.environ.get("GWS2_CLOUD_CONSENSUS_TEMPERATURE", "0.7"))
+CLOUD_CONSENSUS_MIN_ROWS = int(os.environ.get("GWS2_CLOUD_CONSENSUS_MIN_ROWS", "2"))

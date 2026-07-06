@@ -31,6 +31,7 @@ from datetime import datetime
 from pathlib import Path
 
 from gws2 import config
+from gws2.cloud_consensus import Candidate, is_low_confidence, result_signature, vote
 from gws2.cloud_execute import close_cloud, run_cloud
 from gws2.cloud_probe import probe_tables
 from gws2.datasets import Example, load_spider2_lite_local
@@ -213,13 +214,18 @@ def schema_context_for(ex: Spider2OnlineExample) -> tuple[str, str, list[str], l
 def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
                         use_repair: bool = True,
                         use_probe: bool = True,
+                        use_consensus: bool = False,
                         max_repairs: int = config.CLOUD_MAX_REPAIRS) -> tuple[str, dict]:
-    """Generate one cloud SQL with P2 remote probes + P1 bounded repair.
+    """Generate one cloud SQL with P2 remote probes + P1 bounded repair + P3
+    belief-gated selective consensus.
 
     P2: before generation, run a bounded, cost-guarded remote column/value walk
     on the top compressed tables and inject the evidence as grounding hints.
     P1: after generation, execute (cost-guarded) and apply at most ``max_repairs``
     targeted repairs on error/empty/cost-refusal, kept only if non-regressing.
+    P3: if the answer is low-confidence (needed repair / few rows / no probe
+    evidence), generate a few extra candidates and majority-vote on results;
+    high-confidence answers stay single-shot to preserve the cost budget.
     """
     dialect, schema_context, table_trace, selected = schema_context_for(ex)
     external = _read_external_doc(ex.external_knowledge)
@@ -293,6 +299,47 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
         else:
             meta["exec_trace"].append(f"repair{attempt+1}: discarded (no improvement)")
             break
+
+    # --- P3: belief-gated selective consensus ------------------------------- #
+    meta["consensus"] = "off"
+    if use_consensus:
+        low_conf, reason = is_low_confidence(
+            repairs=meta["repairs"], final_rows=res.n_shown, final_ok=res.ok,
+            n_probe_hints=len(probe_hints), min_rows=config.CLOUD_CONSENSUS_MIN_ROWS)
+        if not low_conf:
+            meta["consensus"] = f"skipped ({reason})"
+        else:
+            primary = Candidate(sql=sql, ok=res.ok, n_rows=res.n_shown,
+                                signature=result_signature(res.rows, res.columns),
+                                est_gb=res.est_gb)
+            cands = [primary]
+            for k in range(config.CLOUD_CONSENSUS_CANDIDATES):
+                cresp = llm.complete(system, "Generate the SQL.",
+                                     temperature=config.CLOUD_CONSENSUS_TEMPERATURE)
+                csql = _extract_sql(cresp)
+                if not csql or csql.strip() == sql.strip():
+                    continue
+                cres = run_cloud(ex.backend, csql, database=ex.db_id)
+                meta["exec_trace"].append(_exec_summary(f"consensus{k+1}", cres))
+                cands.append(Candidate(sql=csql, ok=cres.ok, n_rows=cres.n_shown,
+                                       signature=result_signature(cres.rows, cres.columns),
+                                       est_gb=cres.est_gb))
+            winner, info = vote(cands)
+            meta["consensus"] = f"triggered ({reason}) -> {info.get('decision')}"
+            meta["consensus_info"] = info
+            # adopt the winner only if it out-votes the primary's own group
+            if winner is not None and winner.sql.strip() != sql.strip():
+                primary_votes = sum(1 for c in cands
+                                    if c.ok and c.n_rows > 0
+                                    and c.signature == primary.signature)
+                if info.get("winner_votes", 0) > primary_votes:
+                    sql = winner.sql
+                    res_ok, res_rows = winner.ok, winner.n_rows
+                    meta["exec_trace"].append(
+                        f"consensus adopted winner (votes={info.get('winner_votes')})")
+                    meta["final_exec_ok"] = res_ok
+                    meta["final_rows"] = res_rows
+                    return sql, meta
 
     meta["final_exec_ok"] = res.ok
     meta["final_rows"] = res.n_shown
@@ -414,6 +461,8 @@ def main() -> int:
                     help="disable the P1 cloud bounded belief-repair loop (ablation)")
     ap.add_argument("--no-probe", action="store_true",
                     help="disable the P2 remote belief probes (ablation)")
+    ap.add_argument("--consensus", action="store_true",
+                    help="enable P3 belief-gated selective consensus (extra cloud cost)")
     args = ap.parse_args()
 
     prefixes = set(args.prefix or VALID_PREFIXES)
@@ -441,7 +490,8 @@ def main() -> int:
             else:
                 sql, meta = generate_online_sql(
                     ex, llm, use_repair=not args.no_repair,
-                    use_probe=not args.no_probe)
+                    use_probe=not args.no_probe,
+                    use_consensus=args.consensus)
             (result_dir / f"{ex.instance_id}.sql").write_text(sql)
             return ex.instance_id, {
                 "instance_id": ex.instance_id,
@@ -478,7 +528,10 @@ def main() -> int:
     close_cloud()
     n_repairs = sum(r.get("repairs", 0) for r in records)
     n_probes = sum(r.get("probe_sql", 0) for r in records)
-    print(f"[{run_id}] cloud repairs triggered: {n_repairs} | probe SQLs: {n_probes}")
+    n_consensus = sum(1 for r in records
+                      if str(r.get("consensus", "")).startswith("triggered"))
+    print(f"[{run_id}] cloud repairs: {n_repairs} | probe SQLs: {n_probes} | "
+          f"consensus triggered: {n_consensus}")
     eval_result = {}
     if not args.no_eval:
         print(f"[{run_id}] running official Spider2-Lite evaluator ...")
