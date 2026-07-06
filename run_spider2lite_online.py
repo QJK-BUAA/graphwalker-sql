@@ -33,6 +33,7 @@ from pathlib import Path
 from gws2 import config
 from gws2.datasets import Example, load_spider2_lite_local
 from gws2.llm import LLM
+from gws2.online_schema import build_compressed_context, load_online_schema
 from gws2.pipeline import AblationConfig, load_db, run_pipeline
 from gws2.prompts import PROMPT_SPIDER2_ONLINE_SQL
 
@@ -180,16 +181,34 @@ def _snowflake_schema_context(db_id: str, max_chars: int = 28000) -> str:
     return "\n\n".join(chunks)[:max_chars] if chunks else f"(No DDL.csv under {db_root})"
 
 
-def schema_context_for(ex: Spider2OnlineExample) -> tuple[str, str]:
+def schema_context_for(ex: Spider2OnlineExample) -> tuple[str, str, list[str]]:
+    """Return (dialect, schema_context, selected_table_trace).
+
+    P0: cloud schemas are compressed via a white-box confidence table ranking
+    (gws2.online_schema) instead of blind head-truncation, so relevant tables on
+    large (140+ table) schemas survive into the prompt. Falls back to the legacy
+    truncated context if ranking finds no tables at all.
+    """
     if ex.backend == "bigquery":
-        return "BigQuery", _bigquery_schema_context(ex.db_id)
-    if ex.backend == "snowflake":
-        return "Snowflake", _snowflake_schema_context(ex.db_id)
-    return "SQLite", "(local SQLite schema handled by GraphWalker pipeline)"
+        dialect = "BigQuery"
+    elif ex.backend == "snowflake":
+        dialect = "Snowflake"
+    else:
+        return "SQLite", "(local SQLite schema handled by GraphWalker pipeline)", []
+
+    schema = load_online_schema(ex.backend, ex.db_id, DB_DIR)
+    if schema.n_tables == 0:
+        legacy = (_bigquery_schema_context(ex.db_id) if ex.backend == "bigquery"
+                  else _snowflake_schema_context(ex.db_id))
+        return dialect, legacy, []
+    context, selected = build_compressed_context(
+        schema, ex.question, ex.external_knowledge or "", top_n=8)
+    trace = [f"{t.table_name.strip()}({t.score:.2f})" for t in selected]
+    return dialect, context, trace
 
 
-def generate_online_sql(ex: Spider2OnlineExample, llm: LLM) -> str:
-    dialect, schema_context = schema_context_for(ex)
+def generate_online_sql(ex: Spider2OnlineExample, llm: LLM) -> tuple[str, dict]:
+    dialect, schema_context, table_trace = schema_context_for(ex)
     external = _read_external_doc(ex.external_knowledge)
     system = PROMPT_SPIDER2_ONLINE_SQL.format(
         dialect=dialect,
@@ -198,7 +217,13 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM) -> str:
         question=ex.question,
     )
     resp = llm.complete(system, "Generate the SQL.", temperature=0.0)
-    return _extract_sql(resp)
+    meta = {
+        "backend": ex.backend,
+        "dialect": dialect,
+        "schema_context_chars": len(schema_context),
+        "selected_tables": table_trace,
+    }
+    return _extract_sql(resp), meta
 
 
 _SQL_BLOCK = re.compile(r"```sql\s*(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -319,13 +344,7 @@ def main() -> int:
             if ex.backend == "local":
                 sql, meta = run_local_graphwalker(ex, llm, schema_cache, cache_lock)
             else:
-                sql = generate_online_sql(ex, llm)
-                dialect, schema_context = schema_context_for(ex)
-                meta = {
-                    "backend": ex.backend,
-                    "dialect": dialect,
-                    "schema_context_chars": len(schema_context),
-                }
+                sql, meta = generate_online_sql(ex, llm)
             (result_dir / f"{ex.instance_id}.sql").write_text(sql)
             return ex.instance_id, {
                 "instance_id": ex.instance_id,
