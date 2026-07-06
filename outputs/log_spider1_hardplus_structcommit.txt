@@ -1,0 +1,19 @@
+[spider1_hardplus_structure_aware_deepseek-chat_seed42] 340 hard+extra questions | hard=174 extra=166
+  [25/340] latest=spider1_62 exec=ok (18s)
+  [50/340] latest=spider1_130 exec=ok (35s)
+  [75/340] latest=spider1_212 exec=ok (52s)
+  [100/340] latest=spider1_276 exec=ok (70s)
+  [125/340] latest=spider1_346 exec=ok (88s)
+  [150/340] latest=spider1_459 exec=ok (106s)
+  [175/340] latest=spider1_541 exec=ok (126s)
+  [200/340] latest=spider1_643 exec=ok (149s)
+  [225/340] latest=spider1_741 exec=ok (168s)
+  [250/340] latest=spider1_775 exec=ok (184s)
+  [275/340] latest=spider1_857 exec=ok (201s)
+  [300/340] latest=spider1_921 exec=ok (218s)
+  [325/340] latest=spider1_960 exec=ok (237s)
+  [340/340] latest=spider1_1033 exec=ok (249s)
+[spider1_hardplus_structure_aware_deepseek-chat_seed42] running official spider1 evaluator ...
+[spider1_hardplus_structure_aware_deepseek-chat_seed42] EX = 67.4 (n=340)
+[spider1_hardplus_structure_aware_deepseek-chat_seed42] wrote /Users/bytedance/Desktop/研二下/GraphWalker-SQL-2.0/outputs/spider1_hardplus_structure_aware_deepseek-chat_seed42.json
+[spider1_hardplus_structure_aware_deepseek-chat_seed42] LLM: {'num_calls': 1514, 'input_tokens': 916178, 'output_tokens': 74030} | 248.6s
