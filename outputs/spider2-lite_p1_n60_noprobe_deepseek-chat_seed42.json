@@ -1,0 +1,1763 @@
+{
+  "run_id": "spider2-lite_p1_n60_noprobe_deepseek-chat_seed42",
+  "timestamp": "2026-07-06T17:35:46",
+  "args": {
+    "prefix": [
+      "local",
+      "bq",
+      "ga",
+      "sf"
+    ],
+    "limit_per_backend": 15,
+    "full": false,
+    "workers": 4,
+    "tag": "p1_n60_noprobe",
+    "model": "deepseek-chat",
+    "no_eval": false,
+    "no_repair": false,
+    "no_probe": true,
+    "consensus": false
+  },
+  "n_questions": 60,
+  "prefixes": [
+    "bq",
+    "ga",
+    "local",
+    "sf"
+  ],
+  "llm_stats": {
+    "num_calls": 154,
+    "input_tokens": 410704,
+    "output_tokens": 37236
+  },
+  "official_eval": {
+    "raw_tail": "  3.90s/it]Error occurred while fetching data:  000904 (42000): SQL compilation error: error line 4 at position 8\ninvalid identifier '\"filing_date\"'\n\n 98%|█████████▊| 59/60 [03:02<00:03,  3.67s/it]\n100%|██████████| 60/60 [03:06<00:00,  3.54s/it]\n100%|██████████| 60/60 [03:06<00:00,  3.10s/it]\nFinal score: 0.2, Correct examples: 12, Total examples: 60\nReal score: 0.021937842778793418, Correct examples: 12, Total examples: 547\nTOTAL_GB_PROCESSED:  2.5005161184817553\n\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/snowflake/connector/vendored/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n",
+    "ex": 20.0,
+    "correct": 12,
+    "scored": 60
+  },
+  "records": [
+    {
+      "instance_id": "bq011",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "How many distinct pseudo users had positive engagement time  in the 7-day period ending on January 7, 2021 at 23:59:59, but had no positive engagement time in the 2-day period ending on the same date (January 7, 2021 at 23:59:59) ?",
+      "external_knowledge": "ga4_obfuscated_sample_ecommerce.events.md",
+      "pred_sql": "SELECT COUNT(DISTINCT user_pseudo_id) AS distinct_users\nFROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\nWHERE _TABLE_SUFFIX BETWEEN '20210101' AND '20210107'\n  AND event_name = 'user_engagement'\n  AND (\n    SELECT COALESCE(value.int_value, 0)\n    FROM UNNEST(event_params)\n    WHERE key = 'engagement_time_msec'\n  ) > 0\n  AND user_pseudo_id NOT IN (\n    SELECT DISTINCT user_pseudo_id\n    FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n    WHERE _TABLE_SUFFIX BETWEEN '20210106' AND '20210107'\n      AND event_name = 'user_engagement'\n      AND (\n        SELECT COALESCE(value.int_value, 0)\n        FROM UNNEST(event_params)\n        WHERE key = 'engagement_time_msec'\n      ) > 0\n  )",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20944,
+      "selected_tables": [
+        "events_20210109(1.39)",
+        "events_20201109(1.39)",
+        "events_20210110(1.39)",
+        "events_20210123(1.39)",
+        "events_20201107(1.39)",
+        "events_20201111(1.39)",
+        "events_20201228(1.39)",
+        "events_20201224(1.39)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.050"
+      ],
+      "est_gb": 0.050132861360907555,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "bq010",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Find the top-selling product among customers who bought 'Youtube Men’s Vintage Henley' in July 2017, excluding itself.",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH youtube_buyers AS (\n  SELECT DISTINCT fullVisitorId\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  CROSS JOIN UNNEST(hits) AS hit\n  CROSS JOIN UNNEST(hit.product) AS product\n  WHERE _TABLE_SUFFIX BETWEEN '20170701' AND '20170731'\n    AND product.v2ProductName = 'Youtube Men’s Vintage Henley'\n    AND hit.eCommerceAction.action_type = '6'\n),\nother_products AS (\n  SELECT product.v2ProductName AS product_name, SUM(product.productQuantity) AS total_quantity\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  CROSS JOIN UNNEST(hits) AS hit\n  CROSS JOIN UNNEST(hit.product) AS product\n  WHERE _TABLE_SUFFIX BETWEEN '20170701' AND '20170731'\n    AND fullVisitorId IN (SELECT fullVisitorId FROM youtube_buyers)\n    AND product.v2ProductName != 'Youtube Men’s Vintage Henley'\n    AND hit.eCommerceAction.action_type = '6'\n  GROUP BY product_name\n)\nSELECT product_name, total_quantity\nFROM other_products\nORDER BY total_quantity DESC\nLIMIT 1",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24905,
+      "selected_tables": [
+        "ga_sessions_20170127(0.75)",
+        "ga_sessions_20160916(0.75)",
+        "ga_sessions_20170710(0.75)",
+        "ga_sessions_20170604(0.75)",
+        "ga_sessions_20161003(0.75)",
+        "ga_sessions_20170705(0.75)",
+        "ga_sessions_20170611(0.75)",
+        "ga_sessions_20161013(0.75)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=0 est_gb=0.040",
+        "repair1: ok rows=0 est_gb=0.040",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": 0.03994329087436199,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "bq009",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Which traffic source has the highest total transaction revenue for the year 2017, and what is the difference in millions (rounded to two decimal places) between the highest and lowest monthly total transaction revenue for that traffic source?",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH revenue_by_source AS (\n  SELECT\n    trafficSource.source AS traffic_source,\n    SUM(totals.totalTransactionRevenue) / 1000000 AS total_revenue\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n    AND totals.totalTransactionRevenue IS NOT NULL\n  GROUP BY\n    traffic_source\n  ORDER BY\n    total_revenue DESC\n  LIMIT 1\n),\nmonthly_revenue AS (\n  SELECT\n    trafficSource.source AS traffic_source,\n    PARSE_DATE('%Y%m%d', date) AS session_date,\n    SUM(totals.totalTransactionRevenue) / 1000000 AS monthly_revenue\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n    AND totals.totalTransactionRevenue IS NOT NULL\n    AND trafficSource.source = (SELECT traffic_source FROM revenue_by_source)\n  GROUP BY\n    traffic_source,\n    session_date\n),\nmonthly_aggregates AS (\n  SELECT\n    traffic_source,\n    EXTRACT(MONTH FROM session_date) AS month,\n    SUM(monthly_revenue) AS total_monthly_revenue\n  FROM\n    monthly_revenue\n  GROUP BY\n    traffic_source,\n    month\n)\nSELECT\n  traffic_source,\n  ROUND(MAX(total_monthly_revenue) - MIN(total_monthly_revenue), 2) AS revenue_difference_millions\nFROM\n  monthly_aggregates\nGROUP BY\n  traffic_source",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24905,
+      "selected_tables": [
+        "ga_sessions_20170127(0.75)",
+        "ga_sessions_20160916(0.75)",
+        "ga_sessions_20170710(0.75)",
+        "ga_sessions_20170604(0.75)",
+        "ga_sessions_20161003(0.75)",
+        "ga_sessions_20170705(0.75)",
+        "ga_sessions_20170611(0.75)",
+        "ga_sessions_20161013(0.75)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "bq001",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "For each visitor who made at least one transaction in February 2017, how many days elapsed between the date of their first visit in February and the date of their first transaction in February, and on what type of device did they make that first transaction?",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH february_visits AS (\n  SELECT\n    fullVisitorId,\n    MIN(PARSE_DATE('%Y%m%d', date)) AS first_visit_date\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170201' AND '20170228'\n    AND totals.visits = 1\n  GROUP BY\n    fullVisitorId\n),\nfebruary_transactions AS (\n  SELECT\n    fullVisitorId,\n    MIN(PARSE_DATE('%Y%m%d', date)) AS first_transaction_date,\n    (SELECT device.deviceCategory FROM UNNEST(hits) h WHERE h.transaction.transactionId IS NOT NULL LIMIT 1) AS device_category\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  CROSS JOIN\n    UNNEST(hits) AS h\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170201' AND '20170228'\n    AND h.transaction.transactionId IS NOT NULL\n  GROUP BY\n    fullVisitorId\n)\nSELECT\n  v.fullVisitorId,\n  DATE_DIFF(t.first_transaction_date, v.first_visit_date, DAY) AS days_elapsed,\n  t.device_category\nFROM\n  february_visits v\nJOIN\n  february_transactions t\nON\n  v.fullVisitorId = t.fullVisitorId\nORDER BY\n  v.fullVisitorId",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24989,
+      "selected_tables": [
+        "ga_sessions_20170127(1.00)",
+        "ga_sessions_20160916(1.00)",
+        "ga_sessions_20170710(1.00)",
+        "ga_sessions_20170604(1.00)",
+        "ga_sessions_20161003(1.00)",
+        "ga_sessions_20170705(1.00)",
+        "ga_sessions_20170611(1.00)",
+        "ga_sessions_20161013(1.00)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "bq002",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "During the first half of 2017,  focusing on hits product revenue, which traffic source generated the highest total product revenue, and what were the maximum daily, weekly, and monthly product revenues (in millions) for that top-performing source over this period?",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH product_revenue AS (\n  SELECT\n    date,\n    trafficSource.source AS traffic_source,\n    SUM((SELECT SUM(productRevenue) FROM UNNEST(hit.product) AS p WHERE p.productRevenue IS NOT NULL)) / 1000000 AS daily_revenue_millions\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`,\n    UNNEST(hits) AS hit\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20170630'\n  GROUP BY\n    date,\n    traffic_source\n),\nsource_totals AS (\n  SELECT\n    traffic_source,\n    SUM(daily_revenue_millions) AS total_revenue_millions\n  FROM product_revenue\n  GROUP BY traffic_source\n  ORDER BY total_revenue_millions DESC\n  LIMIT 1\n),\nmax_daily AS (\n  SELECT\n    traffic_source,\n    MAX(daily_revenue_millions) AS max_daily_revenue_millions\n  FROM product_revenue\n  WHERE traffic_source IN (SELECT traffic_source FROM source_totals)\n  GROUP BY traffic_source\n),\nweekly_revenue AS (\n  SELECT\n    traffic_source,\n    DATE_TRUNC(PARSE_DATE('%Y%m%d', date), WEEK) AS week_start,\n    SUM(daily_revenue_millions) AS weekly_revenue_millions\n  FROM product_revenue\n  WHERE traffic_source IN (SELECT traffic_source FROM source_totals)\n  GROUP BY traffic_source, week_start\n),\nmax_weekly AS (\n  SELECT\n    traffic_source,\n    MAX(weekly_revenue_millions) AS max_weekly_revenue_millions\n  FROM weekly_revenue\n  GROUP BY traffic_source\n),\nmonthly_revenue AS (\n  SELECT\n    traffic_source,\n    DATE_TRUNC(PARSE_DATE('%Y%m%d', date), MONTH) AS month_start,\n    SUM(daily_revenue_millions) AS monthly_revenue_millions\n  FROM product_revenue\n  WHERE traffic_source IN (SELECT traffic_source FROM source_totals)\n  GROUP BY traffic_source, month_start\n),\nmax_monthly AS (\n  SELECT\n    traffic_source,\n    MAX(monthly_revenue_millions) AS max_monthly_revenue_millions\n  FROM monthly_revenue\n  GROUP BY traffic_source\n)\nSELECT\n  s.traffic_source,\n  ROUND(s.total_revenue_millions, 2) AS total_product_revenue_millions,\n  ROUND(d.max_daily_revenue_millions, 2) AS max_daily_revenue_millions,\n  ROUND(w.max_weekly_revenue_millions, 2) AS max_weekly_revenue_millions,\n  ROUND(m.max_monthly_revenue_millions, 2) AS max_monthly_revenue_millions\nFROM source_totals s\nJOIN max_daily d ON s.traffic_source = d.traffic_source\nJOIN max_weekly w ON s.traffic_source = w.traffic_source\nJOIN max_monthly m ON s.traffic_source = m.traffic_source",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24941,
+      "selected_tables": [
+        "ga_sessions_20170127(0.86)",
+        "ga_sessions_20160916(0.86)",
+        "ga_sessions_20170710(0.86)",
+        "ga_sessions_20170604(0.86)",
+        "ga_sessions_20161003(0.86)",
+        "ga_sessions_20170705(0.86)",
+        "ga_sessions_20170611(0.86)",
+        "ga_sessions_20161013(0.86)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: ok rows=1 est_gb=0.007"
+      ],
+      "est_gb": 0.007458682172000408,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "bq003",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Between April 1 and July 31 of 2017, using the hits product revenue data along with the totals transactions to classify sessions as purchase (transactions ≥ 1 and productRevenue not null) or non-purchase (transactions null and productRevenue null), compare the average pageviews per visitor for each group by month",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH session_classification AS (\n  SELECT\n    s.date,\n    s.fullVisitorId,\n    s.visitId,\n    s.totals.pageviews,\n    s.totals.transactions,\n    h.product\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*` AS s,\n    UNNEST(s.hits) AS h\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170401' AND '20170731'\n),\nsession_groups AS (\n  SELECT\n    FORMAT_DATE('%Y%m', PARSE_DATE('%Y%m%d', date)) AS month,\n    fullVisitorId,\n    visitId,\n    pageviews,\n    CASE\n      WHEN transactions >= 1 AND EXISTS (SELECT 1 FROM UNNEST(product) AS p WHERE p.productRevenue IS NOT NULL) THEN 'purchase'\n      WHEN transactions IS NULL AND NOT EXISTS (SELECT 1 FROM UNNEST(product) AS p WHERE p.productRevenue IS NOT NULL) THEN 'non-purchase'\n      ELSE NULL\n    END AS session_type\n  FROM session_classification\n  WHERE\n    (transactions >= 1 AND EXISTS (SELECT 1 FROM UNNEST(product) AS p WHERE p.productRevenue IS NOT NULL))\n    OR (transactions IS NULL AND NOT EXISTS (SELECT 1 FROM UNNEST(product) AS p WHERE p.productRevenue IS NOT NULL))\n),\nvisitor_monthly AS (\n  SELECT\n    month,\n    session_type,\n    fullVisitorId,\n    AVG(pageviews) AS avg_pageviews_per_visitor\n  FROM session_groups\n  WHERE session_type IS NOT NULL\n  GROUP BY month, session_type, fullVisitorId\n)\nSELECT\n  month,\n  session_type,\n  ROUND(AVG(avg_pageviews_per_visitor), 2) AS avg_pageviews_per_visitor\nFROM visitor_monthly\nGROUP BY month, session_type\nORDER BY month, session_type",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24989,
+      "selected_tables": [
+        "ga_sessions_20170127(1.10)",
+        "ga_sessions_20160916(1.10)",
+        "ga_sessions_20170710(1.10)",
+        "ga_sessions_20170604(1.10)",
+        "ga_sessions_20161003(1.10)",
+        "ga_sessions_20170705(1.10)",
+        "ga_sessions_20170611(1.10)",
+        "ga_sessions_20161013(1.10)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: ok rows=8 est_gb=0.010"
+      ],
+      "est_gb": 0.009823332540690899,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 8
+    },
+    {
+      "instance_id": "bq004",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "In July 2017, among all visitors who bought any YouTube-related product, which distinct product—excluding those containing ‘YouTube’ in the product name—had the highest total quantity purchased?",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH youtube_buyers AS (\n  SELECT DISTINCT fullVisitorId\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`,\n  UNNEST(hits) AS hit,\n  UNNEST(hit.product) AS product\n  WHERE _TABLE_SUFFIX BETWEEN '01' AND '31'\n    AND product.v2ProductName LIKE '%YouTube%'\n    AND hit.eCommerceAction.action_type = '6'\n),\nnon_youtube_products AS (\n  SELECT product.v2ProductName AS product_name,\n         SUM(product.productQuantity) AS total_quantity\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_201707*`,\n  UNNEST(hits) AS hit,\n  UNNEST(hit.product) AS product\n  WHERE _TABLE_SUFFIX BETWEEN '01' AND '31'\n    AND fullVisitorId IN (SELECT fullVisitorId FROM youtube_buyers)\n    AND product.v2ProductName NOT LIKE '%YouTube%'\n    AND hit.eCommerceAction.action_type = '6'\n  GROUP BY product_name\n)\nSELECT product_name\nFROM non_youtube_products\nORDER BY total_quantity DESC\nLIMIT 1",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24905,
+      "selected_tables": [
+        "ga_sessions_20170127(0.75)",
+        "ga_sessions_20160916(0.75)",
+        "ga_sessions_20170710(0.75)",
+        "ga_sessions_20170604(0.75)",
+        "ga_sessions_20161003(0.75)",
+        "ga_sessions_20170705(0.75)",
+        "ga_sessions_20170611(0.75)",
+        "ga_sessions_20161013(0.75)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.040"
+      ],
+      "est_gb": 0.03994329087436199,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "bq008",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "In January 2017, among visitors whose campaign name contains 'Data Share' and who accessed any page starting with '/home', which page did they most commonly visit next, and what is the maximum time (in seconds) they spent on the '/home' page before moving on?",
+      "external_knowledge": "google_analytics_sample.ga_sessions.md",
+      "pred_sql": "WITH home_page_hits AS (\n  SELECT\n    fullVisitorId,\n    visitId,\n    hit.hitNumber AS home_hit_number,\n    hit.time AS home_hit_time\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_201701*`,\n    UNNEST(hits) AS hit\n  WHERE\n    _TABLE_SUFFIX BETWEEN '01' AND '31'\n    AND trafficSource.campaign LIKE '%Data Share%'\n    AND hit.page.pagePath LIKE '/home%'\n),\nnext_page_hits AS (\n  SELECT\n    h.fullVisitorId,\n    h.visitId,\n    h.home_hit_number,\n    h.home_hit_time,\n    next_hit.page.pagePath AS next_page_path,\n    next_hit.time AS next_hit_time\n  FROM\n    home_page_hits h\n  JOIN\n    `bigquery-public-data.google_analytics_sample.ga_sessions_201701*` s\n    ON h.fullVisitorId = s.fullVisitorId AND h.visitId = s.visitId\n    AND _TABLE_SUFFIX BETWEEN '01' AND '31',\n    UNNEST(s.hits) AS next_hit\n  WHERE\n    next_hit.hitNumber = h.home_hit_number + 1\n),\npage_stats AS (\n  SELECT\n    next_page_path,\n    MAX(next_hit_time - home_hit_time) AS max_time_on_home_seconds\n  FROM\n    next_page_hits\n  WHERE\n    next_page_path IS NOT NULL\n  GROUP BY\n    next_page_path\n)\nSELECT\n  next_page_path,\n  max_time_on_home_seconds\nFROM\n  page_stats\nORDER BY\n  max_time_on_home_seconds DESC\nLIMIT 1",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24905,
+      "selected_tables": [
+        "ga_sessions_20170127(0.75)",
+        "ga_sessions_20160916(0.75)",
+        "ga_sessions_20170710(0.75)",
+        "ga_sessions_20170604(0.75)",
+        "ga_sessions_20161003(0.75)",
+        "ga_sessions_20170705(0.75)",
+        "ga_sessions_20170611(0.75)",
+        "ga_sessions_20161013(0.75)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.015"
+      ],
+      "est_gb": 0.015382262878119946,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "bq269",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Between June 1, 2017, and July 31, 2017, consider only sessions that have non-null pageviews. Classify each session as ‘purchase’ if it has at least one transaction, or ‘non_purchase’ otherwise. For each month, sum each visitor’s total pageviews under each classification, then compute the average pageviews per visitor for both purchase and non-purchase groups in each month, and present the results side by side.",
+      "external_knowledge": "",
+      "pred_sql": "WITH \n  sessions_with_pageviews AS (\n    SELECT \n      visitorId,\n      FORMAT_TIMESTAMP('%Y-%m', TIMESTAMP_SECONDS(visitStartTime)) AS month,\n      totals.pageviews AS pageviews,\n      CASE WHEN totals.transactions > 0 THEN 'purchase' ELSE 'non_purchase' END AS classification\n    FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n    WHERE _TABLE_SUFFIX BETWEEN '20170601' AND '20170731'\n      AND totals.pageviews IS NOT NULL\n  ),\n  visitor_month_class AS (\n    SELECT \n      visitorId,\n      month,\n      classification,\n      SUM(pageviews) AS total_pageviews\n    FROM sessions_with_pageviews\n    GROUP BY visitorId, month, classification\n  )\nSELECT \n  month,\n  ROUND(AVG(CASE WHEN classification = 'purchase' THEN total_pageviews END), 2) AS avg_pageviews_purchase,\n  ROUND(AVG(CASE WHEN classification = 'non_purchase' THEN total_pageviews END), 2) AS avg_pageviews_non_purchase\nFROM visitor_month_class\nGROUP BY month\nORDER BY month",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24905,
+      "selected_tables": [
+        "ga_sessions_20170127(0.12)",
+        "ga_sessions_20160916(0.12)",
+        "ga_sessions_20170710(0.12)",
+        "ga_sessions_20170604(0.12)",
+        "ga_sessions_20161003(0.12)",
+        "ga_sessions_20170705(0.12)",
+        "ga_sessions_20170611(0.12)",
+        "ga_sessions_20161013(0.12)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=3 est_gb=0.002"
+      ],
+      "est_gb": 0.0020320266485214233,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 3
+    },
+    {
+      "instance_id": "bq268",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Identify the longest number of days between the first visit and the last recorded event (either the last visit or the first transaction) for a user, where the last recorded event is associated with a mobile device. The last recorded event could either be the last visit or the first transaction, and you should focus on users whose last recorded event occurred on a mobile device.",
+      "external_knowledge": "",
+      "pred_sql": "WITH user_events AS (\n  SELECT\n    visitorId,\n    MIN(visitStartTime) AS first_visit_time,\n    MAX(visitStartTime) AS last_visit_time,\n    MIN(CASE WHEN totals.transactions > 0 THEN visitStartTime END) AS first_transaction_time\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  GROUP BY visitorId\n),\nlast_event AS (\n  SELECT\n    visitorId,\n    first_visit_time,\n    last_visit_time,\n    first_transaction_time,\n    CASE\n      WHEN first_transaction_time IS NULL OR last_visit_time >= first_transaction_time THEN last_visit_time\n      ELSE first_transaction_time\n    END AS last_event_time\n  FROM user_events\n),\nmobile_last_event AS (\n  SELECT\n    e.visitorId,\n    e.first_visit_time,\n    e.last_event_time,\n    DATE_DIFF(\n      PARSE_TIMESTAMP('%Y%m%d', CAST(e.last_event_time AS STRING)),\n      PARSE_TIMESTAMP('%Y%m%d', CAST(e.first_visit_time AS STRING)),\n      DAY\n    ) AS days_between\n  FROM last_event e\n  JOIN `bigquery-public-data.google_analytics_sample.ga_sessions_*` s\n    ON e.visitorId = s.visitorId\n    AND s.visitStartTime = e.last_event_time\n  WHERE s.device.isMobile = TRUE\n)\nSELECT MAX(days_between) AS longest_days\nFROM mobile_last_event",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24893,
+      "selected_tables": [
+        "ga_sessions_20170127(0.09)",
+        "ga_sessions_20160916(0.09)",
+        "ga_sessions_20170710(0.09)",
+        "ga_sessions_20170604(0.09)",
+        "ga_sessions_20161003(0.09)",
+        "ga_sessions_20170705(0.09)",
+        "ga_sessions_20170611(0.09)",
+        "ga_sessions_20161013(0.09)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.008"
+      ],
+      "est_gb": 0.007660401053726673,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "bq270",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "What were the monthly add-to-cart and purchase conversion rates, calculated as a percentage of pageviews on product details, from January to March 2017?",
+      "external_knowledge": "ga360_hits.eCommerceAction.action_type.md",
+      "pred_sql": "WITH product_detail_pageviews AS (\n  SELECT\n    FORMAT_DATE('%Y-%m', PARSE_DATE('%Y%m%d', date)) AS month,\n    COUNT(*) AS detail_pageviews\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20170331'\n    AND EXISTS (\n      SELECT 1\n      FROM UNNEST(hits) AS h\n      WHERE h.eCommerceAction.action_type = '2'\n        AND EXISTS (\n          SELECT 1\n          FROM UNNEST(h.product) AS p\n          WHERE (p.isImpression IS NULL OR p.isImpression = FALSE)\n        )\n    )\n  GROUP BY month\n),\nadd_to_cart AS (\n  SELECT\n    FORMAT_DATE('%Y-%m', PARSE_DATE('%Y%m%d', date)) AS month,\n    COUNT(DISTINCT CONCAT(CAST(visitId AS STRING), '_', CAST(h.hitNumber AS STRING))) AS add_to_cart_sessions\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`,\n    UNNEST(hits) AS h\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20170331'\n    AND h.eCommerceAction.action_type = '3'\n  GROUP BY month\n),\npurchases AS (\n  SELECT\n    FORMAT_DATE('%Y-%m', PARSE_DATE('%Y%m%d', date)) AS month,\n    COUNT(DISTINCT CONCAT(CAST(visitId AS STRING), '_', CAST(h.hitNumber AS STRING))) AS purchase_sessions\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`,\n    UNNEST(hits) AS h\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20170331'\n    AND h.eCommerceAction.action_type = '6'\n  GROUP BY month\n)\nSELECT\n  pdp.month,\n  ROUND(100.0 * COALESCE(atc.add_to_cart_sessions, 0) / pdp.detail_pageviews, 2) AS add_to_cart_rate,\n  ROUND(100.0 * COALESCE(pur.purchase_sessions, 0) / pdp.detail_pageviews, 2) AS purchase_conversion_rate\nFROM product_detail_pageviews pdp\nLEFT JOIN add_to_cart atc ON pdp.month = atc.month\nLEFT JOIN purchases pur ON pdp.month = pur.month\nORDER BY pdp.month",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24881,
+      "selected_tables": [
+        "ga_sessions_20170127(0.50)",
+        "ga_sessions_20160916(0.50)",
+        "ga_sessions_20170710(0.50)",
+        "ga_sessions_20170604(0.50)",
+        "ga_sessions_20161003(0.50)",
+        "ga_sessions_20170705(0.50)",
+        "ga_sessions_20170611(0.50)",
+        "ga_sessions_20161013(0.50)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=3 est_gb=0.015"
+      ],
+      "est_gb": 0.015157305635511875,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 3
+    },
+    {
+      "instance_id": "bq275",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Which visitor IDs belong to users whose first transaction occurred on a device explicitly labeled as 'mobile' on a later date than their first visit?",
+      "external_knowledge": "",
+      "pred_sql": "WITH visitor_first_visit AS (\n  SELECT\n    visitorId,\n    MIN(PARSE_DATE('%Y%m%d', date)) AS first_visit_date\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  GROUP BY\n    visitorId\n),\nvisitor_first_transaction AS (\n  SELECT\n    visitorId,\n    MIN(PARSE_DATE('%Y%m%d', date)) AS first_transaction_date,\n    device.deviceCategory AS transaction_device_category\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`,\n    UNNEST(hits) AS hit\n  WHERE\n    hit.eCommerceAction.action_type = '6'\n  GROUP BY\n    visitorId,\n    device.deviceCategory\n)\nSELECT\n  vft.visitorId\nFROM\n  visitor_first_transaction vft\nJOIN\n  visitor_first_visit vfv\nON\n  vft.visitorId = vfv.visitorId\nWHERE\n  vft.transaction_device_category = 'mobile'\n  AND vft.first_transaction_date > vfv.first_visit_date",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24929,
+      "selected_tables": [
+        "ga_sessions_20170127(0.25)",
+        "ga_sessions_20160916(0.25)",
+        "ga_sessions_20170710(0.25)",
+        "ga_sessions_20170604(0.25)",
+        "ga_sessions_20161003(0.25)",
+        "ga_sessions_20170705(0.25)",
+        "ga_sessions_20170611(0.25)",
+        "ga_sessions_20161013(0.25)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=0 est_gb=0.027",
+        "repair1: ok rows=0 est_gb=0.027",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": 0.02737274207174778,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "bq374",
+      "db_id": "ga360",
+      "backend": "bigquery",
+      "question": "Calculates the percentage of new users who, between August 1, 2016, and April 30, 2017, both stayed on the site for more than 5 minutes during their initial visit and made a purchase on a subsequent visit at any later time, relative to the total number of new users in the same period.",
+      "external_knowledge": "",
+      "pred_sql": "WITH new_users AS (\n  SELECT DISTINCT visitorId\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE _TABLE_SUFFIX BETWEEN '20160801' AND '20170430'\n    AND totals.newVisits = 1\n),\nfirst_visit_long AS (\n  SELECT visitorId\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE _TABLE_SUFFIX BETWEEN '20160801' AND '20170430'\n    AND totals.newVisits = 1\n    AND totals.timeOnSite > 300\n),\nsubsequent_purchase AS (\n  SELECT DISTINCT s.visitorId\n  FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*` s\n  INNER JOIN new_users n ON s.visitorId = n.visitorId\n  WHERE s._TABLE_SUFFIX BETWEEN '20160801' AND '20170430'\n    AND s.totals.transactions > 0\n    AND s.visitNumber > 1\n),\nqualified_users AS (\n  SELECT visitorId FROM first_visit_long\n  INTERSECT DISTINCT\n  SELECT visitorId FROM subsequent_purchase\n)\nSELECT \n  COUNT(DISTINCT q.visitorId) * 100.0 / NULLIF(COUNT(DISTINCT n.visitorId), 0) AS percentage\nFROM new_users n\nLEFT JOIN qualified_users q ON n.visitorId = q.visitorId",
+      "dialect": "BigQuery",
+      "schema_context_chars": 24785,
+      "selected_tables": [
+        "ga_sessions_20170127(0.00)",
+        "ga_sessions_20160916(0.00)",
+        "ga_sessions_20170710(0.00)",
+        "ga_sessions_20170604(0.00)",
+        "ga_sessions_20161003(0.00)",
+        "ga_sessions_20170705(0.00)",
+        "ga_sessions_20170611(0.00)",
+        "ga_sessions_20161013(0.00)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.012"
+      ],
+      "est_gb": 0.011982455849647522,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq029",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "Get the average number of inventors per patent and the total count of patent publications in Canada (CA) for each 5-year period from 1960 to 2020, based on publication dates. Only include patents that have at least one inventor listed, and group results by 5-year intervals (1960-1964, 1965-1969, etc.).",
+      "external_knowledge": "",
+      "pred_sql": "SELECT \n    FLOOR(\"publication_date\" / 10000 / 5) * 5 AS period_start,\n    COUNT(DISTINCT \"publication_number\") AS patent_count,\n    AVG(inventor_count) AS avg_inventors_per_patent\nFROM (\n    SELECT \n        \"publication_number\",\n        \"publication_date\",\n        \"country_code\",\n        ARRAY_SIZE(\"inventor\") AS inventor_count\n    FROM PATENTS.PUBLICATIONS\n    WHERE \"country_code\" = 'CA'\n      AND \"publication_date\" >= 19600000\n      AND \"publication_date\" < 20210000\n      AND ARRAY_SIZE(\"inventor\") > 0\n) t\nGROUP BY period_start\nORDER BY period_start",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2294,
+      "selected_tables": [
+        "PUBLICATIONS(0.37)",
+        "DISCLOSURES_13(0.11)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=13"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 13
+    },
+    {
+      "instance_id": "sf_bq026",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For the assignee who has been the most active in the patent category 'A61', I'd like to know the five patent jurisdictions code where they filed the most patents during their busiest year, separated by commas.",
+      "external_knowledge": "",
+      "pred_sql": "WITH assignee_activity AS (\n    SELECT \n        p.\"assignee_harmonized\" AS assignee,\n        p.\"country_code\",\n        p.\"publication_date\" / 10000 AS year,\n        COUNT(*) AS cnt\n    FROM PATENTS.PUBLICATIONS p,\n    LATERAL FLATTEN(input => p.\"cpc\") cpc\n    WHERE cpc.value:\"code\"::VARCHAR LIKE 'A61%'\n    GROUP BY assignee, p.\"country_code\", year\n),\nassignee_total AS (\n    SELECT \n        assignee,\n        SUM(cnt) AS total_patents\n    FROM assignee_activity\n    GROUP BY assignee\n    ORDER BY total_patents DESC\n    LIMIT 1\n),\nbusiest_year AS (\n    SELECT \n        a.assignee,\n        a.year,\n        SUM(a.cnt) AS year_total\n    FROM assignee_activity a\n    JOIN assignee_total t ON a.assignee = t.assignee\n    GROUP BY a.assignee, a.year\n    ORDER BY year_total DESC\n    LIMIT 1\n),\ntop_jurisdictions AS (\n    SELECT \n        a.country_code,\n        SUM(a.cnt) AS jurisdiction_total\n    FROM assignee_activity a\n    JOIN busiest_year b ON a.assignee = b.assignee AND a.year = b.year\n    GROUP BY a.country_code\n    ORDER BY jurisdiction_total DESC\n    LIMIT 5\n)\nSELECT LISTAGG(country_code, ', ') WITHIN GROUP (ORDER BY jurisdiction_total DESC) AS top_jurisdictions\nFROM top_jurisdictions",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2273,
+      "selected_tables": [
+        "PUBLICATIONS(0.19)",
+        "DISCLOSURES_13(0.10)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 34 at position 8\ninvalid ident",
+        "repair1: error 000904 (42000): SQL compilation error: error line 34 at position 8\ninvalid ident",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq091",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "In which year did the assignee with the most applications in the patent category 'A61' file the most?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT \n    EXTRACT(YEAR FROM TO_DATE(p.\"publication_date\"::VARCHAR, 'YYYYMMDD')) AS filing_year,\n    COUNT(DISTINCT p.\"publication_number\") AS application_count\nFROM PATENTS.PUBLICATIONS p\nWHERE p.\"cpc\" IS NOT NULL\n  AND EXISTS (\n      SELECT 1\n      FROM LATERAL FLATTEN(input => p.\"cpc\") cpc\n      WHERE cpc.value:\"code\"::VARCHAR LIKE 'A61%'\n  )\n  AND p.\"assignee_harmonized\" IS NOT NULL\nGROUP BY \n    p.\"assignee_harmonized\",\n    EXTRACT(YEAR FROM TO_DATE(p.\"publication_date\"::VARCHAR, 'YYYYMMDD'))\nHAVING COUNT(DISTINCT p.\"publication_number\") = (\n    SELECT MAX(cnt)\n    FROM (\n        SELECT \n            COUNT(DISTINCT p2.\"publication_number\") AS cnt\n        FROM PATENTS.PUBLICATIONS p2\n        WHERE p2.\"cpc\" IS NOT NULL\n          AND EXISTS (\n              SELECT 1\n              FROM LATERAL FLATTEN(input => p2.\"cpc\") cpc2\n              WHERE cpc2.value:\"code\"::VARCHAR LIKE 'A61%'\n          )\n          AND p2.\"assignee_harmonized\" IS NOT NULL\n        GROUP BY p2.\"assignee_harmonized\"\n    ) top_assignee\n)\nORDER BY filing_year\nLIMIT 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2267,
+      "selected_tables": [
+        "DISCLOSURES_13(0.25)",
+        "PUBLICATIONS(0.25)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 002031 (42601): SQL compilation error:\nUnsupported subquery type cannot be evalu",
+        "repair1: error 002031 (42601): SQL compilation error:\nUnsupported subquery type cannot be evalu",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq099",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For patent class A01B3, I want to analyze the information of the top 3 assignees based on the total number of applications. Please provide the following five pieces of information: the name of this assignee,  total number of applications, the year with the most applications, the number of applications in that year, and the country code with the most applications during that year.",
+      "external_knowledge": "",
+      "pred_sql": "WITH assignee_apps AS (\n    SELECT \n        p.\"assignee_harmonized\"[0]:\"name\"::VARCHAR AS assignee_name,\n        p.\"publication_number\",\n        p.\"country_code\",\n        FLOOR(p.\"publication_date\" / 10000) AS app_year\n    FROM PATENTS.PUBLICATIONS p,\n    LATERAL FLATTEN(input => p.\"cpc\") cpc\n    WHERE cpc.value:\"code\"::VARCHAR LIKE 'A01B3%'\n),\nassignee_stats AS (\n    SELECT \n        assignee_name,\n        COUNT(DISTINCT \"publication_number\") AS total_apps,\n        app_year,\n        COUNT(DISTINCT \"publication_number\") AS yearly_apps,\n        \"country_code\",\n        COUNT(DISTINCT \"publication_number\") AS country_yearly_apps,\n        ROW_NUMBER() OVER (PARTITION BY assignee_name ORDER BY COUNT(DISTINCT \"publication_number\") DESC) AS year_rank,\n        ROW_NUMBER() OVER (PARTITION BY assignee_name, app_year ORDER BY COUNT(DISTINCT \"publication_number\") DESC) AS country_rank\n    FROM assignee_apps\n    GROUP BY assignee_name, app_year, \"country_code\"\n),\ntop_assignees AS (\n    SELECT \n        assignee_name,\n        total_apps\n    FROM (\n        SELECT \n            assignee_name,\n            SUM(yearly_apps) AS total_apps\n        FROM assignee_stats\n        GROUP BY assignee_name\n    )\n    ORDER BY total_apps DESC\n    LIMIT 3\n)\nSELECT \n    a.assignee_name,\n    a.total_apps,\n    s.app_year AS year_with_most_apps,\n    s.yearly_apps AS apps_in_that_year,\n    s.\"country_code\" AS country_code_most_apps_that_year\nFROM top_assignees a\nJOIN assignee_stats s ON a.assignee_name = s.assignee_name\nWHERE s.year_rank = 1 AND s.country_rank = 1\nORDER BY a.total_apps DESC",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2282,
+      "selected_tables": [
+        "PUBLICATIONS(0.32)",
+        "DISCLOSURES_13(0.11)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 100097 (22007): Can't parse '0' as date with format 'YYYYMMDD'",
+        "repair1: ok rows=2"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 2
+    },
+    {
+      "instance_id": "sf_bq033",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "How many U.S. publications related to IoT (where the abstract includes the phrase 'internet of things') were filed each month from 2008 to 2022, including months with no filings?",
+      "external_knowledge": "",
+      "pred_sql": "WITH months AS (\n  SELECT DATE_TRUNC('month', DATE '2008-01-01') AS month_start\n  UNION ALL\n  SELECT DATEADD('month', 1, month_start)\n  FROM months\n  WHERE month_start < DATE '2022-12-01'\n)\nSELECT \n  m.month_start AS month,\n  COUNT(p.\"publication_number\") AS num_publications\nFROM months m\nLEFT JOIN PATENTS.PUBLICATIONS p\n  ON DATE_TRUNC('month', TO_DATE(TO_VARCHAR(p.\"publication_date\"), 'YYYYMMDD')) = m.month_start\n  AND p.\"country_code\" = 'US'\n  AND CONTAINS(LOWER(p.\"abstract_localized\"::VARCHAR), 'internet of things')\nGROUP BY m.month_start\nORDER BY m.month_start",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1484,
+      "selected_tables": [
+        "PUBLICATIONS(0.36)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=50"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "sf_bq209",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "Can you calculate the number of utility patents that were granted in 2010 and have exactly one forward citation within a 10-year window following their application/filing date? For this analysis, forward citations should be counted as distinct citing application numbers that cited the patent within 10 years after the patent's own filing date.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT COUNT(DISTINCT p.\"publication_number\") AS utility_patents_with_one_forward_citation\nFROM PATENTS.PUBLICATIONS p\nWHERE p.\"kind_code\" = 'B2'\n  AND p.\"grant_date\" BETWEEN 20100101 AND 20101231\n  AND (\n    SELECT COUNT(DISTINCT c.value:\"application_number\"::VARCHAR)\n    FROM LATERAL FLATTEN(input => p.\"citation\") AS c\n    WHERE c.value:\"citation_type\"::VARCHAR = 'forward'\n      AND c.value:\"citation_date\"::NUMBER BETWEEN p.\"filing_date\" AND (p.\"filing_date\" + 10000)\n  ) = 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2300,
+      "selected_tables": [
+        "PUBLICATIONS(0.27)",
+        "DISCLOSURES_13(0.13)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 002031 (42601): SQL compilation error:\nUnsupported subquery type cannot be evalu",
+        "repair1: no-change, stop"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq027",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For patents granted between 2010 and 2018, provide the publication number of each patent and the number of backward citations it has received in the SEA category.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT p.\"publication_number\", COUNT(c.value::STRING) AS backward_citations\nFROM PATENTS.PUBLICATIONS p,\nLATERAL FLATTEN(input => p.\"citation\") c\nWHERE p.\"grant_date\" >= 20100101 AND p.\"grant_date\" <= 20181231\n  AND c.value::STRING LIKE '%SEA%'\nGROUP BY p.\"publication_number\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2270,
+      "selected_tables": [
+        "DISCLOSURES_13(0.20)",
+        "PUBLICATIONS(0.20)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=0",
+        "repair1: ok rows=50"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "sf_bq210",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "How many US B2 patents granted between 2008 and 2018 contain claims that do not include the word 'claim'?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT COUNT(DISTINCT p.\"publication_number\") AS patent_count\nFROM PATENTS.PUBLICATIONS p,\nLATERAL FLATTEN(input => p.\"claims_localized\") cl\nWHERE p.\"country_code\" = 'US'\n  AND p.\"kind_code\" = 'B2'\n  AND p.\"grant_date\" BETWEEN 20080101 AND 20181231\n  AND NOT cl.value::VARCHAR ILIKE '%claim%'",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1475,
+      "selected_tables": [
+        "PUBLICATIONS(0.57)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq211",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "Among patents granted between 2010 and 2023 in CN, how many of them belong to families that have a total of over one distinct applications?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT COUNT(DISTINCT p.\"publication_number\") AS patent_count\nFROM PATENTS.PUBLICATIONS p\nWHERE p.\"country_code\" = 'CN'\n  AND p.\"grant_date\" BETWEEN 20100101 AND 20231231\n  AND p.\"family_id\" IN (\n    SELECT \"family_id\"\n    FROM PATENTS.PUBLICATIONS\n    GROUP BY \"family_id\"\n    HAVING COUNT(DISTINCT \"application_number\") > 1\n  )",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2911,
+      "selected_tables": [
+        "DISCLOSURES_13(0.00)",
+        "PUBLICATIONS(0.00)",
+        "CPC_DEFINITION(0.00)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq213",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "What is the most common 4-digit IPC code among US B2 utility patents granted from June to August in 2022?",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "SELECT \n    SUBSTR(ipc_u.value:\"code\"::VARCHAR, 1, 4) AS ipc4,\n    COUNT(*) AS cnt\nFROM PATENTS.PUBLICATIONS t1,\nLATERAL FLATTEN(input => t1.\"ipc\") ipc_u\nWHERE t1.\"country_code\" = 'US'\n  AND t1.\"kind_code\" = 'B2'\n  AND t1.\"grant_date\" >= 20220601\n  AND t1.\"grant_date\" <= 20220831\nGROUP BY ipc4\nORDER BY cnt DESC\nLIMIT 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1471,
+      "selected_tables": [
+        "PUBLICATIONS(0.40)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 5 at position 25\ninvalid ident",
+        "repair1: ok rows=1"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq212",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For United States utility patents under the B2 classification granted between June and September of 2022, identify the most frequent 4-digit IPC code for each patent. Then, list the publication numbers and IPC4 codes of patents where this code appears 10 or more times.",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "SELECT \n    p.\"publication_number\",\n    SUBSTR(ipc_u.value:\"code\"::STRING, 0, 4) AS ipc4,\n    COUNT(SUBSTR(ipc_u.value:\"code\"::STRING, 0, 4)) AS ipc4_count\nFROM PATENTS.PUBLICATIONS p,\nLATERAL FLATTEN(input => p.\"ipc\") AS ipc_u\nWHERE p.\"country_code\" = 'US'\n  AND p.\"kind_code\" = 'B2'\n  AND p.\"publication_date\" BETWEEN 20220601 AND 20220930\nGROUP BY p.\"publication_number\", ipc4\nHAVING COUNT(SUBSTR(ipc_u.value:\"code\"::STRING, 0, 4)) >= 10\nORDER BY p.\"publication_number\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2281,
+      "selected_tables": [
+        "PUBLICATIONS(0.26)",
+        "DISCLOSURES_13(0.09)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 2 at position 4\ninvalid identi",
+        "repair1: ok rows=7"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 7
+    },
+    {
+      "instance_id": "sf_bq214",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "For United States utility patents under the B2 classification granted between 2010 and 2014, find the one with the most forward citations within a month of its filing date, and identify the most similar patent from the same filing year, regardless of its type.",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "WITH \n-- Step 1: Find the US utility patent (B2) granted between 2010-2014 with most forward citations within 1 month of its filing date\ntarget_patent AS (\n    SELECT \n        p.publication_number,\n        p.filing_date,\n        p.publication_date,\n        p.family_id,\n        COUNT(c.value) AS forward_citations_count\n    FROM PATENTS_GOOGLE.PUBLICATIONS p\n    , LATERAL FLATTEN(input => p.citation) AS c\n    WHERE p.country_code = 'US'\n      AND p.kind_code = 'B2'\n      AND p.application_kind = 'utility'\n      AND p.grant_date BETWEEN 20100101 AND 20141231\n      AND p.filing_date IS NOT NULL\n      AND p.publication_date IS NOT NULL\n      -- Filter citations that are within 1 month of filing date\n      AND c.value:publication_date IS NOT NULL\n      AND c.value:publication_date >= p.filing_date\n      AND c.value:publication_date <= p.filing_date + 100\n    GROUP BY p.publication_number, p.filing_date, p.publication_date, p.family_id\n    ORDER BY forward_citations_count DESC\n    LIMIT 1\n),\n-- Step 2: Get the embedding of the target patent\ntarget_embedding AS (\n    SELECT \n        tp.publication_number,\n        tp.filing_date,\n        tp.family_id,\n        ae.embedding_v1\n    FROM target_patent tp\n    JOIN PATENTS_GOOGLE.ABS_AND_EMB ae ON tp.publication_number = ae.publication_number\n),\n-- Step 3: Find the most similar patent from the same filing year (regardless of type)\nsimilar_patents AS (\n    SELECT \n        ae.publication_number,\n        ae.embedding_v1,\n        p.filing_date,\n        -- Calculate dot product similarity\n        (SELECT SUM(te.embedding_v1[i] * ae.embedding_v1[i])\n         FROM (SELECT ROW_NUMBER() OVER (ORDER BY 1) - 1 AS i FROM TABLE(GENERATOR(ROWCOUNT => 256))) AS idx\n         WHERE te.embedding_v1 IS NOT NULL AND ae.embedding_v1 IS NOT NULL\n        ) AS similarity_score\n    FROM PATENTS_GOOGLE.ABS_AND_EMB ae\n    JOIN PATENTS_GOOGLE.PUBLICATIONS p ON ae.publication_number = p.publication_number\n    CROSS JOIN target_embedding te\n    WHERE p.filing_date IS NOT NULL\n      AND te.filing_date IS NOT NULL\n      AND FLOOR(p.filing_date / 10000) = FLOOR(te.filing_date / 10000)  -- Same filing year\n      AND ae.publication_number != te.publication_number  -- Exclude the target itself\n      AND ae.embedding_v1 IS NOT NULL\n      AND te.embedding_v1 IS NOT NULL\n)\nSELECT \n    te.publication_number AS target_patent,\n    sp.publication_number AS most_similar_patent,\n    sp.similarity_score\nFROM target_embedding te\nCROSS JOIN similar_patents sp\nORDER BY sp.similarity_score DESC\nLIMIT 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2607,
+      "selected_tables": [
+        "DISCLOSURES_13(0.27)",
+        "PUBLICATIONS(0.18)",
+        "ABS_AND_EMB(0.09)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 5 at position 8\ninvalid identi",
+        "repair1: error 002031 (42601): SQL compilation error:\nUnsupported subquery type cannot be evalu",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq216",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "Identify the top five patents filed in the same year as `US-9741766-B2` that are most similar to it based on technological similarities. Please provide the publication numbers.",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "WITH target AS (\n    SELECT \n        \"publication_number\",\n        \"filing_date\",\n        \"embedding_v1\"\n    FROM PATENTS_GOOGLE.ABS_AND_EMB\n    WHERE \"publication_number\" = 'US-9741766-B2'\n),\ntarget_year AS (\n    SELECT \n        FLOOR(\"filing_date\" / 10000) AS filing_year,\n        \"embedding_v1\"\n    FROM target\n)\nSELECT \n    a.\"publication_number\"\nFROM PATENTS_GOOGLE.ABS_AND_EMB a\nJOIN target_year t\n    ON FLOOR(a.\"filing_date\" / 10000) = t.filing_year\nWHERE a.\"publication_number\" != 'US-9741766-B2'\n  AND a.\"embedding_v1\" IS NOT NULL\n  AND t.\"embedding_v1\" IS NOT NULL\nORDER BY \n    (SELECT SUM(v1.value * v2.value)\n     FROM LATERAL FLATTEN(input => a.\"embedding_v1\") v1\n     JOIN LATERAL FLATTEN(input => t.\"embedding_v1\") v2\n       ON v1.index = v2.index\n    ) DESC\nLIMIT 5",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1803,
+      "selected_tables": [
+        "ABS_AND_EMB(0.29)",
+        "PUBLICATIONS(0.14)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 4 at position 8\ninvalid identi",
+        "repair1: error 000904 (42000): SQL compilation error: error line 4 at position 8\ninvalid identi",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq247",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "From the publications dataset, first identify the top six families with the most publications whose family_id is not '-1'. Then, using the abs_and_emb table (joined on publication_number), provide each of those families’ IDs alongside every non-empty abstract associated with their publications.",
+      "external_knowledge": "",
+      "pred_sql": "WITH top_families AS (\n    SELECT \"family_id\", COUNT(*) AS cnt\n    FROM PATENTS_GOOGLE.PUBLICATIONS\n    WHERE \"family_id\" != '-1'\n    GROUP BY \"family_id\"\n    ORDER BY cnt DESC\n    LIMIT 6\n)\nSELECT tf.\"family_id\", ae.\"abstract\"\nFROM top_families tf\nJOIN PATENTS_GOOGLE.PUBLICATIONS p ON tf.\"family_id\" = p.\"family_id\"\nJOIN PATENTS_GOOGLE.ABS_AND_EMB ae ON p.\"publication_number\" = ae.\"publication_number\"\nWHERE ae.\"abstract\" IS NOT NULL AND ae.\"abstract\" != ''\nORDER BY tf.\"family_id\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2650,
+      "selected_tables": [
+        "ABS_AND_EMB(0.48)",
+        "PUBLICATIONS(0.43)",
+        "DISCLOSURES_13(0.10)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 2 at position 11\ninvalid ident",
+        "repair1: ok rows=18"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 18
+    },
+    {
+      "instance_id": "sf_bq127",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "For each publication family whose earliest publication was first published in January 2015, please provide the earliest publication date, the distinct publication numbers, their country codes, the distinct CPC and IPC codes, distinct families (namely, the ids) that cite and are cited by this publication family. Please present all lists as comma-separated values, sorted alphabetically",
+      "external_knowledge": "",
+      "pred_sql": "WITH earliest_publications AS (\n    SELECT \n        \"family_id\",\n        MIN(\"publication_date\") AS earliest_pub_date\n    FROM PATENTS_GOOGLE.PUBLICATIONS\n    GROUP BY \"family_id\"\n    HAVING MIN(\"publication_date\") BETWEEN 20150101 AND 20150131\n),\nfamily_data AS (\n    SELECT \n        p.\"family_id\",\n        p.\"publication_date\",\n        p.\"publication_number\",\n        p.\"country_code\",\n        p.\"cpc\",\n        p.\"ipc\"\n    FROM PATENTS_GOOGLE.PUBLICATIONS p\n    INNER JOIN earliest_publications e ON p.\"family_id\" = e.\"family_id\"\n),\ncpc_agg AS (\n    SELECT \n        \"family_id\",\n        LISTAGG(DISTINCT c.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY c.value::VARCHAR) AS cpc_codes\n    FROM family_data,\n    LATERAL FLATTEN(input => \"cpc\") c\n    GROUP BY \"family_id\"\n),\nipc_agg AS (\n    SELECT \n        \"family_id\",\n        LISTAGG(DISTINCT i.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY i.value::VARCHAR) AS ipc_codes\n    FROM family_data,\n    LATERAL FLATTEN(input => \"ipc\") i\n    GROUP BY \"family_id\"\n),\npub_agg AS (\n    SELECT \n        \"family_id\",\n        LISTAGG(DISTINCT \"publication_number\", ', ') WITHIN GROUP (ORDER BY \"publication_number\") AS pub_numbers,\n        LISTAGG(DISTINCT \"country_code\", ', ') WITHIN GROUP (ORDER BY \"country_code\") AS country_codes\n    FROM family_data\n    GROUP BY \"family_id\"\n),\nciting_families AS (\n    SELECT \n        f.\"family_id\",\n        LISTAGG(DISTINCT c.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY c.value::VARCHAR) AS citing_family_ids\n    FROM family_data f,\n    LATERAL FLATTEN(input => f.\"citation\") c\n    WHERE c.value::VARCHAR LIKE '%-%'  -- assuming citation contains family_id references\n    GROUP BY f.\"family_id\"\n),\ncited_by_families AS (\n    SELECT \n        f.\"family_id\",\n        LISTAGG(DISTINCT c2.\"family_id\", ', ') WITHIN GROUP (ORDER BY c2.\"family_id\") AS cited_by_family_ids\n    FROM family_data f\n    INNER JOIN PATENTS_GOOGLE.PUBLICATIONS p2 ON p2.\"citation\"::VARCHAR LIKE '%' || f.\"publication_number\" || '%'\n    GROUP BY f.\"family_id\"\n)\nSELECT \n    e.earliest_pub_date,\n    p.pub_numbers,\n    p.country_codes,\n    c.cpc_codes,\n    i.ipc_codes,\n    e.\"family_id\" AS family_id,\n    cf.citing_family_ids,\n    cbf.cited_by_family_ids\nFROM earliest_publications e\nLEFT JOIN pub_agg p ON e.\"family_id\" = p.\"family_id\"\nLEFT JOIN cpc_agg c ON e.\"family_id\" = c.\"family_id\"\nLEFT JOIN ipc_agg i ON e.\"family_id\" = i.\"family_id\"\nLEFT JOIN citing_families cf ON e.\"family_id\" = cf.\"family_id\"\nLEFT JOIN cited_by_families cbf ON e.\"family_id\" = cbf.\"family_id\"\nORDER BY e.\"family_id\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 3362,
+      "selected_tables": [
+        "PUBLICATIONS(0.43)",
+        "ABS_AND_EMB(0.29)",
+        "DISCLOSURES_13(0.14)",
+        "CPC_DEFINITION(0.11)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 49 at position 29\ninvalid iden",
+        "repair1: error 000904 (42000): SQL compilation error: error line 49 at position 29\ninvalid iden",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "bq019",
+      "db_id": "cms_data",
+      "backend": "bigquery",
+      "question": "In the 2014 CMS Medicare inpatient charges data, which DRG definition has the highest total number of discharges, and among the top three cities with the most discharges for that DRG definition, what are their respective weighted average total payments (weighted by total discharges)",
+      "external_knowledge": "",
+      "pred_sql": "WITH drg_discharges AS (\n  SELECT \n    drg_definition,\n    SUM(total_discharges) AS total_discharges\n  FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n  GROUP BY drg_definition\n  ORDER BY total_discharges DESC\n  LIMIT 1\n),\ntop_cities AS (\n  SELECT \n    provider_city,\n    SUM(total_discharges) AS city_discharges,\n    SUM(average_total_payments * total_discharges) / SUM(total_discharges) AS weighted_avg_total_payments\n  FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n  WHERE drg_definition = (SELECT drg_definition FROM drg_discharges)\n  GROUP BY provider_city\n  ORDER BY city_discharges DESC\n  LIMIT 3\n)\nSELECT \n  (SELECT drg_definition FROM drg_discharges) AS drg_definition,\n  provider_city,\n  weighted_avg_total_payments\nFROM top_cities\nORDER BY city_discharges DESC",
+      "dialect": "BigQuery",
+      "schema_context_chars": 18551,
+      "selected_tables": [
+        "inpatient_charges_2013(1.20)",
+        "inpatient_charges_2014(1.20)",
+        "inpatient_charges_2011(1.20)",
+        "inpatient_charges_2012(1.20)",
+        "inpatient_charges_2015(1.20)",
+        "outpatient_charges_2012(0.47)",
+        "outpatient_charges_2011(0.47)",
+        "outpatient_charges_2014(0.47)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=3 est_gb=0.014"
+      ],
+      "est_gb": 0.014236691407859325,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 3
+    },
+    {
+      "instance_id": "bq234",
+      "db_id": "cms_data",
+      "backend": "bigquery",
+      "question": "What is the most prescribed medication in each state in 2014?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT\n  nppes_provider_state AS state,\n  hcpcs_description AS medication,\n  SUM(line_srvc_cnt) AS total_services\nFROM `bigquery-public-data.cms_medicare.physicians_and_other_supplier_2014`\nWHERE hcpcs_drug_indicator = 'Y'\n  AND nppes_provider_state IS NOT NULL\nGROUP BY state, medication\nQUALIFY ROW_NUMBER() OVER (PARTITION BY state ORDER BY SUM(line_srvc_cnt) DESC) = 1\nORDER BY state",
+      "dialect": "BigQuery",
+      "schema_context_chars": 21063,
+      "selected_tables": [
+        "physicians_and_other_supplier_2013(0.67)",
+        "home_health_agencies_2014(0.67)",
+        "inpatient_charges_2013(0.67)",
+        "nursing_facilities_2013(0.67)",
+        "inpatient_charges_2014(0.67)",
+        "physicians_and_other_supplier_2012(0.67)",
+        "outpatient_charges_2012(0.67)",
+        "inpatient_charges_2011(0.67)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=50 est_gb=0.682"
+      ],
+      "est_gb": 0.6817506784573197,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "ga001",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "I want to know the preferences of customers who purchased the Google Navy Speckled Tee in December 2020. What other product was purchased with the highest total quantity alongside this item?",
+      "external_knowledge": "",
+      "pred_sql": "WITH purchased_users AS (\n  SELECT DISTINCT user_pseudo_id\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n    AND event_name = 'purchase'\n    AND EXISTS (\n      SELECT 1\n      FROM UNNEST(items) AS item\n      WHERE item.item_name = 'Google Navy Speckled Tee'\n    )\n),\nother_items AS (\n  SELECT\n    item.item_name,\n    SUM(item.quantity) AS total_quantity\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  CROSS JOIN UNNEST(items) AS item\n  WHERE _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n    AND event_name = 'purchase'\n    AND user_pseudo_id IN (SELECT user_pseudo_id FROM purchased_users)\n    AND item.item_name != 'Google Navy Speckled Tee'\n  GROUP BY item.item_name\n)\nSELECT item_name, total_quantity\nFROM other_items\nORDER BY total_quantity DESC\nLIMIT 1",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20600,
+      "selected_tables": [
+        "events_20210109(0.00)",
+        "events_20201109(0.00)",
+        "events_20210110(0.00)",
+        "events_20210123(0.00)",
+        "events_20201107(0.00)",
+        "events_20201111(0.00)",
+        "events_20201228(0.00)",
+        "events_20201224(0.00)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.101"
+      ],
+      "est_gb": 0.1008001146838069,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga002",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Tell me the most purchased other products and their quantities by customers who bought the Google Red Speckled Tee each month for the three months starting from November 2020.",
+      "external_knowledge": "",
+      "pred_sql": "WITH purchased_google_red_speckled_tee AS (\n  SELECT \n    FORMAT_TIMESTAMP('%Y-%m', TIMESTAMP_MICROS(event_timestamp)) AS month,\n    user_pseudo_id\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE _TABLE_SUFFIX BETWEEN '20201101' AND '20210131'\n    AND event_name = 'purchase'\n    AND EXISTS (\n      SELECT 1\n      FROM UNNEST(items) AS item\n      WHERE item.item_name = 'Google Red Speckled Tee'\n    )\n  GROUP BY month, user_pseudo_id\n),\nother_products AS (\n  SELECT \n    FORMAT_TIMESTAMP('%Y-%m', TIMESTAMP_MICROS(e.event_timestamp)) AS month,\n    item.item_name,\n    SUM(item.quantity) AS total_quantity\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*` e,\n  UNNEST(items) AS item\n  WHERE _TABLE_SUFFIX BETWEEN '20201101' AND '20210131'\n    AND e.event_name = 'purchase'\n    AND item.item_name != 'Google Red Speckled Tee'\n    AND EXISTS (\n      SELECT 1\n      FROM purchased_google_red_speckled_tee p\n      WHERE p.month = FORMAT_TIMESTAMP('%Y-%m', TIMESTAMP_MICROS(e.event_timestamp))\n        AND p.user_pseudo_id = e.user_pseudo_id\n    )\n  GROUP BY month, item.item_name\n)\nSELECT \n  month,\n  item_name,\n  total_quantity\nFROM other_products\nORDER BY month, total_quantity DESC",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20600,
+      "selected_tables": [
+        "events_20210109(0.00)",
+        "events_20201109(0.00)",
+        "events_20210110(0.00)",
+        "events_20210123(0.00)",
+        "events_20201107(0.00)",
+        "events_20201111(0.00)",
+        "events_20201228(0.00)",
+        "events_20201224(0.00)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=50 est_gb=0.273"
+      ],
+      "est_gb": 0.273443803191185,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "ga003",
+      "db_id": "firebase",
+      "backend": "bigquery",
+      "question": "I'm trying to evaluate which board types were most effective on September 15, 2018. Can you find out the average scores for each board type from the quick play mode completions on that day?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT\n  (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board_type') AS board_type,\n  AVG((SELECT value.float_value FROM UNNEST(event_params) WHERE key = 'score')) AS average_score\nFROM\n  `firebase-public-project.analytics_153293282.events_*`\nWHERE\n  _TABLE_SUFFIX = '20180915'\n  AND event_name = 'quick_play_completion'\n  AND (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board_type') IS NOT NULL\nGROUP BY\n  board_type\nORDER BY\n  average_score DESC",
+      "dialect": "BigQuery",
+      "schema_context_chars": 11683,
+      "selected_tables": [
+        "events_20180801(0.00)",
+        "events_20180621(0.00)",
+        "events_20180616(0.00)",
+        "events_20180912(0.00)",
+        "events_20180814(0.00)",
+        "events_20180716(0.00)",
+        "events_20181003(0.00)",
+        "events_20180620(0.00)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=0 est_gb=0.007",
+        "repair1: ok rows=0 est_gb=0.007",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": 0.006832483224570751,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "ga004",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Can you figure out the average difference in pageviews between users who bought something and those who didn’t in December 2020? Just label anyone who was involved in purchase events as a purchaser.",
+      "external_knowledge": "",
+      "pred_sql": "WITH purchase_users AS (\n  SELECT DISTINCT user_pseudo_id\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n    AND event_name = 'purchase'\n),\npageview_counts AS (\n  SELECT\n    user_pseudo_id,\n    COUNT(*) AS pageviews\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n    AND event_name = 'page_view'\n  GROUP BY user_pseudo_id\n)\nSELECT\n  AVG(CASE WHEN pu.user_pseudo_id IS NOT NULL THEN pc.pageviews END) AS avg_pageviews_purchasers,\n  AVG(CASE WHEN pu.user_pseudo_id IS NULL THEN pc.pageviews END) AS avg_pageviews_non_purchasers,\n  AVG(CASE WHEN pu.user_pseudo_id IS NOT NULL THEN pc.pageviews END) -\n  AVG(CASE WHEN pu.user_pseudo_id IS NULL THEN pc.pageviews END) AS avg_difference\nFROM pageview_counts pc\nLEFT JOIN purchase_users pu ON pc.user_pseudo_id = pu.user_pseudo_id",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20744,
+      "selected_tables": [
+        "events_20210109(0.17)",
+        "events_20201109(0.17)",
+        "events_20210110(0.17)",
+        "events_20210123(0.17)",
+        "events_20201107(0.17)",
+        "events_20201111(0.17)",
+        "events_20201228(0.17)",
+        "events_20201224(0.17)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.051"
+      ],
+      "est_gb": 0.050692010670900345,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga008",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Could you provide the total number of page views for each day in November 2020 as well as the average number of page views per user on those days, restricted to users who made at least one purchase in November 2020?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT\n  event_date,\n  COUNT(*) AS total_page_views,\n  COUNT(DISTINCT user_pseudo_id) AS users_with_purchase,\n  SAFE_DIVIDE(COUNT(*), COUNT(DISTINCT user_pseudo_id)) AS avg_page_views_per_user\nFROM\n  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\nWHERE\n  _TABLE_SUFFIX BETWEEN '20201101' AND '20201130'\n  AND event_name = 'page_view'\n  AND user_pseudo_id IN (\n    SELECT DISTINCT user_pseudo_id\n    FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n    WHERE _TABLE_SUFFIX BETWEEN '20201101' AND '20201130'\n      AND event_name = 'purchase'\n  )\nGROUP BY event_date\nORDER BY event_date",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20728,
+      "selected_tables": [
+        "events_20210109(0.13)",
+        "events_20201109(0.13)",
+        "events_20210110(0.13)",
+        "events_20210123(0.13)",
+        "events_20201107(0.13)",
+        "events_20201111(0.13)",
+        "events_20201228(0.13)",
+        "events_20201224(0.13)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=30 est_gb=0.060"
+      ],
+      "est_gb": 0.06005210243165493,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 30
+    },
+    {
+      "instance_id": "ga017",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "How many distinct users viewed the most frequently visited page during January 2021?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT\n  COUNT(DISTINCT user_pseudo_id) AS distinct_users\nFROM\n  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\nWHERE\n  _TABLE_SUFFIX BETWEEN '20210101' AND '20210131'\n  AND event_name = 'page_view'\n  AND (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') = (\n    SELECT\n      page_location\n    FROM (\n      SELECT\n        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location,\n        COUNT(*) AS cnt\n      FROM\n        `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n      WHERE\n        _TABLE_SUFFIX BETWEEN '20210101' AND '20210131'\n        AND event_name = 'page_view'\n      GROUP BY page_location\n      ORDER BY cnt DESC\n      LIMIT 1\n    )\n  )",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20600,
+      "selected_tables": [
+        "events_20210109(0.00)",
+        "events_20201109(0.00)",
+        "events_20210110(0.00)",
+        "events_20210123(0.00)",
+        "events_20201107(0.00)",
+        "events_20201111(0.00)",
+        "events_20201228(0.00)",
+        "events_20201224(0.00)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.344"
+      ],
+      "est_gb": 0.34428558871150017,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga007",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Please find out what percentage of the page views on January 2, 2021, were for PDP type pages.",
+      "external_knowledge": "ga4_page_category.md",
+      "pred_sql": "SELECT\n  COUNTIF(\n    REGEXP_CONTAINS(\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location'),\n      r'^https?://[^/]+(?:/[^/]*){4,}$'\n    )\n    AND (\n      REGEXP_CONTAINS(\n        SPLIT((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location'), '/')[SAFE_OFFSET(4)],\n        r'(?i)\\+'\n      )\n      OR REGEXP_CONTAINS(\n        SPLIT((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location'), '/')[SAFE_OFFSET(5)],\n        r'(?i)\\+'\n      )\n    )\n    AND (\n      REGEXP_CONTAINS(\n        SPLIT((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location'), '/')[SAFE_OFFSET(4)],\n        r'(?i)(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)'\n      )\n      OR REGEXP_CONTAINS(\n        SPLIT((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location'), '/')[SAFE_OFFSET(5)],\n        r'(?i)(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)'\n      )\n    )\n  ) * 100.0 / COUNT(*) AS pdp_percentage\nFROM\n  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_20210102`\nWHERE\n  event_name = 'page_view'\n  AND event_date = '20210102'",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20600,
+      "selected_tables": [
+        "events_20210109(0.00)",
+        "events_20201109(0.00)",
+        "events_20210110(0.00)",
+        "events_20210123(0.00)",
+        "events_20201107(0.00)",
+        "events_20201111(0.00)",
+        "events_20201228(0.00)",
+        "events_20201224(0.00)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: ok rows=1 est_gb=0.006"
+      ],
+      "est_gb": 0.0063947951421141624,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga013",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "I want to know all the pages visited by user 1402138.5184246691 on January 2, 2021. Please show the names of these pages and adjust the names to PDP or PLP where necessary.",
+      "external_knowledge": "ga4_page_category.md",
+      "pred_sql": "WITH page_events AS (\n  SELECT\n    event_timestamp,\n    event_name,\n    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_title') AS page_title,\n    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_20210102`\n  WHERE user_pseudo_id = '1402138.5184246691'\n    AND event_name IN ('page_view', 'view_item_list', 'view_item')\n),\nclassified_pages AS (\n  SELECT\n    page_title,\n    page_location,\n    CASE\n      WHEN ARRAY_LENGTH(SPLIT(page_location, '/')) >= 5\n        AND (REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(3)], '(?i)accessories|apparel|brands|campus collection|drinkware|electronics|google redesign|lifestyle|nest|new 2015 logo|notebooks journals|office|shop by brand|small goods|stationery|wearables')\n          OR REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(4)], '(?i)accessories|apparel|brands|campus collection|drinkware|electronics|google redesign|lifestyle|nest|new 2015 logo|notebooks journals|office|shop by brand|small goods|stationery|wearables'))\n        AND REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(ARRAY_LENGTH(SPLIT(page_location, '/')) - 1)], '\\\\+')\n        THEN 'PDP'\n      WHEN ARRAY_LENGTH(SPLIT(page_location, '/')) >= 5\n        AND NOT REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(3)], '\\\\+')\n        AND NOT REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(4)], '\\\\+')\n        AND (REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(3)], '(?i)accessories|apparel|brands|campus collection|drinkware|electronics|google redesign|lifestyle|nest|new 2015 logo|notebooks journals|office|shop by brand|small goods|stationery|wearables')\n          OR REGEXP_CONTAINS(SPLIT(page_location, '/')[SAFE_OFFSET(4)], '(?i)accessories|apparel|brands|campus collection|drinkware|electronics|google redesign|lifestyle|nest|new 2015 logo|notebooks journals|office|shop by brand|small goods|stationery|wearables'))\n        THEN 'PLP'\n      ELSE page_title\n    END AS adjusted_page_name\n  FROM page_events\n)\nSELECT DISTINCT adjusted_page_name AS page_name\nFROM classified_pages\nORDER BY page_name",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20728,
+      "selected_tables": [
+        "events_20210109(0.17)",
+        "events_20201109(0.17)",
+        "events_20210110(0.17)",
+        "events_20210123(0.17)",
+        "events_20201107(0.17)",
+        "events_20201111(0.17)",
+        "events_20201228(0.17)",
+        "events_20201224(0.17)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=6 est_gb=0.007"
+      ],
+      "est_gb": 0.006630323827266693,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 6
+    },
+    {
+      "instance_id": "ga018",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "On January 2nd, 2021, I want to determine the percentage of times users transition from a product list page (PLP) view to a product detail page (PDP) view within the same session, using only page_view events. Could you calculate how many PLP views eventually led to a PDP view in the same session on that date, and then provide the resulting percentage of PLP-to-PDP transitions?",
+      "external_knowledge": "ga4_page_category.md",
+      "pred_sql": "WITH page_views AS (\n  SELECT\n    user_pseudo_id,\n    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id,\n    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location,\n    event_timestamp\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE _TABLE_SUFFIX = '20210102'\n    AND event_name = 'page_view'\n),\nclassified AS (\n  SELECT\n    user_pseudo_id,\n    session_id,\n    page_location,\n    event_timestamp,\n    CASE\n      WHEN ARRAY_LENGTH(SPLIT(page_location, '/')) >= 5\n        AND NOT CONTAINS_SUBSTR(SPLIT(page_location, '/')[SAFE_OFFSET(3)], '+')\n        AND NOT CONTAINS_SUBSTR(SPLIT(page_location, '/')[SAFE_OFFSET(4)], '+')\n        AND (\n          LOWER(SPLIT(page_location, '/')[SAFE_OFFSET(3)]) IN (\n            'accessories','apparel','brands','campus collection','drinkware','electronics',\n            'google redesign','lifestyle','nest','new 2015 logo','notebooks journals','office',\n            'shop by brand','small goods','stationery','wearables'\n          )\n          OR LOWER(SPLIT(page_location, '/')[SAFE_OFFSET(4)]) IN (\n            'accessories','apparel','brands','campus collection','drinkware','electronics',\n            'google redesign','lifestyle','nest','new 2015 logo','notebooks journals','office',\n            'shop by brand','small goods','stationery','wearables'\n          )\n        )\n      THEN 'PLP'\n      WHEN ARRAY_LENGTH(SPLIT(page_location, '/')) >= 5\n        AND CONTAINS_SUBSTR(SPLIT(page_location, '/')[SAFE_OFFSET(ARRAY_LENGTH(SPLIT(page_location, '/')) - 1)], '+')\n        AND (\n          LOWER(SPLIT(page_location, '/')[SAFE_OFFSET(3)]) IN (\n            'accessories','apparel','brands','campus collection','drinkware','electronics',\n            'google redesign','lifestyle','nest','new 2015 logo','notebooks journals','office',\n            'shop by brand','small goods','stationery','wearables'\n          )\n          OR LOWER(SPLIT(page_location, '/')[SAFE_OFFSET(4)]) IN (\n            'accessories','apparel','brands','campus collection','drinkware','electronics',\n            'google redesign','lifestyle','nest','new 2015 logo','notebooks journals','office',\n            'shop by brand','small goods','stationery','wearables'\n          )\n        )\n      THEN 'PDP'\n      ELSE 'OTHER'\n    END AS page_type\n  FROM page_views\n),\nsession_sequence AS (\n  SELECT\n    user_pseudo_id,\n    session_id,\n    page_type,\n    event_timestamp,\n    LAG(page_type) OVER (PARTITION BY user_pseudo_id, session_id ORDER BY event_timestamp) AS prev_page_type\n  FROM classified\n  WHERE page_type IN ('PLP', 'PDP')\n),\nplp_to_pdp AS (\n  SELECT COUNT(DISTINCT CONCAT(user_pseudo_id, session_id, CAST(event_timestamp AS STRING))) AS transitions\n  FROM session_sequence\n  WHERE prev_page_type = 'PLP' AND page_type = 'PDP'\n),\ntotal_plp AS (\n  SELECT COUNT(DISTINCT CONCAT(user_pseudo_id, session_id, CAST(event_timestamp AS STRING))) AS total\n  FROM classified\n  WHERE page_type = 'PLP'\n)\nSELECT\n  ROUND(SAFE_DIVIDE(plp_to_pdp.transitions, total_plp.total) * 100, 2) AS plp_to_pdp_percentage\nFROM plp_to_pdp, total_plp",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20792,
+      "selected_tables": [
+        "events_20210109(0.18)",
+        "events_20201109(0.18)",
+        "events_20210110(0.18)",
+        "events_20210123(0.18)",
+        "events_20201107(0.18)",
+        "events_20201111(0.18)",
+        "events_20201228(0.18)",
+        "events_20201224(0.18)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.008"
+      ],
+      "est_gb": 0.0076249465346336365,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga032",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Can you generate the navigation flow for user with pseudo_id '1362228.4966015575' on January 28th 2021, showing only the page_view events? Please connect the page titles with '>>' between each step, convert product detail pages to 'PDP' and product listing pages to 'PLP' based on the URL structure, and merge adjacent identical pages so they only appear once in the sequence. I need to understand how this specific user navigated through our website on that day.",
+      "external_knowledge": "ga4_page_category.md",
+      "pred_sql": "WITH page_events AS (\n  SELECT\n    event_timestamp,\n    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_title') AS page_title,\n    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_url\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_20210128`\n  WHERE user_pseudo_id = '1362228.4966015575'\n    AND event_name = 'page_view'\n),\nclassified_pages AS (\n  SELECT\n    event_timestamp,\n    page_title,\n    page_url,\n    CASE\n      WHEN ARRAY_LENGTH(SPLIT(page_url, '/')) >= 5\n        AND (REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(3)], r'(?i)^(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)$')\n          OR REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(4)], r'(?i)^(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)$'))\n        AND NOT REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(3)], r'\\+')\n        AND NOT REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(4)], r'\\+')\n        AND (REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(3)], r'(?i)^(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)$')\n          OR REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(4)], r'(?i)^(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)$'))\n      THEN 'PLP'\n      WHEN ARRAY_LENGTH(SPLIT(page_url, '/')) >= 5\n        AND REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(ARRAY_LENGTH(SPLIT(page_url, '/')) - 1)], r'\\+')\n        AND (REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(3)], r'(?i)^(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)$')\n          OR REGEXP_CONTAINS(SPLIT(page_url, '/')[SAFE_OFFSET(4)], r'(?i)^(Accessories|Apparel|Brands|Campus Collection|Drinkware|Electronics|Google Redesign|Lifestyle|Nest|New 2015 Logo|Notebooks Journals|Office|Shop by Brand|Small Goods|Stationery|Wearables)$'))\n      THEN 'PDP'\n      ELSE page_title\n    END AS page_type\n  FROM page_events\n),\nmerged_pages AS (\n  SELECT\n    page_type,\n    event_timestamp,\n    LAG(page_type) OVER (ORDER BY event_timestamp) AS prev_page_type\n  FROM classified_pages\n)\nSELECT STRING_AGG(page_type, ' >> ' ORDER BY event_timestamp) AS navigation_flow\nFROM merged_pages\nWHERE page_type != prev_page_type OR prev_page_type IS NULL",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20936,
+      "selected_tables": [
+        "events_20210109(0.21)",
+        "events_20201109(0.21)",
+        "events_20210110(0.21)",
+        "events_20210123(0.21)",
+        "events_20201107(0.21)",
+        "events_20201111(0.21)",
+        "events_20201228(0.21)",
+        "events_20201224(0.21)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=1 est_gb=0.013"
+      ],
+      "est_gb": 0.012595278210937977,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga031",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "I want to know the user session conversion rate on January 2nd, 2021, using only 'page_view' events. The conversion rate should be calculated as the percentage of user visits that reached both the Home and Checkout Confirmation pages in one session, relative to those that landed on the Home page.",
+      "external_knowledge": "",
+      "pred_sql": "WITH page_views AS (\n  SELECT\n    user_pseudo_id,\n    CONCAT(user_pseudo_id, '-', CAST(event_timestamp / 1000000 AS INT64)) AS session_id,\n    event_name,\n    event_timestamp,\n    event_params\n  FROM `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_20210102`\n  WHERE event_name = 'page_view'\n),\nhome_sessions AS (\n  SELECT DISTINCT session_id\n  FROM page_views\n  WHERE (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_title') = 'Home'\n),\ncheckout_sessions AS (\n  SELECT DISTINCT session_id\n  FROM page_views\n  WHERE (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_title') = 'Checkout Confirmation'\n),\nconverted_sessions AS (\n  SELECT h.session_id\n  FROM home_sessions h\n  INNER JOIN checkout_sessions c ON h.session_id = c.session_id\n)\nSELECT\n  COUNT(DISTINCT c.session_id) * 100.0 / NULLIF(COUNT(DISTINCT h.session_id), 0) AS conversion_rate_percentage\nFROM home_sessions h\nLEFT JOIN converted_sessions c ON h.session_id = c.session_id",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20792,
+      "selected_tables": [
+        "events_20210109(0.21)",
+        "events_20201109(0.21)",
+        "events_20210110(0.21)",
+        "events_20210123(0.21)",
+        "events_20201107(0.21)",
+        "events_20201111(0.21)",
+        "events_20201228(0.21)",
+        "events_20201224(0.21)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: ok rows=1 est_gb=0.007"
+      ],
+      "est_gb": 0.0068061500787734985,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga006",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "For the date range November 1–30, 2020, can you retrieve each user_pseudo_id and its average purchase revenue in USD per session for users who had more than one purchase session, considering only events with event_name='purchase' and a non-null ecommerce.purchase_revenue_in_usd, grouping sessions by the ga_session_id from event_params",
+      "external_knowledge": "",
+      "pred_sql": "WITH purchase_sessions AS (\n  SELECT\n    user_pseudo_id,\n    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id,\n    ecommerce.purchase_revenue_in_usd AS revenue\n  FROM\n    `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20201101' AND '20201130'\n    AND event_name = 'purchase'\n    AND ecommerce.purchase_revenue_in_usd IS NOT NULL\n    AND (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') IS NOT NULL\n),\nsession_aggregates AS (\n  SELECT\n    user_pseudo_id,\n    session_id,\n    SUM(revenue) AS session_revenue\n  FROM\n    purchase_sessions\n  GROUP BY\n    user_pseudo_id,\n    session_id\n),\nuser_aggregates AS (\n  SELECT\n    user_pseudo_id,\n    COUNT(session_id) AS purchase_session_count,\n    AVG(session_revenue) AS avg_purchase_revenue_per_session\n  FROM\n    session_aggregates\n  GROUP BY\n    user_pseudo_id\n  HAVING\n    COUNT(session_id) > 1\n)\nSELECT\n  user_pseudo_id,\n  avg_purchase_revenue_per_session\nFROM\n  user_aggregates\nORDER BY\n  user_pseudo_id",
+      "dialect": "BigQuery",
+      "schema_context_chars": 21152,
+      "selected_tables": [
+        "events_20210109(0.63)",
+        "events_20201109(0.63)",
+        "events_20210110(0.63)",
+        "events_20210123(0.63)",
+        "events_20201107(0.63)",
+        "events_20201111(0.63)",
+        "events_20201228(0.63)",
+        "events_20201224(0.63)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=50 est_gb=0.323"
+      ],
+      "est_gb": 0.3225529696792364,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "ga009",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Could you tell me the average number of engaged sessions per user for December 2020, counting only those sessions where the event parameter 'session_engaged' is equal to '1' and using 'user_pseudo_id' combined with the 'ga_session_id' to identify distinct sessions?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT\n  COUNT(DISTINCT CONCAT(user_pseudo_id, '_', CAST(session_id AS STRING))) / NULLIF(COUNT(DISTINCT user_pseudo_id), 0) AS avg_engaged_sessions_per_user\nFROM (\n  SELECT\n    user_pseudo_id,\n    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id\n  FROM\n    `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n    AND event_name = 'session_start'\n    AND (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'session_engaged') = '1'\n)",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20848,
+      "selected_tables": [
+        "events_20210109(0.33)",
+        "events_20201109(0.33)",
+        "events_20210110(0.33)",
+        "events_20210123(0.33)",
+        "events_20201107(0.33)",
+        "events_20201111(0.33)",
+        "events_20201228(0.33)",
+        "events_20201224(0.33)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error 400 GET https://bigquery.googleapis.com/bigquery/v2/projects/velvety-outcome-441",
+        "repair1: ok rows=1 est_gb=0.560"
+      ],
+      "est_gb": 0.5598556008189917,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "ga010",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Can you give me an overview of our website traffic for December 2020? I'm particularly interested in the channel with the fourth highest number of sessions.",
+      "external_knowledge": "ga4_dimensions_and_metrics.md",
+      "pred_sql": "SELECT\n  channel_group,\n  COUNT(DISTINCT CONCAT(user_pseudo_id, '-', (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id'))) AS sessions\nFROM\n  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\nWHERE\n  _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n  AND event_name = 'session_start'\nGROUP BY\n  channel_group\nORDER BY\n  sessions DESC\nLIMIT 1 OFFSET 3",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20848,
+      "selected_tables": [
+        "events_20210109(1.00)",
+        "events_20201109(1.00)",
+        "events_20210110(1.00)",
+        "events_20210123(1.00)",
+        "events_20201107(1.00)",
+        "events_20201111(1.00)",
+        "events_20201228(1.00)",
+        "events_20201224(1.00)"
+      ],
+      "repairs": 1,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: error dry-run failed: 400 POST https://bigquery.googleapis.com/bigquery/v2/projects/ve",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "ga014",
+      "db_id": "ga4",
+      "backend": "bigquery",
+      "question": "Can you provide the total number of sessions for each traffic channel in December 2020, using the information from the 'event_params' ",
+      "external_knowledge": "ga4_dimensions_and_metrics.md",
+      "pred_sql": "SELECT\n  CASE\n    WHEN traffic_source.source = '(direct)' AND traffic_source.medium IN ('(not set)', '(none)') THEN 'Direct'\n    WHEN (SELECT COUNTIF(key = 'campaign' AND REGEXP_CONTAINS(value.string_value, 'cross-network')) FROM UNNEST(event_params)) > 0 THEN 'Cross-network'\n    WHEN (LOWER(traffic_source.source) IN ('alibaba', 'amazon', 'google shopping', 'shopify', 'etsy', 'ebay', 'stripe', 'walmart')\n          OR REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'campaign'), r'^(.*(([^a-df-z]|^)shop|shopping).*)$'))\n      AND REGEXP_CONTAINS(LOWER(traffic_source.medium), r'^(.*cp.*|ppc|retargeting|paid.*)$') THEN 'Paid Shopping'\n    WHEN LOWER(traffic_source.source) IN ('baidu', 'bing', 'duckduckgo', 'ecosia', 'google', 'yahoo', 'yandex')\n      AND REGEXP_CONTAINS(LOWER(traffic_source.medium), r'^(.*cp.*|ppc|paid.*)$') THEN 'Paid Search'\n    WHEN LOWER(traffic_source.source) IN ('badoo', 'facebook', 'fb', 'instagram', 'linkedin', 'pinterest', 'tiktok', 'twitter', 'whatsapp')\n      AND REGEXP_CONTAINS(LOWER(traffic_source.medium), r'^(.*cp.*|ppc|retargeting|paid.*)$') THEN 'Paid Social'\n    WHEN LOWER(traffic_source.source) IN ('dailymotion', 'disneyplus', 'netflix', 'youtube', 'vimeo', 'twitch', 'vimeo', 'youtube')\n      AND REGEXP_CONTAINS(LOWER(traffic_source.medium), r'^(.*cp.*|ppc|retargeting|paid.*)$') THEN 'Paid Video'\n    WHEN LOWER(traffic_source.medium) IN ('display', 'banner', 'expandable', 'interstitial', 'cpm') THEN 'Display'\n    WHEN (LOWER(traffic_source.source) IN ('alibaba', 'amazon', 'google shopping', 'shopify', 'etsy', 'ebay', 'stripe', 'walmart')\n          OR REGEXP_CONTAINS((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'campaign'), r'^(.*(([^a-df-z]|^)shop|shopping).*)$')) THEN 'Organic Shopping'\n    WHEN LOWER(traffic_source.source) IN ('badoo', 'facebook', 'fb', 'instagram', 'linkedin', 'pinterest', 'tiktok', 'twitter', 'whatsapp')\n      OR LOWER(traffic_source.medium) IN ('social', 'social-network', 'social-media', 'sm', 'social network', 'social media') THEN 'Organic Social'\n    WHEN LOWER(traffic_source.source) IN ('dailymotion', 'disneyplus', 'netflix', 'youtube', 'vimeo', 'twitch', 'vimeo', 'youtube')\n      OR REGEXP_CONTAINS(LOWER(traffic_source.medium), r'^(.*video.*)$') THEN 'Organic Video'\n    WHEN LOWER(traffic_source.source) IN ('baidu', 'bing', 'duckduckgo', 'ecosia', 'google', 'yahoo', 'yandex')\n      OR LOWER(traffic_source.medium) = 'organic' THEN 'Organic Search'\n    WHEN LOWER(traffic_source.medium) = 'referral' THEN 'Referral'\n    WHEN LOWER(traffic_source.source) IN ('email', 'e-mail', 'e_mail', 'e mail')\n      OR LOWER(traffic_source.medium) IN ('email', 'e-mail', 'e_mail', 'e mail') THEN 'Email'\n    WHEN LOWER(traffic_source.medium) = 'affiliate' THEN 'Affiliates'\n    WHEN LOWER(traffic_source.medium) = 'audio' THEN 'Audio'\n    WHEN LOWER(traffic_source.source) = 'sms' OR LOWER(traffic_source.medium) = 'sms' THEN 'SMS'\n    ELSE 'Unassigned'\n  END AS channel,\n  COUNT(DISTINCT CONCAT(user_pseudo_id, CAST(event_timestamp / 1000000 AS STRING))) AS total_sessions\nFROM\n  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`\nWHERE\n  _TABLE_SUFFIX BETWEEN '20201201' AND '20201231'\n  AND event_name = 'session_start'\nGROUP BY\n  channel\nORDER BY\n  total_sessions DESC",
+      "dialect": "BigQuery",
+      "schema_context_chars": 20968,
+      "selected_tables": [
+        "events_20210109(1.43)",
+        "events_20201109(1.43)",
+        "events_20210110(1.43)",
+        "events_20210123(1.43)",
+        "events_20201107(1.43)",
+        "events_20201111(1.43)",
+        "events_20201228(1.43)",
+        "events_20201224(1.43)"
+      ],
+      "repairs": 0,
+      "probe_sql": 0,
+      "probe_hints": [],
+      "probe_trace": [],
+      "exec_trace": [
+        "generate: ok rows=5 est_gb=0.547"
+      ],
+      "est_gb": 0.5474878465756774,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 5
+    },
+    {
+      "instance_id": "local002",
+      "db_id": "E_commerce",
+      "backend": "local",
+      "question": "Can you calculate the 5-day symmetric moving average of predicted toy sales for December 5 to 8, 2018, using daily sales data from January 1, 2017, to August 29, 2018, with a simple linear regression model? Finally provide the sum of those four 5-day moving averages?",
+      "external_knowledge": "",
+      "pred_sql": "-- Step 1: Filter orders and order_items for the date range and join with products for toy category\n-- Step 2: Aggregate daily sales (sum of price) for each day in the training period\n-- Step 3: Compute linear regression parameters (slope and intercept) using daily sales data\n-- Step 4: Predict sales for December 5-8, 2018 using the regression model\n-- Step 5: Calculate 5-day symmetric moving average for each of those 4 days\n-- Step 6: Sum the four moving averages\n\nWITH daily_sales AS (\n    SELECT \n        DATE(orders.order_purchase_timestamp) AS sale_date,\n        SUM(order_items.price) AS total_sales\n    FROM orders\n    JOIN order_items ON orders.order_id = order_items.order_id\n    JOIN products ON order_items.product_id = products.product_id\n    WHERE products.product_category_name = 'toys'\n        AND DATE(orders.order_purchase_timestamp) >= '2017-01-01'\n        AND DATE(orders.order_purchase_timestamp) <= '2018-08-29'\n    GROUP BY DATE(orders.order_purchase_timestamp)\n),\nregression_params AS (\n    SELECT \n        COUNT(*) AS n,\n        SUM(CAST(julianday(sale_date) AS REAL)) AS sum_x,\n        SUM(total_sales) AS sum_y,\n        SUM(CAST(julianday(sale_date) AS REAL) * total_sales) AS sum_xy,\n        SUM(CAST(julianday(sale_date) AS REAL) * CAST(julianday(sale_date) AS REAL)) AS sum_x2\n    FROM daily_sales\n),\nslope_intercept AS (\n    SELECT \n        (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x) AS slope,\n        (sum_y - (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x) * sum_x) / n AS intercept\n    FROM regression_params\n),\npredicted_sales AS (\n    SELECT \n        target_date,\n        intercept + slope * CAST(julianday(target_date) AS REAL) AS predicted_sale\n    FROM slope_intercept,\n        (SELECT '2018-12-05' AS target_date UNION ALL\n         SELECT '2018-12-06' UNION ALL\n         SELECT '2018-12-07' UNION ALL\n         SELECT '2018-12-08') AS dates\n),\nmoving_avg_5day AS (\n    SELECT \n        target_date,\n        predicted_sale,\n        AVG(predicted_sale) OVER (\n            ORDER BY target_date \n            ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING\n        ) AS symmetric_ma\n    FROM predicted_sales\n)\nSELECT SUM(symmetric_ma) AS sum_of_four_moving_averages\nFROM moving_avg_5day",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "order_items",
+        "orders",
+        "products"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": false,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "The question asks for a sum of four moving averages, which requires aggregation (SUM) over computed values. No set operations, nesting, grouping, ordering, or limit needed."
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local003",
+      "db_id": "E_commerce",
+      "backend": "local",
+      "question": "According to the RFM definition document, calculate the average sales per order for each customer within distinct RFM segments, considering only 'delivered' orders. Use the customer unique identifier. Clearly define how to calculate Recency based on the latest purchase timestamp and specify the criteria for classifying RFM segments. The average sales should be computed as the total spend divided by the total number of orders. Please analyze and report the differences in average sales across the RFM segments",
+      "external_knowledge": "RFM.md",
+      "pred_sql": "SELECT \n  customer_id,\n  COUNT(order_id) AS total_orders,\n  MAX(order_purchase_timestamp) AS latest_purchase_timestamp\nFROM orders\nWHERE order_status = 'delivered'\nGROUP BY customer_id\nORDER BY customer_id",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "orders"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 3,
+        "aggregation": true,
+        "notes": "Group by customer_id and RFM segment, compute avg sales per order for delivered orders"
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local004",
+      "db_id": "E_commerce",
+      "backend": "local",
+      "question": "Could you tell me the number of orders, average payment per order and customer lifespan in weeks of the 3 custumers with the highest average payment per order, where the lifespan is calculated by subtracting the earliest purchase date from the latest purchase date in days, dividing by seven, and if the result is less than seven days, setting it to 1.0?",
+      "external_knowledge": "",
+      "pred_sql": "WITH customer_stats AS (\n    SELECT \n        c.customer_id,\n        COUNT(DISTINCT o.order_id) AS num_orders,\n        AVG(op.payment_value) AS avg_payment,\n        MIN(o.order_purchase_timestamp) AS first_order,\n        MAX(o.order_purchase_timestamp) AS last_order\n    FROM customers c\n    JOIN orders o ON c.customer_id = o.customer_id\n    JOIN order_payments op ON o.order_id = op.order_id\n    GROUP BY c.customer_id\n),\ncustomer_lifespan AS (\n    SELECT \n        customer_id,\n        num_orders,\n        avg_payment,\n        CASE \n            WHEN (julianday(last_order) - julianday(first_order)) / 7.0 < 1.0 THEN 1.0\n            ELSE (julianday(last_order) - julianday(first_order)) / 7.0\n        END AS lifespan_weeks\n    FROM customer_stats\n)\nSELECT \n    num_orders,\n    avg_payment,\n    lifespan_weeks\nFROM customer_lifespan\nORDER BY avg_payment DESC\nLIMIT 3",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "customers",
+        "order_payments",
+        "orders"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 3,
+        "aggregation": true,
+        "notes": "Need to compute per-customer aggregates (count orders, avg payment, lifespan in weeks) and then select top 3 customers by avg payment. Lifespan requires subquery for min/max purchase dates per custome"
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local007",
+      "db_id": "Baseball",
+      "backend": "local",
+      "question": "Could you help me calculate the average single career span value in years for all baseball players? Please precise the result as a float number. First, calculate the difference in years, months, and days between the debut and final game dates. For each player, the career span is computed as the sum of the absolute number of years, plus the absolute number of months divided by 12, plus the absolute number of days divided by 365. Round each part to two decimal places before summing. Finally, average the career spans and round the result to a float number.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT ROUND(AVG(\n    ROUND(ABS(CAST(strftime('%Y', final_game) AS REAL) - CAST(strftime('%Y', debut) AS REAL)), 2) +\n    ROUND(ABS(CAST(strftime('%m', final_game) AS REAL) - CAST(strftime('%m', debut) AS REAL)) / 12.0, 2) +\n    ROUND(ABS(CAST(strftime('%d', final_game) AS REAL) - CAST(strftime('%d', debut) AS REAL)) / 365.0, 2)\n), 2) AS avg_career_span\nFROM player",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "player"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": false,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Compute average career span across all players using AVG aggregation on a per-player computed value; no grouping, ordering, or subqueries needed."
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local008",
+      "db_id": "Baseball",
+      "backend": "local",
+      "question": "I would like to know the given names of baseball players who have achieved the highest value of games played, runs, hits, and home runs, with their corresponding score values.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT \n    p.name_given,\n    (MAX(b.g) + MAX(b.r) + MAX(b.h) + MAX(b.hr)) AS score\nFROM batting b\nJOIN player p ON b.player_id = p.player_id\nGROUP BY p.player_id, p.name_given\nORDER BY score DESC\nLIMIT 1",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "batting",
+        "player"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 5,
+        "aggregation": true,
+        "notes": "Need to group by player and aggregate MAX of g, r, h, hr, then order by sum of those values descending, limit to top 1"
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local009",
+      "db_id": "Airlines",
+      "backend": "local",
+      "question": "What is the distance of the longest route where Abakan is either the departure or destination city (in kilometers)?",
+      "external_knowledge": "haversine_formula.md",
+      "pred_sql": "-- Compute Haversine distance in km for all routes involving Abakan, order descending, limit 1\nSELECT \n    (2 * 6371 * ASIN(SQRT(\n        POWER(SIN(RADIANS(CAST(SUBSTR(adest.coordinates, 2, INSTR(adest.coordinates, ',') - 2) AS REAL) - CAST(SUBSTR(adep.coordinates, 2, INSTR(adep.coordinates, ',') - 2) AS REAL)) / 2), 2) +\n        COS(RADIANS(CAST(SUBSTR(adep.coordinates, 2, INSTR(adep.coordinates, ',') - 2) AS REAL))) *\n        COS(RADIANS(CAST(SUBSTR(adest.coordinates, 2, INSTR(adest.coordinates, ',') - 2) AS REAL))) *\n        POWER(SIN(RADIANS(CAST(SUBSTR(adest.coordinates, INSTR(adest.coordinates, ',') + 1, INSTR(adest.coordinates, ')') - INSTR(adest.coordinates, ',') - 1) AS REAL) - CAST(SUBSTR(adep.coordinates, INSTR(adep.coordinates, ',') + 1, INSTR(adep.coordinates, ')') - INSTR(adep.coordinates, ',') - 1) AS REAL)) / 2), 2)\n    ))) AS distance_km\nFROM flights\nJOIN airports_data AS adep ON flights.departure_airport = adep.airport_code\nJOIN airports_data AS adest ON flights.arrival_airport = adest.airport_code\nWHERE (adep.city LIKE '%Abakan%' OR adest.city LIKE '%Abakan%')\nORDER BY distance_km DESC\nLIMIT 1",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "airports_data",
+        "flights"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": false,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 1,
+        "aggregation": false,
+        "notes": "Need to find the maximum distance among routes involving Abakan, so order by distance descending and limit 1"
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local010",
+      "db_id": "Airlines",
+      "backend": "local",
+      "question": "Distribute all the unique city pairs into the distance ranges 0, 1000, 2000, 3000, 4000, 5000, and 6000+, based on their average distance of all routes between them. Then how many pairs are there in the distance range with the fewest unique city paires?",
+      "external_knowledge": "haversine_formula.md",
+      "pred_sql": "WITH city_pairs AS (\n    -- Get unique city pairs with their airport coordinates\n    SELECT DISTINCT\n        dep.city AS departure_city,\n        arr.city AS arrival_city,\n        dep.coordinates AS dep_coords,\n        arr.coordinates AS arr_coords\n    FROM flights f\n    JOIN airports_data dep ON f.departure_airport = dep.airport_code\n    JOIN airports_data arr ON f.arrival_airport = arr.airport_code\n    WHERE dep.city != arr.city\n),\ncity_pair_distances AS (\n    -- Calculate distance for each city pair using haversine formula\n    SELECT \n        departure_city,\n        arrival_city,\n        -- Haversine distance calculation\n        2 * 6371 * ASIN(SQRT(\n            POWER(SIN((CAST(SUBSTR(arr_coords, INSTR(arr_coords, ',') + 1) AS REAL) - CAST(SUBSTR(dep_coords, INSTR(dep_coords, ',') + 1) AS REAL)) * 3.14159265358979 / 360), 2) +\n            COS(CAST(SUBSTR(dep_coords, INSTR(dep_coords, ',') + 1) AS REAL) * 3.14159265358979 / 180) * \n            COS(CAST(SUBSTR(arr_coords, INSTR(arr_coords, ',') + 1) AS REAL) * 3.14159265358979 / 180) *\n            POWER(SIN((CAST(SUBSTR(arr_coords, 1, INSTR(arr_coords, ',') - 1) AS REAL) - CAST(SUBSTR(dep_coords, 1, INSTR(dep_coords, ',') - 1) AS REAL)) * 3.14159265358979 / 360), 2)\n        )) AS distance_km\n    FROM city_pairs\n),\navg_distances AS (\n    -- Calculate average distance per city pair\n    SELECT \n        departure_city,\n        arrival_city,\n        AVG(distance_km) AS avg_distance\n    FROM city_pair_distances\n    GROUP BY departure_city, arrival_city\n),\ndistance_ranges AS (\n    -- Assign each city pair to a distance range\n    SELECT \n        CASE \n            WHEN avg_distance < 1000 THEN '0-999'\n            WHEN avg_distance < 2000 THEN '1000-1999'\n            WHEN avg_distance < 3000 THEN '2000-2999'\n            WHEN avg_distance < 4000 THEN '3000-3999'\n            WHEN avg_distance < 5000 THEN '4000-4999'\n            WHEN avg_distance < 6000 THEN '5000-5999'\n            ELSE '6000+'\n        END AS distance_range,\n        COUNT(*) AS pair_count\n    FROM avg_distances\n    GROUP BY distance_range\n)\n-- Find the minimum count\nSELECT MIN(pair_count) AS min_pair_count\nFROM distance_ranges",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "airports_data",
+        "flights"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need to compute average distance per city pair, then bin into ranges, count pairs per range, and find min count."
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local015",
+      "db_id": "California_Traffic_Collision",
+      "backend": "local",
+      "question": "Please calculate the fatality rate for motorcycle collisions, separated by helmet usage. Specifically, calculate two percentages: 1) the percentage of motorcyclist fatalities in collisions where parties (drivers or passengers) were wearing helmets, and 2) the percentage of motorcyclist fatalities in collisions where parties were not wearing helmets. For each group, compute this by dividing the total number of motorcyclist fatalities by the total number of collisions involving that group. Use the parties table to determine helmet usage (from party_safety_equipment fields).",
+      "external_knowledge": "",
+      "pred_sql": "-- Calculate fatality rate for motorcycle collisions by helmet usage\n-- Helmet usage is determined from parties.party_safety_equipment_1 or party_safety_equipment_2 containing 'helmet used'\n-- Motorcycle collisions are identified by collisions.motorcycle_collision = 1\n-- Motorcyclist fatalities come from collisions.motorcyclist_killed_count\n-- Group by helmet usage (wearing vs not wearing)\n-- Percentage = SUM(motorcyclist_killed_count) / COUNT(DISTINCT collisions.case_id) * 100\n\nWITH \nhelmet_usage AS (\n    SELECT \n        p.case_id,\n        CASE \n            WHEN (p.party_safety_equipment_1 LIKE '%helmet used%' OR p.party_safety_equipment_2 LIKE '%helmet used%') THEN 'wearing_helmet'\n            ELSE 'not_wearing_helmet'\n        END AS helmet_group\n    FROM parties p\n    WHERE p.party_type IN ('driver', 'passenger')\n),\ncollision_helmet AS (\n    SELECT DISTINCT\n        c.case_id,\n        c.motorcyclist_killed_count,\n        h.helmet_group\n    FROM collisions c\n    JOIN helmet_usage h ON c.case_id = h.case_id\n    WHERE c.motorcycle_collision = 1\n)\nSELECT \n    helmet_group,\n    CAST(SUM(motorcyclist_killed_count) AS REAL) / COUNT(DISTINCT case_id) * 100 AS fatality_rate_percent\nFROM collision_helmet\nGROUP BY helmet_group",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "collisions",
+        "parties"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Two percentages per helmet usage group: need GROUP BY on helmet usage derived from party_safety_equipment fields, and aggregation (SUM of motorcyclist fatalities, COUNT of collisions)."
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local017",
+      "db_id": "California_Traffic_Collision",
+      "backend": "local",
+      "question": "In which year were the two most common causes of traffic accidents different from those in other years?",
+      "external_knowledge": "",
+      "pred_sql": "-- Step 1: Extract year from collision_date and get the primary collision factor (cause)\n-- Step 2: For each year, count occurrences of each cause and rank them (1st and 2nd most common)\n-- Step 3: Find years where the top 2 causes differ from the overall top 2 causes across all years\nWITH yearly_cause_counts AS (\n    SELECT \n        CAST(strftime('%Y', collision_date) AS INTEGER) AS year,\n        primary_collision_factor AS cause,\n        COUNT(*) AS cnt\n    FROM collisions\n    WHERE primary_collision_factor IS NOT NULL\n    GROUP BY year, cause\n),\nyearly_ranked_causes AS (\n    SELECT \n        year,\n        cause,\n        cnt,\n        ROW_NUMBER() OVER (PARTITION BY year ORDER BY cnt DESC) AS rn\n    FROM yearly_cause_counts\n),\nyearly_top2 AS (\n    SELECT \n        year,\n        GROUP_CONCAT(cause ORDER BY rn) AS top2_causes\n    FROM yearly_ranked_causes\n    WHERE rn <= 2\n    GROUP BY year\n),\noverall_cause_counts AS (\n    SELECT \n        primary_collision_factor AS cause,\n        COUNT(*) AS cnt\n    FROM collisions\n    WHERE primary_collision_factor IS NOT NULL\n    GROUP BY cause\n),\noverall_ranked_causes AS (\n    SELECT \n        cause,\n        cnt,\n        ROW_NUMBER() OVER (ORDER BY cnt DESC) AS rn\n    FROM overall_cause_counts\n),\noverall_top2 AS (\n    SELECT GROUP_CONCAT(cause ORDER BY rn) AS top2_causes\n    FROM overall_ranked_causes\n    WHERE rn <= 2\n)\nSELECT yt.year\nFROM yearly_top2 yt\nWHERE yt.top2_causes != (SELECT top2_causes FROM overall_top2)\nORDER BY yt.year",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "collisions"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": true,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to find years where the two most common causes differ from other years, requiring per-year grouping of cause frequencies, then a subquery to compare across years."
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local018",
+      "db_id": "California_Traffic_Collision",
+      "backend": "local",
+      "question": "For the primary collision factor violation category that was the most common cause of traffic accidents in 2021, how many percentage points did its share of annual road incidents in 2021 decrease compared to its share in 2011?",
+      "external_knowledge": "",
+      "pred_sql": "-- Step 1: Find the most common pcf_violation_category in 2021\nWITH most_common_2021 AS (\n    SELECT pcf_violation_category\n    FROM collisions\n    WHERE collision_date LIKE '%2021%'\n      AND pcf_violation_category IS NOT NULL\n    GROUP BY pcf_violation_category\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n),\n-- Step 2: Compute total incidents in 2021 and 2011\ntotals AS (\n    SELECT \n        (SELECT COUNT(*) FROM collisions WHERE collision_date LIKE '%2021%') AS total_2021,\n        (SELECT COUNT(*) FROM collisions WHERE collision_date LIKE '%2011%') AS total_2011\n),\n-- Step 3: Compute count for the most common category in each year\ncategory_counts AS (\n    SELECT \n        (SELECT COUNT(*) \n         FROM collisions \n         WHERE collision_date LIKE '%2021%' \n           AND pcf_violation_category = (SELECT pcf_violation_category FROM most_common_2021)\n        ) AS count_2021,\n        (SELECT COUNT(*) \n         FROM collisions \n         WHERE collision_date LIKE '%2011%' \n           AND pcf_violation_category = (SELECT pcf_violation_category FROM most_common_2021)\n        ) AS count_2011\n)\n-- Step 4: Compute percentage point decrease\nSELECT \n    ROUND(\n        (CAST(count_2011 AS REAL) / total_2011 * 100) - \n        (CAST(count_2021 AS REAL) / total_2021 * 100), \n        4\n    ) AS percentage_point_decrease\nFROM totals, category_counts",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "collisions",
+        "parties"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to find the most common pcf_violation_category in 2021 (requires COUNT, GROUP BY, ORDER BY, LIMIT 1), then compute its share in 2021 and 2011 and the percentage point difference. This requires a "
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local019",
+      "db_id": "WWE",
+      "backend": "local",
+      "question": "For the NXT title that had the shortest match (excluding titles with \"title change\"), what were the names of the two wrestlers involved?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT w1.name, w2.name\nFROM Matches m\nJOIN Wrestlers w1 ON m.winner_id = CAST(w1.id AS TEXT)\nJOIN Wrestlers w2 ON m.loser_id = CAST(w2.id AS TEXT)\nWHERE m.title_id = (SELECT id FROM Belts WHERE name = 'NXT')\n  AND m.title_change = 0\n  AND m.duration = (\n    SELECT MIN(m2.duration)\n    FROM Matches m2\n    WHERE m2.title_id = (SELECT id FROM Belts WHERE name = 'NXT')\n      AND m2.title_change = 0\n  )\nORDER BY m.duration\nLIMIT 1",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "Belts",
+        "Matches",
+        "Wrestlers"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": false,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 2,
+        "aggregation": false,
+        "notes": "Need to find the NXT title match with shortest duration (excluding title changes), then get the two wrestlers' names. Requires subquery to get the match with min duration, then join to Wrestlers for w"
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local026",
+      "db_id": "IPL",
+      "backend": "local",
+      "question": "Please help me identify the top 3 bowlers who, in the overs where the maximum runs were conceded in each match, gave up the highest number of runs in a single over across all matches. For each of these bowlers, provide the match in which they conceded these maximum runs. Only consider overs that had the most runs conceded within their respective matches, and among these, determine which bowlers conceded the most runs in a single over overall.",
+      "external_knowledge": "",
+      "pred_sql": "-- Step 1: For each match and innings, find the over with the maximum runs conceded (i.e., runs scored by batting team in that over)\n-- Step 2: Among those overs, find the top 3 bowlers by total runs conceded in that single over\n-- Step 3: For each such bowler, show the match where they conceded those maximum runs\n\nWITH max_runs_per_match AS (\n    -- For each match and innings, find the over with the highest runs scored\n    SELECT \n        b.match_id,\n        b.innings_no,\n        b.over_id,\n        SUM(bs.runs_scored) AS runs_in_over\n    FROM ball_by_ball b\n    JOIN batsman_scored bs ON b.match_id = bs.match_id \n        AND b.over_id = bs.over_id \n        AND b.ball_id = bs.ball_id \n        AND b.innings_no = bs.innings_no\n    GROUP BY b.match_id, b.innings_no, b.over_id\n),\nmax_over_per_match AS (\n    -- For each match and innings, get the maximum runs in an over\n    SELECT \n        match_id,\n        innings_no,\n        MAX(runs_in_over) AS max_runs\n    FROM max_runs_per_match\n    GROUP BY match_id, innings_no\n),\novers_with_max_runs AS (\n    -- Get the specific overs that had the maximum runs in each match/innings\n    SELECT \n        m.match_id,\n        m.innings_no,\n        m.over_id,\n        m.runs_in_over\n    FROM max_runs_per_match m\n    JOIN max_over_per_match mx ON m.match_id = mx.match_id \n        AND m.innings_no = mx.innings_no \n        AND m.runs_in_over = mx.max_runs\n),\nbowler_runs_in_max_overs AS (\n    -- For each bowler, sum the runs they conceded in those max-run overs\n    -- (a bowler bowls all balls in an over, so we just need the runs from that over)\n    SELECT \n        o.match_id,\n        o.over_id,\n        o.innings_no,\n        b.bowler,\n        o.runs_in_over\n    FROM overs_with_max_runs o\n    JOIN ball_by_ball b ON o.match_id = b.match_id \n        AND o.over_id = b.over_id \n        AND o.innings_no = b.innings_no\n    GROUP BY o.match_id, o.over_id, o.innings_no, b.bowler\n),\nranked_bowlers AS (\n    -- Rank bowlers by total runs conceded in their worst over (across all matches)\n    SELECT \n        br.bowler,\n        br.runs_in_over,\n        br.match_id,\n        DENSE_RANK() OVER (ORDER BY br.runs_in_over DESC) AS rnk\n    FROM bowler_runs_in_max_overs br\n)\nSELECT \n    p.player_name AS bowler_name,\n    r.runs_in_over AS max_runs_conceded,\n    r.match_id\nFROM ranked_bowlers r\nJOIN player p ON r.bowler = p.player_id\nWHERE r.rnk <= 3\nORDER BY r.runs_in_over DESC, p.player_name\nLIMIT 3",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "ball_by_ball",
+        "batsman_scored",
+        "match",
+        "player"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need subquery to find max runs per over per match, then group by bowler to find top 3 bowlers with highest single-over runs, join with match to get match details."
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local020",
+      "db_id": "IPL",
+      "backend": "local",
+      "question": "Which bowler has the lowest bowling average per wicket taken?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT \n    p.player_name,\n    CAST(SUM(wt.total_runs) AS REAL) / COUNT(wt.player_out) AS bowling_average\nFROM (\n    SELECT \n        wt.match_id,\n        wt.over_id,\n        wt.ball_id,\n        wt.innings_no,\n        wt.player_out,\n        COALESCE(bs.runs_off_bat, 0) + COALESCE(bs.extras, 0) AS total_runs\n    FROM wicket_taken wt\n    LEFT JOIN batsman_scored bs \n        ON wt.match_id = bs.match_id \n        AND wt.over_id = bs.over_id \n        AND wt.ball_id = bs.ball_id \n        AND wt.innings_no = bs.innings_no\n) wt\nJOIN player p ON wt.player_out = p.player_id\nGROUP BY p.player_id, p.player_name\nORDER BY bowling_average ASC\nLIMIT 1",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "wicket_taken",
+        "player"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need bowler name and average per wicket (total runs conceded / total wickets), group by bowler, order by average ascending, limit 1"
+      },
+      "exec_ok": false
+    },
+    {
+      "instance_id": "local021",
+      "db_id": "IPL",
+      "backend": "local",
+      "question": "Could you calculate the average of the total runs scored by all strikers who have scored more than 50 runs in any single match?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT AVG(total_runs) \nFROM (\n    SELECT SUM(b.runs_scored) AS total_runs\n    FROM batsman_scored b\n    JOIN match m ON b.match_id = m.match_id\n    JOIN player_match pm ON m.match_id = pm.match_id AND pm.role = 'Striker'\n    JOIN player p ON pm.player_id = p.player_id\n    GROUP BY p.player_id, b.match_id\n    HAVING SUM(b.runs_scored) > 50\n) AS striker_totals",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "player",
+        "player_match",
+        "match",
+        "batsman_scored"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": false,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need subquery to find strikers with >50 runs in a match, then average their total runs per striker"
+      },
+      "exec_ok": true
+    },
+    {
+      "instance_id": "local022",
+      "db_id": "IPL",
+      "backend": "local",
+      "question": "Retrieve the names of players who scored no less than 100 runs in a match while playing for the team that lost that match.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT p.player_name\nFROM player p\nJOIN player_match pm ON p.player_id = pm.player_id\nJOIN match m ON pm.match_id = m.match_id\nJOIN batsman_scored bs ON m.match_id = bs.match_id\nWHERE m.outcome_type = 'loss'\n  AND pm.team_id != m.match_winner\nGROUP BY p.player_id, m.match_id\nHAVING SUM(bs.runs_scored) >= 100",
+      "graph_method": "inferred",
+      "linked_tables": [
+        "batsman_scored",
+        "match",
+        "player",
+        "player_match"
+      ],
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": true,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": false,
+        "notes": "Need to group by player to sum runs per match, then filter with HAVING SUM(runs_scored) >= 100 and join to match to check losing team"
+      },
+      "exec_ok": true
+    }
+  ],
+  "elapsed_sec": 379.9
+}
