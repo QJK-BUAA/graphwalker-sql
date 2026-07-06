@@ -31,11 +31,12 @@ from datetime import datetime
 from pathlib import Path
 
 from gws2 import config
+from gws2.cloud_execute import close_cloud, run_cloud
 from gws2.datasets import Example, load_spider2_lite_local
 from gws2.llm import LLM
 from gws2.online_schema import build_compressed_context, load_online_schema
 from gws2.pipeline import AblationConfig, load_db, run_pipeline
-from gws2.prompts import PROMPT_SPIDER2_ONLINE_SQL
+from gws2.prompts import PROMPT_SPIDER2_ONLINE_REPAIR, PROMPT_SPIDER2_ONLINE_SQL
 
 
 SPIDER2_ROOT = Path(config.SPIDER2_ROOT)
@@ -207,7 +208,16 @@ def schema_context_for(ex: Spider2OnlineExample) -> tuple[str, str, list[str]]:
     return dialect, context, trace
 
 
-def generate_online_sql(ex: Spider2OnlineExample, llm: LLM) -> tuple[str, dict]:
+def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
+                        use_repair: bool = True,
+                        max_repairs: int = config.CLOUD_MAX_REPAIRS) -> tuple[str, dict]:
+    """Generate one cloud SQL, then run a bounded belief-repair loop (P1).
+
+    Mirrors the local Commit execute->feedback->repair discipline against the
+    cloud backend: execute (cost-guarded), and on error / empty / cost-refusal
+    ask for a targeted fix, at most ``max_repairs`` times. A repair is kept only
+    if it does not regress (an executing non-empty result beats the prior state).
+    """
     dialect, schema_context, table_trace = schema_context_for(ex)
     external = _read_external_doc(ex.external_knowledge)
     system = PROMPT_SPIDER2_ONLINE_SQL.format(
@@ -217,13 +227,74 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM) -> tuple[str, dict]:
         question=ex.question,
     )
     resp = llm.complete(system, "Generate the SQL.", temperature=0.0)
+    sql = _extract_sql(resp)
+
     meta = {
         "backend": ex.backend,
         "dialect": dialect,
         "schema_context_chars": len(schema_context),
         "selected_tables": table_trace,
+        "repairs": 0,
+        "exec_trace": [],
+        "est_gb": None,
     }
-    return _extract_sql(resp), meta
+
+    if not use_repair:
+        return sql, meta
+
+    res = run_cloud(ex.backend, sql, database=ex.db_id)
+    meta["est_gb"] = res.est_gb
+    meta["exec_trace"].append(_exec_summary("generate", res))
+
+    for attempt in range(max_repairs):
+        need = (not res.ok) or res.n_shown == 0
+        if not need:
+            break
+        problem = _problem_label(res)
+        feedback = res.error or "the query executed but returned an empty result"
+        repair_sys = PROMPT_SPIDER2_ONLINE_REPAIR.format(
+            dialect=dialect, problem=problem, schema_context=schema_context,
+            external_knowledge=external, question=ex.question, sql=sql,
+            feedback=feedback[:1500],
+        )
+        rsql = _extract_sql(llm.complete(repair_sys, "Repair the query.",
+                                         temperature=0.0))
+        if not rsql or rsql.strip() == sql.strip():
+            meta["exec_trace"].append(f"repair{attempt+1}: no-change, stop")
+            break
+        rres = run_cloud(ex.backend, rsql, database=ex.db_id)
+        meta["exec_trace"].append(_exec_summary(f"repair{attempt+1}", rres))
+        meta["repairs"] += 1
+        # keep repair only if it did not regress
+        if rres.ok and (not res.ok or rres.n_shown > 0):
+            sql, res = rsql, rres
+            if res.est_gb is not None:
+                meta["est_gb"] = res.est_gb
+        else:
+            meta["exec_trace"].append(f"repair{attempt+1}: discarded (no improvement)")
+            break
+
+    meta["final_exec_ok"] = res.ok
+    meta["final_rows"] = res.n_shown
+    return sql, meta
+
+
+def _problem_label(res) -> str:
+    if getattr(res, "skipped_cost", False):
+        return "was refused by the cost guard (scans too much data)"
+    if not res.ok:
+        return "failed to execute"
+    if res.n_shown == 0:
+        return "executed but returned an empty result"
+    return "needs adjustment"
+
+
+def _exec_summary(stage: str, res) -> str:
+    if res.ok:
+        gb = f" est_gb={res.est_gb:.3f}" if res.est_gb is not None else ""
+        return f"{stage}: ok rows={res.n_shown}{gb}"
+    tag = "cost-refused" if getattr(res, "skipped_cost", False) else "error"
+    return f"{stage}: {tag} {res.error[:80]}"
 
 
 _SQL_BLOCK = re.compile(r"```sql\s*(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -319,6 +390,8 @@ def main() -> int:
     ap.add_argument("--tag", default="online")
     ap.add_argument("--model", default=config.DEFAULT_MODEL)
     ap.add_argument("--no-eval", action="store_true")
+    ap.add_argument("--no-repair", action="store_true",
+                    help="disable the P1 cloud bounded belief-repair loop (ablation)")
     args = ap.parse_args()
 
     prefixes = set(args.prefix or VALID_PREFIXES)
@@ -344,7 +417,7 @@ def main() -> int:
             if ex.backend == "local":
                 sql, meta = run_local_graphwalker(ex, llm, schema_cache, cache_lock)
             else:
-                sql, meta = generate_online_sql(ex, llm)
+                sql, meta = generate_online_sql(ex, llm, use_repair=not args.no_repair)
             (result_dir / f"{ex.instance_id}.sql").write_text(sql)
             return ex.instance_id, {
                 "instance_id": ex.instance_id,
@@ -378,6 +451,9 @@ def main() -> int:
                 print(f"  [{done}/{len(examples)}] latest={iid} ({time.time() - t0:.0f}s)")
 
     records = [records_by_id[ex.instance_id] for ex in examples]
+    close_cloud()
+    n_repairs = sum(r.get("repairs", 0) for r in records)
+    print(f"[{run_id}] cloud repairs triggered: {n_repairs}")
     eval_result = {}
     if not args.no_eval:
         print(f"[{run_id}] running official Spider2-Lite evaluator ...")

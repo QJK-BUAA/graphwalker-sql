@@ -271,3 +271,35 @@ subquery is clearly required.
 INTERSECT or grouped HAVING.
 
 SQL:"""
+
+
+PROMPT_SPIDER2_ONLINE_REPAIR = """You previously wrote a {dialect} query that {problem}.
+Fix it and output exactly ONE corrected {dialect} SQL query.
+
+Schema / DDL context:
+{schema_context}
+
+External knowledge:
+{external_knowledge}
+
+Question:
+{question}
+
+Previous SQL:
+{sql}
+
+Execution feedback:
+{feedback}
+
+Repair instructions:
+- Output SQL only. Do NOT use Markdown fences. Do NOT explain.
+- Use only tables/columns in the schema context and keep fully qualified names.
+- If the feedback is an invalid-identifier or not-found error, correct the exact \
+table/column name (mind BigQuery backticks and Snowflake case-sensitive quoted names).
+- If the feedback says the result was empty, relax an over-strict filter or fix a \
+join/date-range condition rather than removing needed logic.
+- If the feedback is a cost-guard refusal, add a selective filter (date range, \
+_TABLE_SUFFIX, WHERE, or a narrower table) so the scan is smaller.
+- Keep the answer's column shape aligned with what the question asks.
+
+SQL:"""

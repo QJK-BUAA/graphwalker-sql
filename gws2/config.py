@@ -88,3 +88,15 @@ MAX_REPAIRS = 1                 # at most one targeted repair (kept minimal by d
 # Execution.
 EXEC_TIMEOUT = 30.0
 EXEC_MAX_ROWS = 2000
+
+# --------------------------------------------------------------------------- #
+# Cloud execution (P1: remote bounded belief repair for Spider2-Lite online)
+# --------------------------------------------------------------------------- #
+# Path to Spider2 credential files (bigquery_credential.json / snowflake_credential.json).
+SPIDER2_CRED_DIR = os.environ.get("GWS2_SPIDER2_CRED_DIR", _p("spider2凭证文件"))
+# BigQuery dry-run cost guard: skip executing any query whose estimated scan
+# exceeds this many GB, so a bad generated SQL cannot rack up cloud cost.
+BQ_DRYRUN_MAX_GB = float(os.environ.get("GWS2_BQ_DRYRUN_MAX_GB", "5.0"))
+CLOUD_EXEC_TIMEOUT = float(os.environ.get("GWS2_CLOUD_EXEC_TIMEOUT", "120"))
+CLOUD_EXEC_MAX_ROWS = int(os.environ.get("GWS2_CLOUD_EXEC_MAX_ROWS", "50"))
+CLOUD_MAX_REPAIRS = int(os.environ.get("GWS2_CLOUD_MAX_REPAIRS", "2"))
