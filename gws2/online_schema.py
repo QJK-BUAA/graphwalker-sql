@@ -66,6 +66,7 @@ class OnlineTable:
     ddl: str
     description: str = ""
     dataset: str = ""            # dataset / schema the table lives in
+    database: str = ""           # Snowflake database (BigQuery: unused)
     score: float = 0.0
     matched: list[str] = field(default_factory=list)
 
@@ -79,25 +80,33 @@ class OnlineTable:
         return toks
 
     def fqn(self) -> str:
-        """Fully-qualified name usable in SQL, parsed from the CREATE statement.
+        """Fully-qualified name usable in SQL.
 
-        BigQuery: `project.dataset.table` inside backticks.
-        Snowflake: bare TABLE name after CREATE ... TABLE (database set via
-        USE DATABASE at execution time); we return SCHEMA.TABLE when the dataset
-        looks like a schema.
+        BigQuery: the CREATE statement carries the real `project.dataset.table`
+        inside backticks, so we use it directly.
+        Snowflake: the CREATE statement has only the bare table name, but the
+        resource directory encodes the truth as database=<db_id>,
+        schema=<dataset dir>, table=<table_name>. We build the verified 3-part
+        name DATABASE.SCHEMA.TABLE, which is what actually executes (the old
+        2-part "schema"."table" guess caused invalid-identifier / schema-not-
+        found failures across all 207 Snowflake examples).
         """
         m = re.search(r"create\s+(?:or\s+replace\s+)?table\s+`([^`]+)`",
                       self.ddl, re.I)
         if m:
             return "`" + m.group(1) + "`"
+        # Snowflake path: prefer the directory-derived DATABASE.SCHEMA.TABLE.
+        table = self.table_name.strip().strip('"')
+        if self.database and self.dataset:
+            return f"{self.database}.{self.dataset}.{table}"
         m = re.search(r"create\s+(?:or\s+replace\s+)?table\s+([A-Za-z0-9_\.\"]+)",
                       self.ddl, re.I)
         if m:
             name = m.group(1).strip('"')
             if self.dataset and "." not in name:
-                return f'"{self.dataset}"."{name}"'
+                return f"{self.dataset}.{name}"
             return name
-        return self.table_name.strip()
+        return table
 
     def columns(self) -> list[tuple[str, str]]:
         """Return [(column_name, type)] parsed from the DDL body.
@@ -154,7 +163,7 @@ def _find_case_insensitive(root: Path, name: str) -> Path | None:
     return None
 
 
-def _read_ddl_rows(path: Path, dataset: str) -> list[OnlineTable]:
+def _read_ddl_rows(path: Path, dataset: str, database: str = "") -> list[OnlineTable]:
     out: list[OnlineTable] = []
     if not path.exists():
         return out
@@ -168,6 +177,7 @@ def _read_ddl_rows(path: Path, dataset: str) -> list[OnlineTable]:
                 ddl=ddl,
                 description=(row.get("description") or "").strip(),
                 dataset=dataset,
+                database=database,
             ))
     return out
 
@@ -177,8 +187,11 @@ def load_online_schema(backend: str, db_id: str, db_root: Path) -> OnlineSchema:
     root = _find_case_insensitive(db_root / backend, db_id)
     tables: list[OnlineTable] = []
     if root is not None:
+        # Use the real directory name as the Snowflake database (correct case).
+        database = root.name if backend == "snowflake" else ""
         for ddl_csv in sorted(root.glob("*/DDL.csv")):
-            tables.extend(_read_ddl_rows(ddl_csv, dataset=ddl_csv.parent.name))
+            tables.extend(_read_ddl_rows(ddl_csv, dataset=ddl_csv.parent.name,
+                                         database=database))
     return OnlineSchema(backend=backend, db_id=db_id, tables=tables)
 
 
@@ -240,9 +253,12 @@ def build_compressed_context(schema: OnlineSchema, question: str,
     chunks = [header]
     total = len(header)
     for t in selected:
-        chunk = f"\n-- dataset: {t.dataset} | table: {t.table_name}"
+        # Surface the exact fully-qualified name to use in SQL. The Snowflake DDL
+        # body only carries the bare table name, so without this the model cannot
+        # know the real DATABASE.SCHEMA.TABLE and emits invalid identifiers.
+        chunk = f"\n-- USE THIS EXACT TABLE NAME IN SQL: {t.fqn()}"
         if t.matched:
-            chunk += f" | matched: {', '.join(t.matched)}"
+            chunk += f"\n-- matched: {', '.join(t.matched)}"
         chunk += "\n" + _compact_ddl(t.ddl, per_table_chars)
         if total + len(chunk) > max_chars:
             break

@@ -254,14 +254,18 @@ Question:
 Instructions:
 - Output SQL only. Do NOT use Markdown fences. Do NOT explain.
 - Use only tables and columns present in the schema context.
-- Use the exact fully qualified table names shown in the DDL/context.
+- CRITICAL: each table is preceded by a line "USE THIS EXACT TABLE NAME IN SQL: \
+<name>". You MUST use that exact fully-qualified name verbatim in FROM/JOIN. Do \
+NOT invent or shorten the database/schema prefix.
 - For BigQuery, use backticks around fully qualified table names. For sharded tables \
 such as events_YYYYMMDD, prefer wildcard tables like `project.dataset.events_*` with \
 _TABLE_SUFFIX filters when the question refers to a date range.
-- For Snowflake, use DATABASE.SCHEMA.TABLE names when shown. If the DDL shows quoted \
+- For Snowflake, always use the 3-part DATABASE.SCHEMA.TABLE name exactly as given \
+(do NOT guess the schema; e.g. it is often NOT "PUBLIC"). If the DDL shows quoted \
 lowercase column names such as "publication_date", you MUST use the exact quoted \
 identifier in SQL; unquoted PUBLICATION_DATE is a different identifier and may fail. \
-Use LATERAL FLATTEN for VARIANT arrays/objects when needed.
+Use LATERAL FLATTEN for VARIANT arrays/objects. Avoid correlated subqueries Snowflake \
+cannot evaluate; prefer JOINs or window functions.
 - Apply external knowledge literally, including formulas, mappings, date ranges, and \
 domain-specific definitions.
 - Return only the requested columns. Do not add helper columns.

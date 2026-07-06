@@ -1,0 +1,616 @@
+{
+  "run_id": "spider2-lite_sf_fix_n15_deepseek-chat_seed42",
+  "timestamp": "2026-07-06T19:52:38",
+  "args": {
+    "prefix": [
+      "sf"
+    ],
+    "limit_per_backend": 15,
+    "full": false,
+    "workers": 4,
+    "tag": "sf_fix_n15",
+    "model": "deepseek-chat",
+    "no_eval": false,
+    "no_repair": false,
+    "no_probe": false,
+    "consensus": false
+  },
+  "n_questions": 15,
+  "prefixes": [
+    "sf"
+  ],
+  "llm_stats": {
+    "num_calls": 29,
+    "input_tokens": 47925,
+    "output_tokens": 8462
+  },
+  "official_eval": {
+    "raw_tail": "0:58<00:07,  3.69s/it]Error occurred while fetching data:  000904 (42000): SQL compilation error: error line 4 at position 34\ninvalid identifier '\"publication_date\"'\n\n 93%|█████████▎| 14/15 [01:01<00:03,  3.54s/it]\n100%|██████████| 15/15 [01:05<00:00,  3.60s/it]\n100%|██████████| 15/15 [01:05<00:00,  4.34s/it]\nFinal score: 0.2, Correct examples: 3, Total examples: 15\nReal score: 0.005484460694698354, Correct examples: 3, Total examples: 547\nTOTAL_GB_PROCESSED:  0.0\n\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/snowflake/connector/vendored/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n",
+    "ex": 20.0,
+    "correct": 3,
+    "scored": 15
+  },
+  "records": [
+    {
+      "instance_id": "sf_bq029",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "Get the average number of inventors per patent and the total count of patent publications in Canada (CA) for each 5-year period from 1960 to 2020, based on publication dates. Only include patents that have at least one inventor listed, and group results by 5-year intervals (1960-1964, 1965-1969, etc.).",
+      "external_knowledge": "",
+      "pred_sql": "SELECT \n    FLOOR(PUBLICATIONS.publication_date / 10000) / 5 * 5 AS period_start,\n    COUNT(DISTINCT PUBLICATIONS.publication_number) AS total_patents,\n    AVG(inventor_count) AS avg_inventors_per_patent\nFROM PATENTS.PATENTS.PUBLICATIONS\nCROSS JOIN LATERAL (\n    SELECT COUNT(*) AS inventor_count\n    FROM LATERAL FLATTEN(input => PUBLICATIONS.inventor)\n) AS inv\nWHERE PUBLICATIONS.country_code = 'CA'\n  AND PUBLICATIONS.publication_date >= 19600101\n  AND PUBLICATIONS.publication_date < 20210101\n  AND PUBLICATIONS.inventor IS NOT NULL\n  AND ARRAY_SIZE(PUBLICATIONS.inventor) > 0\nGROUP BY FLOOR(PUBLICATIONS.publication_date / 10000) / 5 * 5\nORDER BY period_start",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2344,
+      "selected_tables": [
+        "PUBLICATIONS(0.37)",
+        "DISCLOSURES_13(0.11)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.publication_date samples: ['19980507', '19991217', '18920810']",
+        "- PUBLICATIONS.publication_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429-A']",
+        "- PUBLICATIONS.spif_publication_number samples: ['', '', '']",
+        "- PUBLICATIONS.filing_date samples: ['19971015', '19990322', '0']",
+        "- PUBLICATIONS.grant_date samples: ['0', '0', '0']",
+        "- PUBLICATIONS.priority_date samples: ['19971015', '19980327', '0']",
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.date samples: ['19751124', '19751124', '19751229']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 6 cols ok, 6 relevant",
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 3 cols ok, 3 relevant",
+        "cloud probes: 2 SQL, 9 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 8 at position 34\ninvalid ident",
+        "repair1: error 000904 (42000): SQL compilation error: error line 8 at position 34\ninvalid ident",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq026",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For the assignee who has been the most active in the patent category 'A61', I'd like to know the five patent jurisdictions code where they filed the most patents during their busiest year, separated by commas.",
+      "external_knowledge": "",
+      "pred_sql": "WITH assignee_activity AS (\n    SELECT \n        p.assignee_harmonized[0]:\"name\"::VARCHAR AS assignee_name,\n        p.country_code,\n        p.publication_date / 10000 AS year,\n        COUNT(*) AS patent_count\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n    LATERAL FLATTEN(input => p.cpc) cpc\n    WHERE cpc.value:\"code\"::VARCHAR LIKE 'A61%'\n    GROUP BY assignee_name, p.country_code, year\n),\nmost_active_assignee AS (\n    SELECT assignee_name\n    FROM assignee_activity\n    GROUP BY assignee_name\n    ORDER BY SUM(patent_count) DESC\n    LIMIT 1\n),\nbusiest_year AS (\n    SELECT \n        a.assignee_name,\n        a.year,\n        SUM(a.patent_count) AS total_patents\n    FROM assignee_activity a\n    JOIN most_active_assignee m ON a.assignee_name = m.assignee_name\n    GROUP BY a.assignee_name, a.year\n    ORDER BY total_patents DESC\n    LIMIT 1\n)\nSELECT LISTAGG(DISTINCT a.country_code, ', ') WITHIN GROUP (ORDER BY a.country_code) AS top_jurisdictions\nFROM assignee_activity a\nJOIN busiest_year b ON a.assignee_name = b.assignee_name AND a.year = b.year\nGROUP BY a.assignee_name, a.year\nORDER BY SUM(a.patent_count) DESC\nLIMIT 5",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2323,
+      "selected_tables": [
+        "PUBLICATIONS(0.19)",
+        "DISCLOSURES_13(0.10)"
+      ],
+      "repairs": 1,
+      "probe_sql": 4,
+      "probe_hints": [
+        "- PUBLICATIONS.country_code samples: ['CR', 'CR', 'FI']",
+        "- PUBLICATIONS.kind_code samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.assignee samples: ['[\\n  \"Univ Costa Rica\"\\n]', '[\\n  \"Bayer Ag\"\\n]', '[]']",
+        "- PUBLICATIONS.assignee_harmonized samples: ['[\\n  {\\n    \"country_code\": \"CR\",\\n    \"nam', '[\\n  {\\n    \"country_code\": \"DE\",\\n    \"nam', '[]']",
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 4 cols ok, 4 relevant",
+        "literal-miss 'A61' in country_code",
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 2 cols ok, 2 relevant",
+        "literal-miss 'A61' in patent_owner_harmonized",
+        "cloud probes: 4 SQL, 6 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 3 at position 8\ninvalid identi",
+        "repair1: error 000904 (42000): SQL compilation error: error line 30 at position 24\ninvalid iden",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq091",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "In which year did the assignee with the most applications in the patent category 'A61' file the most?",
+      "external_knowledge": "",
+      "pred_sql": "WITH top_assignee AS (\n    SELECT \n        p.\"assignee_harmonized\" AS assignee,\n        COUNT(DISTINCT p.\"publication_number\") AS app_count\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n    LATERAL FLATTEN(input => p.\"ipc\") ipc\n    WHERE ipc.value::VARCHAR LIKE '%A61%'\n    GROUP BY p.\"assignee_harmonized\"\n    ORDER BY app_count DESC\n    LIMIT 1\n)\nSELECT \n    p.\"publication_date\" / 10000 AS filing_year,\n    COUNT(DISTINCT p.\"publication_number\") AS num_applications\nFROM PATENTS.PATENTS.PUBLICATIONS p,\nLATERAL FLATTEN(input => p.\"ipc\") ipc\nWHERE p.\"assignee_harmonized\" = (SELECT assignee FROM top_assignee)\n  AND ipc.value::VARCHAR LIKE '%A61%'\nGROUP BY filing_year\nORDER BY num_applications DESC\nLIMIT 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2317,
+      "selected_tables": [
+        "DISCLOSURES_13(0.25)",
+        "PUBLICATIONS(0.25)"
+      ],
+      "repairs": 1,
+      "probe_sql": 4,
+      "probe_hints": [
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']",
+        "- PUBLICATIONS.application_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429D-A']",
+        "- PUBLICATIONS.application_kind samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.application_number_formatted samples: ['CR5634A', 'CR5990A', '']",
+        "- PUBLICATIONS.spif_application_number samples: ['', '', '']",
+        "- PUBLICATIONS.assignee samples: ['[\\n  \"Univ Costa Rica\"\\n]', '[\\n  \"Bayer Ag\"\\n]', '[]']",
+        "- PUBLICATIONS.assignee_harmonized samples: ['[\\n  {\\n    \"country_code\": \"CR\",\\n    \"nam', '[\\n  {\\n    \"country_code\": \"DE\",\\n    \"nam', '[]']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 2 cols ok, 2 relevant",
+        "literal-miss 'A61' in patent_owner_harmonized",
+        "probe PATENTS.PATENTS.PUBLICATIONS: 6 cols ok, 6 relevant",
+        "literal-miss 'A61' in application_number",
+        "cloud probes: 4 SQL, 8 hints"
+      ],
+      "exec_trace": [
+        "generate: error 100097 (22007): Can't parse '0' as date with format 'YYYYMMDD'",
+        "repair1: ok rows=1"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq099",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For patent class A01B3, I want to analyze the information of the top 3 assignees based on the total number of applications. Please provide the following five pieces of information: the name of this assignee,  total number of applications, the year with the most applications, the number of applications in that year, and the country code with the most applications during that year.",
+      "external_knowledge": "",
+      "pred_sql": "WITH assignee_apps AS (\n    SELECT \n        a.value::VARCHAR AS assignee_name,\n        p.\"application_number\",\n        p.\"country_code\",\n        YEAR(TO_DATE(p.\"filing_date\"::VARCHAR, 'YYYYMMDD')) AS filing_year\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n    LATERAL FLATTEN(input => p.\"assignee\") a\n    WHERE p.\"ipc\" LIKE '%A01B3%'\n),\nassignee_totals AS (\n    SELECT \n        assignee_name,\n        COUNT(DISTINCT \"application_number\") AS total_apps\n    FROM assignee_apps\n    GROUP BY assignee_name\n    ORDER BY total_apps DESC\n    LIMIT 3\n),\nassignee_yearly AS (\n    SELECT \n        a.assignee_name,\n        a.filing_year,\n        COUNT(DISTINCT a.\"application_number\") AS yearly_apps\n    FROM assignee_apps a\n    JOIN assignee_totals t ON a.assignee_name = t.assignee_name\n    GROUP BY a.assignee_name, a.filing_year\n),\nmax_year AS (\n    SELECT \n        assignee_name,\n        filing_year AS max_year,\n        yearly_apps AS max_year_apps,\n        ROW_NUMBER() OVER (PARTITION BY assignee_name ORDER BY yearly_apps DESC, filing_year DESC) AS rn\n    FROM assignee_yearly\n),\nyear_country AS (\n    SELECT \n        a.assignee_name,\n        a.\"country_code\",\n        a.filing_year,\n        COUNT(DISTINCT a.\"application_number\") AS country_year_apps\n    FROM assignee_apps a\n    JOIN max_year m ON a.assignee_name = m.assignee_name AND a.filing_year = m.max_year AND m.rn = 1\n    GROUP BY a.assignee_name, a.\"country_code\", a.filing_year\n),\ntop_country AS (\n    SELECT \n        assignee_name,\n        \"country_code\" AS top_country_code,\n        ROW_NUMBER() OVER (PARTITION BY assignee_name ORDER BY country_year_apps DESC, \"country_code\") AS rn2\n    FROM year_country\n)\nSELECT \n    t.assignee_name,\n    t.total_apps,\n    m.max_year,\n    m.max_year_apps,\n    c.top_country_code\nFROM assignee_totals t\nJOIN max_year m ON t.assignee_name = m.assignee_name AND m.rn = 1\nJOIN top_country c ON t.assignee_name = c.assignee_name AND c.rn2 = 1\nORDER BY t.total_apps DESC",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2332,
+      "selected_tables": [
+        "PUBLICATIONS(0.32)",
+        "DISCLOSURES_13(0.11)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.country_code samples: ['CR', 'CR', 'FI']",
+        "- PUBLICATIONS.application_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429D-A']",
+        "- PUBLICATIONS.kind_code samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.application_kind samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.application_number_formatted samples: ['CR5634A', 'CR5990A', '']",
+        "- PUBLICATIONS.spif_application_number samples: ['', '', '']",
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 6 cols ok, 6 relevant",
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 2 cols ok, 2 relevant",
+        "cloud probes: 2 SQL, 8 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 62 at position 60\ninvalid iden",
+        "repair1: ok rows=3"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 3
+    },
+    {
+      "instance_id": "sf_bq033",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "How many U.S. publications related to IoT (where the abstract includes the phrase 'internet of things') were filed each month from 2008 to 2022, including months with no filings?",
+      "external_knowledge": "",
+      "pred_sql": "WITH RECURSIVE months AS (\n    SELECT DATE '2008-01-01' AS month_start\n    UNION ALL\n    SELECT DATEADD(MONTH, 1, month_start)\n    FROM months\n    WHERE month_start < DATE '2022-12-01'\n),\niot_publications AS (\n    SELECT \n        DATE_TRUNC('MONTH', TO_DATE(TO_VARCHAR(\"publication_date\"), 'YYYYMMDD')) AS filing_month,\n        COUNT(*) AS cnt\n    FROM PATENTS.PATENTS.PUBLICATIONS,\n    LATERAL FLATTEN(input => \"abstract_localized\") AS ab\n    WHERE \"country_code\" = 'US'\n      AND \"publication_date\" BETWEEN 20080101 AND 20221231\n      AND LOWER(ab.value:\"text\") LIKE '%internet of things%'\n    GROUP BY filing_month\n)\nSELECT \n    m.month_start AS month,\n    COALESCE(i.cnt, 0) AS num_publications\nFROM months m\nLEFT JOIN iot_publications i ON m.month_start = i.filing_month\nORDER BY m.month_start",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1509,
+      "selected_tables": [
+        "PUBLICATIONS(0.36)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.publication_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429-A']",
+        "- PUBLICATIONS.spif_publication_number samples: ['', '', '']",
+        "- PUBLICATIONS.abstract_localized samples: ['[\\n  {\\n    \"language\": \"es\",\\n    \"text\": ', '[\\n  {\\n    \"language\": \"es\",\\n    \"text\": ', '[]']",
+        "- PUBLICATIONS.publication_date samples: ['19980507', '19991217', '18920810']",
+        "- PUBLICATIONS.filing_date samples: ['19971015', '19990322', '0']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 5 cols ok, 5 relevant",
+        "literal-miss 'internet of things' in publication_number",
+        "cloud probes: 2 SQL, 5 hints"
+      ],
+      "exec_trace": [
+        "generate: error 002031 (42601): SQL compilation error:\nUnsupported subquery type cannot be evalu",
+        "repair1: ok rows=50"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "sf_bq209",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "Can you calculate the number of utility patents that were granted in 2010 and have exactly one forward citation within a 10-year window following their application/filing date? For this analysis, forward citations should be counted as distinct citing application numbers that cited the patent within 10 years after the patent's own filing date.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT COUNT(DISTINCT p.\"publication_number\") AS utility_patents_2010_one_forward_citation\nFROM PATENTS.PATENTS.PUBLICATIONS p\nWHERE p.\"grant_date\" BETWEEN 20100101 AND 20101231\n  AND p.\"application_kind\" = 'A'\n  AND p.\"filing_date\" > 0\n  AND (\n    SELECT COUNT(DISTINCT c.value:\"application_number\"::VARCHAR)\n    FROM LATERAL FLATTEN(input => p.\"citation\") c\n    WHERE c.value:\"citation_type\"::VARCHAR = 'forward'\n      AND c.value:\"date\"::NUMBER BETWEEN p.\"filing_date\" AND (p.\"filing_date\" + 100000)\n  ) = 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2350,
+      "selected_tables": [
+        "PUBLICATIONS(0.27)",
+        "DISCLOSURES_13(0.13)"
+      ],
+      "repairs": 0,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.filing_date samples: ['19971015', '19990322', '0']",
+        "- PUBLICATIONS.application_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429D-A']",
+        "- PUBLICATIONS.application_kind samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.application_number_formatted samples: ['CR5634A', 'CR5990A', '']",
+        "- PUBLICATIONS.spif_application_number samples: ['', '', '']",
+        "- PUBLICATIONS.publication_date samples: ['19980507', '19991217', '18920810']",
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.date samples: ['19751124', '19751124', '19751229']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 6 cols ok, 6 relevant",
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 3 cols ok, 3 relevant",
+        "cloud probes: 2 SQL, 9 hints"
+      ],
+      "exec_trace": [
+        "generate: error 002031 (42601): SQL compilation error:\nUnsupported subquery type cannot be evalu",
+        "repair1: no-change, stop"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq027",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For patents granted between 2010 and 2018, provide the publication number of each patent and the number of backward citations it has received in the SEA category.",
+      "external_knowledge": "",
+      "pred_sql": "SELECT \n    p.\"publication_number\",\n    ARRAY_SIZE(p.\"citation\") AS backward_citations_count\nFROM PATENTS.PATENTS.PUBLICATIONS p\nWHERE p.\"grant_date\" BETWEEN 20100101 AND 20181231\n  AND p.\"citation\" IS NOT NULL\nORDER BY p.\"publication_number\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2320,
+      "selected_tables": [
+        "DISCLOSURES_13(0.20)",
+        "PUBLICATIONS(0.20)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']",
+        "- PUBLICATIONS.publication_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429-A']",
+        "- PUBLICATIONS.spif_publication_number samples: ['', '', '']",
+        "- PUBLICATIONS.publication_date samples: ['19980507', '19991217', '18920810']",
+        "- PUBLICATIONS.citation samples: ['[]', '[]', '[]']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 2 cols ok, 2 relevant",
+        "probe PATENTS.PATENTS.PUBLICATIONS: 4 cols ok, 4 relevant",
+        "cloud probes: 2 SQL, 6 hints"
+      ],
+      "exec_trace": [
+        "generate: error 002139 (02000): SQL compilation error:\nUnknown function ARRAY_LENGTH.",
+        "repair1: ok rows=50"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    },
+    {
+      "instance_id": "sf_bq210",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "How many US B2 patents granted between 2008 and 2018 contain claims that do not include the word 'claim'?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT COUNT(DISTINCT p.\"publication_number\")\nFROM PATENTS.PATENTS.PUBLICATIONS p,\nLATERAL FLATTEN(input => p.\"claims_localized\") cl\nWHERE p.\"country_code\" = 'US'\n  AND p.\"kind_code\" = 'B2'\n  AND p.\"grant_date\" BETWEEN 20080101 AND 20181231\n  AND NOT cl.value::VARCHAR ILIKE '%claim%'",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1500,
+      "selected_tables": [
+        "PUBLICATIONS(0.57)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.claims_localized samples: ['[]', '[]', '[]']",
+        "- PUBLICATIONS.claims_localized_html samples: ['[]', '[]', '[]']",
+        "- PUBLICATIONS.priority_claim samples: ['[\\n  {\\n    \"application_number\": \"CR-5634', '[\\n  {\\n    \"application_number\": \"CH-7359', '[\\n  {\\n    \"application_number\": \"FI-429T']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 3 cols ok, 3 relevant",
+        "literal-miss 'claim' in claims_localized",
+        "cloud probes: 2 SQL, 3 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 3 at position 25\ninvalid ident",
+        "repair1: ok rows=1"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq211",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "Among patents granted between 2010 and 2023 in CN, how many of them belong to families that have a total of over one distinct applications?",
+      "external_knowledge": "",
+      "pred_sql": "SELECT COUNT(DISTINCT d.\"family_id\")\nFROM PATENTS.PATENTS.DISCLOSURES_13 d\nJOIN PATENTS.PATENTS.PUBLICATIONS p ON d.\"family_id\" = p.\"family_id\"\nWHERE p.\"country_code\" = 'CN'\n  AND p.\"grant_date\" BETWEEN 20100101 AND 20231231\n  AND d.\"family_id\" IN (\n    SELECT \"family_id\"\n    FROM PATENTS.PATENTS.PUBLICATIONS\n    GROUP BY \"family_id\"\n    HAVING COUNT(DISTINCT \"application_number\") > 1\n  )",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2983,
+      "selected_tables": [
+        "DISCLOSURES_13(0.00)",
+        "PUBLICATIONS(0.00)",
+        "CPC_DEFINITION(0.00)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']",
+        "- PUBLICATIONS.application_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429D-A']",
+        "- PUBLICATIONS.application_kind samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.application_number_formatted samples: ['CR5634A', 'CR5990A', '']",
+        "- PUBLICATIONS.spif_application_number samples: ['', '', '']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 2 cols ok, 2 relevant",
+        "probe PATENTS.PATENTS.PUBLICATIONS: 4 cols ok, 4 relevant",
+        "cloud probes: 2 SQL, 6 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 4 at position 6\ninvalid identi",
+        "repair1: ok rows=1"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 1
+    },
+    {
+      "instance_id": "sf_bq213",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "What is the most common 4-digit IPC code among US B2 utility patents granted from June to August in 2022?",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "SELECT \n    SUBSTR(ipc_u.value:\"code\"::VARCHAR, 1, 4) AS ipc4,\n    COUNT(*) AS cnt\nFROM \n    PATENTS.PATENTS.PUBLICATIONS t1,\n    LATERAL FLATTEN(input => t1.ipc) AS ipc_u\nWHERE \n    t1.country_code = 'US'\n    AND t1.kind_code = 'B2'\n    AND t1.publication_date BETWEEN 20220601 AND 20220831\nGROUP BY \n    ipc4\nORDER BY \n    cnt DESC\nLIMIT 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1496,
+      "selected_tables": [
+        "PUBLICATIONS(0.40)"
+      ],
+      "repairs": 0,
+      "probe_sql": 1,
+      "probe_hints": [
+        "- PUBLICATIONS.country_code samples: ['CR', 'CR', 'FI']",
+        "- PUBLICATIONS.kind_code samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.ipc samples: ['[\\n  {\\n    \"code\": \"G01N21/01\",\\n    \"firs', '[]', '[\\n  {\\n    \"code\": \"C10C1/00\",\\n    \"first']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 3 cols ok, 3 relevant",
+        "cloud probes: 1 SQL, 3 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 6 at position 29\ninvalid ident",
+        "repair1: no-change, stop"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq212",
+      "db_id": "PATENTS",
+      "backend": "snowflake",
+      "question": "For United States utility patents under the B2 classification granted between June and September of 2022, identify the most frequent 4-digit IPC code for each patent. Then, list the publication numbers and IPC4 codes of patents where this code appears 10 or more times.",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "SELECT \n    p.\"publication_number\",\n    SUBSTR(ipc_u.value:\"code\", 1, 4) AS ipc4\nFROM \n    PATENTS.PATENTS.PUBLICATIONS p,\n    LATERAL FLATTEN(input => p.\"ipc\") AS ipc_u\nWHERE \n    p.\"country_code\" = 'US'\n    AND p.\"kind_code\" = 'B2'\n    AND p.\"publication_date\" BETWEEN 20220601 AND 20220930\nGROUP BY \n    p.\"publication_number\",\n    SUBSTR(ipc_u.value:\"code\", 1, 4)\nHAVING \n    COUNT(*) >= 10\nORDER BY \n    p.\"publication_number\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2331,
+      "selected_tables": [
+        "PUBLICATIONS(0.26)",
+        "DISCLOSURES_13(0.09)"
+      ],
+      "repairs": 0,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.publication_number samples: ['CR-5634-A', 'CR-5990-A', 'FI-429-A']",
+        "- PUBLICATIONS.country_code samples: ['CR', 'CR', 'FI']",
+        "- PUBLICATIONS.kind_code samples: ['A', 'A', 'A']",
+        "- PUBLICATIONS.spif_publication_number samples: ['', '', '']",
+        "- PUBLICATIONS.publication_date samples: ['19980507', '19991217', '18920810']",
+        "- PUBLICATIONS.ipc samples: ['[\\n  {\\n    \"code\": \"G01N21/01\",\\n    \"firs', '[]', '[\\n  {\\n    \"code\": \"C10C1/00\",\\n    \"first']",
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']"
+      ],
+      "probe_trace": [
+        "probe PATENTS.PATENTS.PUBLICATIONS: 6 cols ok, 6 relevant",
+        "probe PATENTS.PATENTS.DISCLOSURES_13: 2 cols ok, 2 relevant",
+        "cloud probes: 2 SQL, 8 hints"
+      ],
+      "exec_trace": [
+        "generate: ok rows=7"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 7
+    },
+    {
+      "instance_id": "sf_bq214",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "For United States utility patents under the B2 classification granted between 2010 and 2014, find the one with the most forward citations within a month of its filing date, and identify the most similar patent from the same filing year, regardless of its type.",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "WITH b2_patents AS (\n    SELECT \n        p.publication_number,\n        p.filing_date,\n        p.publication_date,\n        p.family_id,\n        p.citation\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS p\n    WHERE p.country_code = 'US'\n      AND p.kind_code = 'B2'\n      AND p.publication_date >= 20100101\n      AND p.publication_date < 20150101\n),\nforward_citations AS (\n    SELECT \n        b.publication_number,\n        b.filing_date,\n        COUNT(*) AS forward_citation_count\n    FROM b2_patents b\n    CROSS JOIN LATERAL FLATTEN(input => b.citation) AS cit\n    WHERE cit.value:\"publication_date\"::NUMBER >= b.filing_date\n      AND cit.value:\"publication_date\"::NUMBER < (b.filing_date + 100) -- within a month (approximate 100 days)\n    GROUP BY b.publication_number, b.filing_date\n),\ntop_patent AS (\n    SELECT \n        publication_number,\n        filing_date\n    FROM forward_citations\n    ORDER BY forward_citation_count DESC\n    LIMIT 1\n),\ntop_filing_year AS (\n    SELECT \n        FLOOR(t.filing_date / 10000) AS filing_year\n    FROM top_patent t\n),\nsimilar_patents AS (\n    SELECT \n        a2.publication_number,\n        ARRAY_AGG(a1.publication_number) WITHIN GROUP (ORDER BY \n            (SELECT SUM(v1.value * v2.value) \n             FROM LATERAL FLATTEN(input => a1.embedding_v1) v1\n             JOIN LATERAL FLATTEN(input => a2.embedding_v1) v2 ON v1.index = v2.index)\n        DESC) AS similar_ranked\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB a1\n    CROSS JOIN PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB a2\n    WHERE a1.publication_number = (SELECT publication_number FROM top_patent)\n      AND a2.publication_number != a1.publication_number\n      AND FLOOR(SUBSTR(a2.publication_number, 1, 4)::NUMBER) = (SELECT filing_year FROM top_filing_year)\n    GROUP BY a2.publication_number\n)\nSELECT \n    s.publication_number AS most_similar_patent\nFROM similar_patents s\nORDER BY s.similar_ranked[0] DESC\nLIMIT 1",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2703,
+      "selected_tables": [
+        "DISCLOSURES_13(0.27)",
+        "PUBLICATIONS(0.18)",
+        "ABS_AND_EMB(0.09)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- DISCLOSURES_13.patent_owner_harmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.patent_owner_unharmonized samples: ['3M', '3M', '3M']",
+        "- DISCLOSURES_13.date samples: ['19751124', '19751124', '19751229']",
+        "- DISCLOSURES_13.blanket_type samples: ['0', '0', '0']",
+        "- PUBLICATIONS.filing_date samples: ['0', '0', '19661104']",
+        "- PUBLICATIONS.publication_date samples: ['0', '0', '19671103']",
+        "- PUBLICATIONS.grant_date samples: ['0', '0', '19671103']",
+        "- PUBLICATIONS.priority_date samples: ['0', '0', '19651105']",
+        "- PUBLICATIONS.citation samples: ['[]', '[]', '[]']"
+      ],
+      "probe_trace": [
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.DISCLOSURES_13: 4 cols ok, 4 relevant",
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS: 5 cols ok, 5 relevant",
+        "cloud probes: 2 SQL, 9 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 3 at position 8\ninvalid identi",
+        "repair1: error 000002 (0A000): Unsupported feature 'lateral table function called with OUTER JO",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq216",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "Identify the top five patents filed in the same year as `US-9741766-B2` that are most similar to it based on technological similarities. Please provide the publication numbers.",
+      "external_knowledge": "patents_info.md",
+      "pred_sql": "WITH target_patent AS (\n    SELECT \n        \"publication_number\",\n        EXTRACT(YEAR FROM TO_DATE(\"publication_date\"::VARCHAR, 'YYYYMMDD')) AS filing_year,\n        \"embedding_v1\"\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB\n    WHERE \"publication_number\" = 'US-9741766-B2'\n),\nsame_year_patents AS (\n    SELECT \n        a.\"publication_number\",\n        a.\"embedding_v1\"\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB a\n    JOIN PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS p\n        ON a.\"publication_number\" = p.\"publication_number\"\n    WHERE EXTRACT(YEAR FROM TO_DATE(p.\"publication_date\"::VARCHAR, 'YYYYMMDD')) = (SELECT filing_year FROM target_patent)\n        AND a.\"publication_number\" != 'US-9741766-B2'\n        AND a.\"embedding_v1\" IS NOT NULL\n),\nsimilarity_scores AS (\n    SELECT \n        s.\"publication_number\",\n        (SELECT SUM(t.val * s.val) \n         FROM LATERAL FLATTEN(input => t.\"embedding_v1\") t,\n              LATERAL FLATTEN(input => s.\"embedding_v1\") s\n         WHERE t.index = s.index) AS similarity\n    FROM target_patent t, same_year_patents s\n)\nSELECT \"publication_number\"\nFROM similarity_scores\nORDER BY similarity DESC\nLIMIT 5",
+      "dialect": "Snowflake",
+      "schema_context_chars": 1867,
+      "selected_tables": [
+        "ABS_AND_EMB(0.29)",
+        "PUBLICATIONS(0.14)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- ABS_AND_EMB.publication_number samples: ['CA-27-A', 'ES-81-Y', 'DE-303-C']",
+        "- ABS_AND_EMB.similar samples: ['[\\n  {\\n    \"application_number\": \"\",\\n    ', '[\\n  {\\n    \"application_number\": \"\",\\n    ', '[]']",
+        "- ABS_AND_EMB.publication_description samples: ['Patent', 'Utility model', 'Patent']",
+        "- PUBLICATIONS.publication_number samples: ['JP-1810118-C', 'JP-1203714-C', 'FR-1500580-A']",
+        "- PUBLICATIONS.publication_date samples: ['0', '0', '19671103']"
+      ],
+      "probe_trace": [
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB: 3 cols ok, 3 relevant",
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS: 2 cols ok, 2 relevant",
+        "cloud probes: 2 SQL, 5 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 4 at position 34\ninvalid ident",
+        "repair1: error 000904 (42000): SQL compilation error: error line 5 at position 8\ninvalid identi",
+        "repair1: discarded (no improvement)"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": false,
+      "final_rows": 0
+    },
+    {
+      "instance_id": "sf_bq247",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "From the publications dataset, first identify the top six families with the most publications whose family_id is not '-1'. Then, using the abs_and_emb table (joined on publication_number), provide each of those families’ IDs alongside every non-empty abstract associated with their publications.",
+      "external_knowledge": "",
+      "pred_sql": "WITH top_families AS (\n    SELECT \n        \"family_id\",\n        COUNT(*) AS publication_count\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS\n    WHERE \"family_id\" != '-1'\n    GROUP BY \"family_id\"\n    ORDER BY publication_count DESC\n    LIMIT 6\n)\nSELECT \n    tf.\"family_id\",\n    ae.\"abstract\"\nFROM top_families tf\nJOIN PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS p\n    ON tf.\"family_id\" = p.\"family_id\"\nJOIN PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB ae\n    ON p.\"publication_number\" = ae.\"publication_number\"\nWHERE ae.\"abstract\" IS NOT NULL AND ae.\"abstract\" != ''\nORDER BY tf.\"family_id\"",
+      "dialect": "Snowflake",
+      "schema_context_chars": 2746,
+      "selected_tables": [
+        "ABS_AND_EMB(0.48)",
+        "PUBLICATIONS(0.43)",
+        "DISCLOSURES_13(0.10)"
+      ],
+      "repairs": 1,
+      "probe_sql": 4,
+      "probe_hints": [
+        "- ABS_AND_EMB.publication_number samples: ['CA-27-A', 'ES-81-Y', 'DE-303-C']",
+        "- ABS_AND_EMB.abstract samples: ['', '', '']",
+        "- ABS_AND_EMB.abstract_translated samples: ['False', 'False', 'False']",
+        "- ABS_AND_EMB.publication_description samples: ['Patent', 'Utility model', 'Patent']",
+        "- PUBLICATIONS.publication_number samples: ['JP-1810118-C', 'JP-1203714-C', 'FR-1500580-A']",
+        "- PUBLICATIONS.family_id samples: ['16434890', '4349252', '24014930']",
+        "- PUBLICATIONS.abstract_localized samples: ['[]', '[]', '[]']",
+        "- PUBLICATIONS.publication_date samples: ['0', '0', '19671103']"
+      ],
+      "probe_trace": [
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB: 4 cols ok, 4 relevant",
+        "literal-miss '-1' in publication_number",
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS: 4 cols ok, 4 relevant",
+        "literal-miss '-1' in publication_number",
+        "cloud probes: 4 SQL, 8 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 3 at position 8\ninvalid identi",
+        "repair1: ok rows=18"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 18
+    },
+    {
+      "instance_id": "sf_bq127",
+      "db_id": "PATENTS_GOOGLE",
+      "backend": "snowflake",
+      "question": "For each publication family whose earliest publication was first published in January 2015, please provide the earliest publication date, the distinct publication numbers, their country codes, the distinct CPC and IPC codes, distinct families (namely, the ids) that cite and are cited by this publication family. Please present all lists as comma-separated values, sorted alphabetically",
+      "external_knowledge": "",
+      "pred_sql": "WITH earliest_publications AS (\n    SELECT \n        \"family_id\",\n        MIN(\"publication_date\") AS earliest_publication_date\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS\n    WHERE \"publication_date\" >= 20150101 AND \"publication_date\" < 20150201\n    GROUP BY \"family_id\"\n),\nfamily_publications AS (\n    SELECT \n        p.\"family_id\",\n        p.\"publication_date\",\n        p.\"publication_number\",\n        p.\"country_code\",\n        p.\"cpc\",\n        p.\"ipc\",\n        p.\"citation\"\n    FROM PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS p\n    INNER JOIN earliest_publications ep ON p.\"family_id\" = ep.\"family_id\"\n),\ncpc_codes AS (\n    SELECT \n        fp.\"family_id\",\n        LISTAGG(DISTINCT c.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY c.value::VARCHAR) AS cpc_list\n    FROM family_publications fp,\n    LATERAL FLATTEN(input => fp.\"cpc\") c\n    GROUP BY fp.\"family_id\"\n),\nipc_codes AS (\n    SELECT \n        fp.\"family_id\",\n        LISTAGG(DISTINCT i.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY i.value::VARCHAR) AS ipc_list\n    FROM family_publications fp,\n    LATERAL FLATTEN(input => fp.\"ipc\") i\n    GROUP BY fp.\"family_id\"\n),\nciting_families AS (\n    SELECT \n        fp.\"family_id\",\n        LISTAGG(DISTINCT cit.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY cit.value::VARCHAR) AS citing_family_ids\n    FROM family_publications fp,\n    LATERAL FLATTEN(input => fp.\"citation\") cit\n    WHERE cit.value LIKE '%-%'\n    GROUP BY fp.\"family_id\"\n),\ncited_by_families AS (\n    SELECT \n        fp.\"family_id\",\n        LISTAGG(DISTINCT cb.value::VARCHAR, ', ') WITHIN GROUP (ORDER BY cb.value::VARCHAR) AS cited_by_family_ids\n    FROM family_publications fp\n    INNER JOIN PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS p2 ON p2.\"family_id\" = fp.\"family_id\"\n    CROSS JOIN LATERAL FLATTEN(input => p2.\"citation\") cb\n    WHERE cb.value LIKE '%-%'\n    GROUP BY fp.\"family_id\"\n)\nSELECT \n    ep.earliest_publication_date,\n    LISTAGG(DISTINCT fp.\"publication_number\", ', ') WITHIN GROUP (ORDER BY fp.\"publication_number\") AS publication_numbers,\n    LISTAGG(DISTINCT fp.\"country_code\", ', ') WITHIN GROUP (ORDER BY fp.\"country_code\") AS country_codes,\n    COALESCE(cpc.cpc_list, '') AS cpc_codes,\n    COALESCE(ipc.ipc_list, '') AS ipc_codes,\n    COALESCE(citing.citing_family_ids, '') AS citing_family_ids,\n    COALESCE(cited.cited_by_family_ids, '') AS cited_by_family_ids\nFROM earliest_publications ep\nINNER JOIN family_publications fp ON ep.\"family_id\" = fp.\"family_id\"\nLEFT JOIN cpc_codes cpc ON ep.\"family_id\" = cpc.\"family_id\"\nLEFT JOIN ipc_codes ipc ON ep.\"family_id\" = ipc.\"family_id\"\nLEFT JOIN citing_families citing ON ep.\"family_id\" = citing.\"family_id\"\nLEFT JOIN cited_by_families cited ON ep.\"family_id\" = cited.\"family_id\"\nGROUP BY ep.\"family_id\", ep.earliest_publication_date, cpc.cpc_list, ipc.ipc_list, citing.citing_family_ids, cited.cited_by_family_ids\nORDER BY ep.earliest_publication_date",
+      "dialect": "Snowflake",
+      "schema_context_chars": 3490,
+      "selected_tables": [
+        "PUBLICATIONS(0.43)",
+        "ABS_AND_EMB(0.29)",
+        "DISCLOSURES_13(0.14)",
+        "CPC_DEFINITION(0.11)"
+      ],
+      "repairs": 1,
+      "probe_sql": 2,
+      "probe_hints": [
+        "- PUBLICATIONS.country_code samples: ['JP', 'JP', 'FR']",
+        "- PUBLICATIONS.publication_date samples: ['0', '0', '19671103']",
+        "- PUBLICATIONS.publication_number samples: ['JP-1810118-C', 'JP-1203714-C', 'FR-1500580-A']",
+        "- PUBLICATIONS.kind_code samples: ['C', 'C', 'A']",
+        "- PUBLICATIONS.family_id samples: ['16434890', '4349252', '24014930']",
+        "- PUBLICATIONS.filing_date samples: ['0', '0', '19661104']",
+        "- ABS_AND_EMB.publication_number samples: ['CA-27-A', 'ES-81-Y', 'DE-303-C']",
+        "- ABS_AND_EMB.cpc samples: ['[]', '[]', '[\\n  {\\n    \"code\": \"F21L21/00\",\\n    \"firs']",
+        "- ABS_AND_EMB.cpc_low samples: ['[]', '[]', '[\\n  \"F21L21/00\",\\n  \"F21L\",\\n  \"F21\",\\n  \"F']",
+        "- ABS_AND_EMB.cpc_inventive_low samples: ['[]', '[]', '[\\n  \"F21L21/00\",\\n  \"F21L\",\\n  \"F21\",\\n  \"F']",
+        "- ABS_AND_EMB.country samples: ['CANADA', 'SPAIN', 'FEDERAL REPUBLIC GERMANY']",
+        "- ABS_AND_EMB.publication_description samples: ['Patent', 'Utility model', 'Patent']"
+      ],
+      "probe_trace": [
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.PUBLICATIONS: 6 cols ok, 6 relevant",
+        "probe PATENTS_GOOGLE.PATENTS_GOOGLE.ABS_AND_EMB: 6 cols ok, 6 relevant",
+        "cloud probes: 2 SQL, 12 hints"
+      ],
+      "exec_trace": [
+        "generate: error 000904 (42000): SQL compilation error: error line 41 at position 29\ninvalid iden",
+        "repair1: ok rows=50"
+      ],
+      "est_gb": null,
+      "consensus": "off",
+      "final_exec_ok": true,
+      "final_rows": 50
+    }
+  ],
+  "elapsed_sec": 185.5
+}
