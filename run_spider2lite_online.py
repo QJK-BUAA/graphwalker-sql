@@ -38,7 +38,8 @@ from gws2.datasets import Example, load_spider2_lite_local
 from gws2.llm import LLM
 from gws2.online_schema import build_compressed_context, load_online_schema
 from gws2.pipeline import AblationConfig, load_db, run_pipeline
-from gws2.prompts import PROMPT_SPIDER2_ONLINE_REPAIR, PROMPT_SPIDER2_ONLINE_SQL
+from gws2.prompts import (PROMPT_SNOWFLAKE_DIALECT, PROMPT_SPIDER2_ONLINE_REPAIR,
+                          PROMPT_SPIDER2_ONLINE_SQL)
 
 
 SPIDER2_ROOT = Path(config.SPIDER2_ROOT)
@@ -255,10 +256,13 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
 
     hints_block = ("\n".join(probe_hints) if probe_hints
                    else "(no remote probe evidence)")
+    dialect_block = ("\n\n" + PROMPT_SNOWFLAKE_DIALECT
+                     if ex.backend == "snowflake" else "")
     system = PROMPT_SPIDER2_ONLINE_SQL.format(
         dialect=dialect,
         schema_context=schema_context + "\n\nRemote probe evidence (sampled live "
-        "from the database; prefer these real columns/values):\n" + hints_block,
+        "from the database; prefer these real columns/values):\n" + hints_block
+        + dialect_block,
         external_knowledge=external,
         question=ex.question,
     )
@@ -278,10 +282,14 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
             break
         problem = _problem_label(res)
         feedback = res.error or "the query executed but returned an empty result"
+        # dialect-aware repair hint: map the Snowflake error to a concrete rewrite
+        feedback = feedback[:1500] + _snowflake_repair_hint(ex.backend, feedback)
+        sc = schema_context + (("\n\n" + PROMPT_SNOWFLAKE_DIALECT)
+                               if ex.backend == "snowflake" else "")
         repair_sys = PROMPT_SPIDER2_ONLINE_REPAIR.format(
-            dialect=dialect, problem=problem, schema_context=schema_context,
+            dialect=dialect, problem=problem, schema_context=sc,
             external_knowledge=external, question=ex.question, sql=sql,
-            feedback=feedback[:1500],
+            feedback=feedback,
         )
         rsql = _extract_sql(llm.complete(repair_sys, "Repair the query.",
                                          temperature=0.0))
@@ -344,6 +352,33 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
     meta["final_exec_ok"] = res.ok
     meta["final_rows"] = res.n_shown
     return sql, meta
+
+
+def _snowflake_repair_hint(backend: str, error: str) -> str:
+    """Map a Snowflake compile error to a concrete rewrite instruction."""
+    if backend != "snowflake" or not error:
+        return ""
+    e = error.lower()
+    if "unsupported subquery" in e:
+        return ("\nHINT: Snowflake cannot evaluate this correlated subquery. "
+                "Move the FLATTEN/aggregation into a CTE grouped by the join key, "
+                "then JOIN that CTE back to the main table.")
+    if "lateral" in e and ("outer join" in e or "unsupported feature" in e):
+        return ("\nHINT: do not use CROSS JOIN LATERAL FLATTEN with an OUTER JOIN. "
+                "Use a comma lateral `, LATERAL FLATTEN(input => x) f`, or "
+                "`LATERAL FLATTEN(input => x, OUTER => TRUE)`.")
+    if "can't parse" in e or "as date" in e:
+        return ("\nHINT: an integer date has a 0/NULL sentinel. Use "
+                "`TO_DATE(TO_VARCHAR(NULLIF(col, 0)), 'YYYYMMDD')` and filter "
+                "col > 0 before any date math.")
+    if "unknown function" in e or "does not exist" in e and "function" in e:
+        return ("\nHINT: use a Snowflake-native function (DATEADD, DATE_TRUNC, "
+                "ARRAY_SIZE, LISTAGG, IFF, TO_DATE/TO_VARCHAR); avoid BigQuery-only "
+                "names like SAFE_CAST/PARSE_DATE/GENERATE_DATE_ARRAY.")
+    if "invalid identifier" in e:
+        return ("\nHINT: use the exact 3-part DATABASE.SCHEMA.TABLE name given, and "
+                "keep double-quoted case-sensitive column names as shown.")
+    return ""
 
 
 def _problem_label(res) -> str:

@@ -307,3 +307,32 @@ _TABLE_SUFFIX, WHERE, or a narrower table) so the scan is smaller.
 - Keep the answer's column shape aligned with what the question asks.
 
 SQL:"""
+
+
+# Snowflake dialect cheat-sheet. Injected into generate + repair prompts for the
+# snowflake backend. Each rule targets a concrete failure seen on Spider2-Lite
+# PATENTS/GOOGLE (Unsupported subquery, lateral+OUTER JOIN, date sentinels,
+# VARIANT access, unknown functions).
+PROMPT_SNOWFLAKE_DIALECT = """Snowflake dialect rules (follow strictly):
+1. VARIANT/array columns (e.g. "citation", "inventor", "abstract_localized"):
+   flatten with `, LATERAL FLATTEN(input => t."col") f` and read elements as
+   `f.value:"key"::TYPE` (e.g. f.value:"name"::STRING). Do NOT use BigQuery
+   UNNEST.
+2. NEVER put a LATERAL FLATTEN inside a correlated scalar subquery that
+   references the outer row (Snowflake raises "Unsupported subquery type cannot
+   be evaluated"). Instead pre-aggregate in a CTE: flatten + GROUP BY the key,
+   then JOIN that CTE back to the main table.
+3. Do NOT combine `CROSS JOIN LATERAL FLATTEN(...)` with an OUTER JOIN. Use a
+   plain comma lateral `, LATERAL FLATTEN(input => x) f`, or
+   `LATERAL FLATTEN(input => x, OUTER => TRUE)` when you need to keep rows with
+   empty arrays.
+4. Integer date columns stored as YYYYMMDD (e.g. "publication_date",
+   "filing_date") often use 0 as a missing sentinel. Guard before parsing:
+   `TO_DATE(TO_VARCHAR(NULLIF(x, 0)), 'YYYYMMDD')`, and filter `x > 0` (or
+   `BETWEEN` a real range) before any date math. Never TO_DATE a raw 0.
+5. Prefer JOINs / window functions over correlated subqueries. Replace
+   `(SELECT COUNT(*) ... WHERE inner.k = outer.k)` with a GROUP BY CTE + JOIN.
+6. Use Snowflake functions: DATEADD/DATEDIFF, DATE_TRUNC('MONTH', d),
+   ARRAY_SIZE(arr), LISTAGG, IFF, TO_VARCHAR/TO_DATE. Avoid BigQuery-only names
+   (SAFE_CAST, PARSE_DATE, GENERATE_DATE_ARRAY, APPROX_*).
+7. Keep double-quoted, case-sensitive column identifiers exactly as shown."""
