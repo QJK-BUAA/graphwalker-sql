@@ -46,6 +46,10 @@ ABLATION_PRESETS = {
     "noadaptive": {"use_adaptive_schema": False},
     # Point 2b: restore the hard structural-mismatch repair gate (default is soft).
     "hardstruct": {"soft_structure": False},
+    # Pre-improvement baseline: all three new components OFF at once, i.e. the
+    # method as it was before this branch. Measures the TOTAL lift of the changes.
+    "prebaseline": {"use_concept_align": False, "use_adaptive_schema": False,
+                    "soft_structure": False},
     # Opt-in variant: require structural join evidence before accepting a
     # Propose-suggested missing table. BIRD n=100 rerun: 47 vs 48 for default,
     # so it is kept as a studied ablation rather than default.
