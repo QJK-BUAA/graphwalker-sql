@@ -475,6 +475,52 @@ def _cols_are_subset(ex_new: dict, ex_old: dict) -> bool:
     return True
 
 
+def _result_sig(ex: dict):
+    """Order-insensitive multiset signature of an execution result.
+
+    Returns None for failed OR empty results, so they get no consensus vote
+    (empty/failed answers are usually wrong and should not win a majority).
+    """
+    if not ex.get("ok"):
+        return None
+    rows = ex.get("rows") or []
+    if not rows:
+        return None
+    return repr(sorted(tuple(str(x) for x in r) for r in rows))
+
+
+def _generate_consensus(question: str, schema: Schema, linked: list[str],
+                        joins: list[str], hints: str, llm: LLM, dialect: str,
+                        ctx: str, ev: str, skeleton: dict, sqlite_path: str,
+                        k: int) -> tuple[str, dict, list[str]]:
+    """Multi-candidate generation + execution-result majority vote (ReFoRCE/SOMA
+    style). Draws k candidate SQLs (LLM run-to-run variance supplies diversity,
+    which matters for reasoning models that ignore temperature), executes each,
+    and returns the SQL whose result set the plurality of candidates agree on.
+    Falls back to any executable candidate, else the first."""
+    from collections import Counter
+    cands: list[tuple[str, dict, object]] = []
+    for _ in range(k):
+        sql = generate_sql(question, schema, linked, joins, hints, llm,
+                           dialect=dialect, schema_context=ctx, evidence=ev,
+                           skeleton=skeleton)
+        ex = run_query(sqlite_path, sql)
+        cands.append((sql, ex, _result_sig(ex)))
+    votes = Counter(s for _, _, s in cands if s is not None)
+    steps = [f"consensus: {k} candidates, "
+             f"{len(votes)} distinct non-empty results, "
+             f"top_vote={votes.most_common(1)[0][1] if votes else 0}"]
+    if votes:
+        best_sig = votes.most_common(1)[0][0]
+        for sql, ex, s in cands:
+            if s == best_sig:
+                return sql, ex, steps
+    for sql, ex, s in cands:              # no agreeing non-empty result
+        if ex.get("ok"):
+            return sql, ex, steps
+    return cands[0][0], cands[0][1], steps
+
+
 def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
            explore_res: ExploreResult, belief: BeliefState, sqlite_path: str,
            llm: LLM, dialect: str = "SQLite", schema_context: str | None = None,
@@ -486,7 +532,8 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
            use_structure_plan: bool = True,
            concept_bindings: dict | None = None,
            use_adaptive_schema: bool = True,
-           soft_structure: bool = True) -> CommitResult:
+           soft_structure: bool = True,
+           n_candidates: int = 1) -> CommitResult:
     steps: list[str] = []
     linked = list(explore_res.linked_tables)
     joins = list(explore_res.join_conditions)
@@ -556,11 +603,17 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
                                         evidence=ev)
         steps.append(f"structure-plan -> {_skeleton_text(skeleton)}")
 
-    sql = generate_sql(question, schema, linked, joins, hints, llm,
-                       dialect=dialect, schema_context=ctx, evidence=ev,
-                       skeleton=skeleton)
+    if n_candidates and n_candidates > 1:
+        sql, ex, cons_steps = _generate_consensus(
+            question, schema, linked, joins, hints, llm, dialect, ctx, ev,
+            skeleton, sqlite_path, n_candidates)
+        steps.extend(cons_steps)
+    else:
+        sql = generate_sql(question, schema, linked, joins, hints, llm,
+                           dialect=dialect, schema_context=ctx, evidence=ev,
+                           skeleton=skeleton)
+        ex = run_query(sqlite_path, sql)
     struct_feedback = structural_feedback(sql, skeleton) if use_structure_plan else []
-    ex = run_query(sqlite_path, sql)
     steps.append(f"generate -> ok={ex.get('ok')} "
                  f"rows={ex.get('n_shown') if ex.get('ok') else ex.get('error')}")
     if struct_feedback:

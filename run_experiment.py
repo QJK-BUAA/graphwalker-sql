@@ -85,6 +85,9 @@ def main():
     ap.add_argument("--ablation", default="full", choices=list(ABLATION_PRESETS))
     ap.add_argument("--workers", type=int, default=1,
                     help="concurrent worker threads (LLM calls are IO-bound)")
+    ap.add_argument("--candidates", type=int, default=1,
+                    help="multi-candidate generation + result-consensus at Commit "
+                         "(1 = single SQL; >1 = majority vote over K executions)")
     ap.add_argument("--outdir", default="outputs")
     ap.add_argument("--no-eval", action="store_true", help="skip official eval")
     ap.add_argument("--with-snapshot", action="store_true",
@@ -93,6 +96,8 @@ def main():
     args = ap.parse_args()
 
     ablation = build_ablation(args.ablation)
+    if args.candidates and args.candidates > 1:
+        ablation.n_candidates = args.candidates
     llm = LLM(model=args.model, seed=args.seed)
     limit = None if args.full else args.limit
     examples = load_and_sample(args.dataset, limit, seed=args.seed)

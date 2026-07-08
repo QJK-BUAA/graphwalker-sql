@@ -53,6 +53,10 @@ class AblationConfig:
     # noise; gating them off there recovers the clean-schema accuracy while
     # keeping the FK-sparse gain. Set False (nogate) to apply them everywhere.
     gate_by_graph: bool = True
+    # Multi-candidate generation + execution-result majority vote at Commit
+    # (ReFoRCE/SOMA style). 1 = single SQL (default, cost-minimal). >1 trades
+    # cost for robustness on hard analytical questions (Spider2).
+    n_candidates: int = 1
     # Optional variant: require join evidence for Propose-added tables. BIRD n=100
     # rerun was slightly negative (47 vs 48), so keep it as an ablation rather
     # than the default method.
@@ -83,6 +87,8 @@ class AblationConfig:
         if self.use_evidence_injection: variants.append("evidenceblock")
         if self.use_propose_evidence_gate: variants.append("propgate")
         if self.use_column_align: variants.append("colalign")
+        if self.n_candidates and self.n_candidates > 1:
+            variants.append(f"k{self.n_candidates}")
         if core_full:
             return "+".join(variants) if variants else "full"
         off = []
@@ -225,7 +231,8 @@ def run_pipeline(
                 use_structure_plan=ab.use_structure_plan,
                 concept_bindings=belief.concept_bindings,
                 use_adaptive_schema=eff_adaptive,
-                soft_structure=eff_soft)
+                soft_structure=eff_soft,
+                n_candidates=ab.n_candidates)
     trace.extend(f"commit: {s}" for s in cm.steps)
 
     return GWSResult(
