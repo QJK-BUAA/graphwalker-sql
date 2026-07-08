@@ -98,6 +98,7 @@ def main():
                     ("noconcept", dict(use_concept_align=False)),
                     ("noadaptive", dict(use_adaptive_schema=False)),
                     ("hardstruct", dict(soft_structure=False)),
+                    ("nogate", dict(gate_by_graph=False)),
                     ("norepair", dict(max_repairs=0))]:
         res = run_pipeline(schema, ex.sqlite_path, ex.question, MockLLM(),
                            ablation=AblationConfig(**kw))

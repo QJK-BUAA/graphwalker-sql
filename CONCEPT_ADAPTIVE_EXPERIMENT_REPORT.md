@@ -67,15 +67,30 @@ Concept extraction adds ~1 LLM call/question (BIRD 4.25→5.1). Value/column pro
 (no LLM). On BIRD this extra cost buys nothing; on Spider2 the widening gain comes with no extra LLM
 call (noconcept, which drops the concept call, keeps the +8.3).
 
-## 5. Conclusion & recommended default
+## 5. Conclusion & the shipped default (graph-type gating)
 
-- **Do NOT default these ON for clean, declared-FK schemas (BIRD-style)** — they are net-negative there.
-- **DO default them ON for FK-sparse / inferred-graph settings (Spider2-style)** — +8.3 EX, driven by
+- **Do NOT apply these on clean, declared-FK schemas (BIRD-style)** — they are net-negative there.
+- **DO apply them on FK-sparse / inferred-graph settings (Spider2-style)** — +8.3 EX, driven by
   adaptive widening recovering missed tables.
-- Recommended next step: **gate the new mechanisms on graph type** (inferred graph → on; declared FK →
-  off/conservative), i.e. an adaptive default that keeps the Spider2 gain without the BIRD regression.
 - For a paper, the BIRD-negative / Spider2-positive **contrast is itself the finding**: grounding-focused
   belief refinement helps iff grounding is the bottleneck.
+
+**Implemented as the default (`gate_by_graph`, `gws2/pipeline.py`).** The three mechanisms are gated on an
+observable per-question signal — whether the schema graph is *inferred* (no usable declared FKs → grounding
+is uncertain). Declared-FK questions run the tight/hard baseline; inferred-graph questions run the full
+mechanisms. Verified on the real model:
+
+| BIRD n=10 | LLM calls/q |
+|---|---:|
+| default (gated → mechanisms off on declared FK) | 4.2 |
+| `nogate` (mechanisms forced on) | 5.1 |
+
+So the gated default recovers the clean-schema baseline **at lower cost** (the concept-extraction call is
+skipped on BIRD) while keeping the Spider2 gain. By construction the gated default equals `prebaseline` on
+BIRD (≈51 EX) and `full` on Spider2 (37.5 EX). Use `--ablation nogate` to apply the mechanisms everywhere.
+
+> Remaining validation: confirm the Spider2 gain on the 135-question local set and/or multiple seeds
+> (current Spider2 result is n=24, where 2 questions ≈ 8 EX).
 
 > Caveats: Spider2-lite local is only n=24 (±~8 EX per 2 questions); confirm on the 135-question local
 > set and/or multiple seeds before headline claims. BIRD n=100 variants fall in a 47–51 band that is

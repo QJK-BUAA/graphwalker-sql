@@ -46,6 +46,13 @@ class AblationConfig:
     # Point 2b: soft skeleton -- a structural mismatch is a hint, not a forced
     # repair. Set False (hardstruct) to restore the hard structural repair gate.
     soft_structure: bool = True
+    # Gate the three grounding-focused mechanisms (concept/adaptive/soft) on an
+    # OBSERVABLE per-question signal: whether the schema graph is inferred
+    # (FK-sparse -> grounding is the bottleneck). On declared-FK schemas the
+    # pipeline already grounds tables well, so the mechanisms only add prompt
+    # noise; gating them off there recovers the clean-schema accuracy while
+    # keeping the FK-sparse gain. Set False (nogate) to apply them everywhere.
+    gate_by_graph: bool = True
     # Optional variant: require join evidence for Propose-added tables. BIRD n=100
     # rerun was slightly negative (47 vs 48), so keep it as an ablation rather
     # than the default method.
@@ -70,7 +77,8 @@ class AblationConfig:
                          self.use_topk, self.use_probes, self.use_column_probes,
                          self.use_structure_plan, self.use_entropy_stop,
                          self.use_propose, self.use_concept_align,
-                         self.use_adaptive_schema, self.soft_structure])
+                         self.use_adaptive_schema, self.soft_structure,
+                         self.gate_by_graph])
         variants = []
         if self.use_evidence_injection: variants.append("evidenceblock")
         if self.use_propose_evidence_gate: variants.append("propgate")
@@ -89,6 +97,7 @@ class AblationConfig:
         if not self.use_concept_align: off.append("noconcept")
         if not self.use_adaptive_schema: off.append("noadaptive")
         if not self.soft_structure: off.append("hardstruct")
+        if not self.gate_by_graph: off.append("nogate")
         return "+".join(off + variants) if (off or variants) else "full"
 
 
@@ -153,6 +162,22 @@ def run_pipeline(
         trace.append("[w/o inferred graph] edges removed")
     trace.append(f"ground: graph={graph_obj.method} edges={graph_obj.n_edges}")
 
+    # Gate the grounding-focused mechanisms (concept alignment / adaptive schema
+    # widening / soft skeleton) on an OBSERVABLE per-question signal: an inferred
+    # graph means the schema declares no usable FKs, i.e. grounding is genuinely
+    # uncertain and these mechanisms pay off (Spider2-style). A declared-FK graph
+    # (BIRD-style) already grounds well, so we keep the tight/hard behaviour there
+    # to avoid the prompt noise measured in CONCEPT_ADAPTIVE_EXPERIMENT_REPORT.md.
+    grounding_uncertain = graph_obj.method == "inferred"
+    forced_off = ab.gate_by_graph and not grounding_uncertain
+    eff_concept = ab.use_concept_align and not forced_off
+    eff_adaptive = ab.use_adaptive_schema and not forced_off
+    eff_soft = ab.soft_structure and not forced_off
+    if ab.gate_by_graph:
+        trace.append(f"gate: graph={graph_obj.method} grounding_uncertain="
+                     f"{grounding_uncertain} -> concept={eff_concept} "
+                     f"adaptive={eff_adaptive} soft={eff_soft}")
+
     anchors = anchor(question, schema, llm, evidence=evidence)
     trace.append(f"anchor: src={anchors.sources} dst={anchors.destinations} "
                  f"literals={anchors.literals}")
@@ -165,7 +190,7 @@ def run_pipeline(
     # Point 1: decompose the query into concepts and bind each to its best column
     # via a white-box belief competition (reinforces column belief + hints).
     n_concept_probes = 0
-    if ab.use_concept_align:
+    if eff_concept:
         from .concept_align import align_query_concepts
         ca = align_query_concepts(question, schema, anchors, belief, sqlite_path,
                                   llm, evidence=evidence)
@@ -199,8 +224,8 @@ def run_pipeline(
                 use_propose_evidence_gate=ab.use_propose_evidence_gate,
                 use_structure_plan=ab.use_structure_plan,
                 concept_bindings=belief.concept_bindings,
-                use_adaptive_schema=ab.use_adaptive_schema,
-                soft_structure=ab.soft_structure)
+                use_adaptive_schema=eff_adaptive,
+                soft_structure=eff_soft)
     trace.extend(f"commit: {s}" for s in cm.steps)
 
     return GWSResult(

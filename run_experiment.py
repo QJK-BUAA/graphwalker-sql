@@ -50,6 +50,9 @@ ABLATION_PRESETS = {
     # method as it was before this branch. Measures the TOTAL lift of the changes.
     "prebaseline": {"use_concept_align": False, "use_adaptive_schema": False,
                     "soft_structure": False},
+    # Disable graph-type gating: apply the three mechanisms EVERYWHERE (including
+    # declared-FK schemas). Reproduces the "improvements on BIRD too" behaviour.
+    "nogate": {"gate_by_graph": False},
     # Opt-in variant: require structural join evidence before accepting a
     # Propose-suggested missing table. BIRD n=100 rerun: 47 vs 48 for default,
     # so it is kept as a studied ablation rather than default.

@@ -122,9 +122,15 @@ python tests/test_pipeline_mock.py
 | `nopropose` | Propose 证据检查点 | 防幻觉价值 |
 | `norepair` | Commit 的一次定向修正 | 干净版收益归因 |
 | `propgate` | 开启 Propose 加表的连通性证据门 | 验证“LLM 提名缺表必须有结构证据” |
-| `noconcept` | 关闭 Query-Centric Concept Alignment（默认开启） | 验证「以 query 为核心的 concept→列 消歧」的收益 |
-| `noadaptive` | 关闭置信度自适应 schema 扩窗（默认开启） | 验证「不确定时给生成端更多候选表」的收益 |
-| `hardstruct` | 恢复 skeleton 不匹配即强制 repair 的硬门（默认为软提示） | 验证「软化结构约束、留试错空间」的收益 |
+| `noconcept` | 关闭 Query-Centric Concept Alignment（默认开启，但受图门控） | 验证「以 query 为核心的 concept→列 消歧」的收益 |
+| `noadaptive` | 关闭置信度自适应 schema 扩窗（默认开启，但受图门控） | 验证「不确定时给生成端更多候选表」的收益 |
+| `hardstruct` | 恢复 skeleton 不匹配即强制 repair 的硬门（默认软提示，但受图门控） | 验证「软化结构约束、留试错空间」的收益 |
+| `nogate` | 关闭「按图类型自适应门控」，把三项改进用到**所有库**（含声明外键） | 复现「在 BIRD 上也开三项」的行为 |
+
+> **按图类型自适应门控（默认，`gate_by_graph`）**：上述三项改进只在**推断图（无外键 / 接地是瓶颈，Spider2 类）**上生效；
+> 在**声明外键图（BIRD 类，接地已解决）**上自动关闭、退回紧约束 + 硬骨架。判据是可观测的**每题信号**（图是否为 inferred），
+> 而非数据集名字。实测依据见 [CONCEPT_ADAPTIVE_EXPERIMENT_REPORT.md](CONCEPT_ADAPTIVE_EXPERIMENT_REPORT.md)：
+> 三项在 Spider2-lite local **+8.3 EX**，在 BIRD **−2 EX**——门控后 BIRD 回到基线、Spider2 保留增益。
 
 > **新增两项改进（针对错题分析中「表对列错 / 强约束不可恢复」两大瓶颈）：**
 > 1. **Query-Centric Concept Alignment（`gws2/concept_align.py`，Point 1）**：Ground 阶段把问题分解为 concept，
