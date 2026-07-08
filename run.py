@@ -42,9 +42,18 @@ def main():
     print(f"Linked tables: {res.linked_tables}")
     print(f"Chosen path  : {' -> '.join(res.chosen_path) or '(single/none)'}")
     print(f"Join conds   : {res.join_conditions}")
+    if res.widened_tables:
+        print(f"Widened tbls : {res.widened_tables} (optional, low-confidence)")
     print(f"Belief H     : {res.belief_entropy}  | path_probes={res.n_probes} "
           f"| column_probes={res.n_column_probes} "
+          f"| concept_probes={res.n_concept_probes} "
           f"| propose={res.propose_verdict} | repaired={res.repaired}")
+    if res.concept_bindings:
+        print("Concept bindings:")
+        for concept, b in list(res.concept_bindings.items())[:10]:
+            mark = "✓" if b.get("confident") else "?"
+            print(f"  [{mark}] {concept} ({b.get('role')}) -> {b.get('column')} "
+                  f"(score {b.get('score')})")
     if res.query_skeleton:
         print(f"Query skeleton: {res.query_skeleton}")
     if res.structural_feedback:

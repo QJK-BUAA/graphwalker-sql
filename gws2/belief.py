@@ -33,6 +33,7 @@ SCORE_GRAPH_PRIOR = 1.0         # edge came from a declared/high-conf inferred e
 SCORE_PROBE_NONEMPTY = 3.0      # execution probe returns rows with sane cardinality
 SCORE_PROBE_EMPTY = -3.0        # execution probe returns empty -> path likely wrong
 SCORE_TYPE_FIT = 1.0            # source/target types are compatible
+SCORE_CONCEPT_MATCH = 2.5       # a question concept resolved to its best column
 
 
 @dataclass
@@ -88,6 +89,10 @@ class BeliefState:
     columns: dict[str, Hypothesis] = field(default_factory=dict)   # "table.col"
     values: dict[str, Hypothesis] = field(default_factory=dict)    # literal string
     paths: dict[str, Hypothesis] = field(default_factory=dict)     # path id
+    # Query-centric concept -> column bindings (Point 1). Auditable record of the
+    # per-concept belief competition: {concept: {column, role, score, confirmed,
+    # alternatives}}. Written by concept_align, read by Commit's grounding hints.
+    concept_bindings: dict[str, dict] = field(default_factory=dict)
     trace: list[str] = field(default_factory=list)
 
     # -- generic helpers ---------------------------------------------------- #
@@ -136,6 +141,7 @@ class BeliefState:
             "columns": dump(self.columns),
             "values": dump(self.values),
             "paths": dump(self.paths),
+            "concept_bindings": self.concept_bindings,
             "entropy": {
                 "columns": round(self.family_entropy("column"), 4),
                 "values": round(self.family_entropy("value"), 4),

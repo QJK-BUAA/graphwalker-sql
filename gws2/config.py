@@ -85,6 +85,27 @@ COLUMN_PROBE_TIMEOUT = 5.0      # timeout per cheap column probe.
 # Commit phase.
 MAX_REPAIRS = 1                 # at most one targeted repair (kept minimal by design).
 
+# --------------------------------------------------------------------------- #
+# Query-centric concept alignment (Point 1). Turns "same concept -> which column"
+# into a white-box per-concept belief competition (lexical + table-anchor prior +
+# type fit + value hit + uniqueness). Local reads + at most ONE extra LLM call
+# (concept extraction); disabled by the `noconcept` ablation.
+# --------------------------------------------------------------------------- #
+CONCEPT_MAX_CONCEPTS = 8        # bounded concepts parsed from the question.
+CONCEPT_MAX_CANDIDATES = 6      # candidate columns scored per concept.
+CONCEPT_MAX_VALUE_PROBES = 16   # hard cap on literal-in-column probes per question.
+CONCEPT_PROBE_TIMEOUT = 5.0     # timeout per cheap value-hit probe.
+CONCEPT_MIN_MARGIN = 1.0        # score margin (top - 2nd) to call a binding confident.
+
+# --------------------------------------------------------------------------- #
+# Confidence-adaptive schema exposure (Point 2a). When belief is uncertain, widen
+# the generation schema with a bounded set of 1-hop graph neighbours so the model
+# can recover from a missed table instead of being locked to the MAP subgraph.
+# High-confidence questions keep the tight (linked-only) schema. `noadaptive` off.
+# --------------------------------------------------------------------------- #
+SCHEMA_WIDEN_MAX_TABLES = 6     # max 1-hop neighbour tables added when uncertain.
+ADAPTIVE_WIDEN_ENTROPY = 1.00   # widen when column-belief entropy >= this (bits).
+
 # Execution.
 EXEC_TIMEOUT = 30.0
 EXEC_MAX_ROWS = 2000

@@ -40,6 +40,12 @@ ABLATION_PRESETS = {
     "nostop": {"use_entropy_stop": False},
     "nopropose": {"use_propose": False},
     "norepair": {"max_repairs": 0},
+    # Point 1: query-centric concept -> column disambiguation (default ON).
+    "noconcept": {"use_concept_align": False},
+    # Point 2a: confidence-adaptive schema widening (default ON).
+    "noadaptive": {"use_adaptive_schema": False},
+    # Point 2b: restore the hard structural-mismatch repair gate (default is soft).
+    "hardstruct": {"soft_structure": False},
     # Opt-in variant: require structural join evidence before accepting a
     # Propose-suggested missing table. BIRD n=100 rerun: 47 vs 48 for default,
     # so it is kept as a studied ablation rather than default.
@@ -124,12 +130,15 @@ def main():
                 "sources": res.sources, "destinations": res.destinations,
                 "linked_tables": res.linked_tables, "chosen_path": res.chosen_path,
                 "n_probes": res.n_probes, "n_column_probes": res.n_column_probes,
+                "n_concept_probes": res.n_concept_probes,
                 "column_hints": res.column_hints,
+                "concept_bindings": res.concept_bindings,
                 "query_skeleton": res.query_skeleton,
                 "structural_feedback": res.structural_feedback,
                 "propose_verdict": res.propose_verdict,
                 "missing_added": res.missing_added,
-                "missing_rejected": res.missing_rejected, "repaired": res.repaired,
+                "missing_rejected": res.missing_rejected,
+                "widened_tables": res.widened_tables, "repaired": res.repaired,
                 "exec_ok": res.execution.get("ok"),
                 "exec_rows": res.execution.get("n_shown"),
                 "belief_entropy": res.belief_entropy, "trace": res.trace,

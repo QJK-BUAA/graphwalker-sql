@@ -42,6 +42,27 @@ Use only table names from the provided schema. If there are no literals, write \
 literals= (empty)."""
 
 # --------------------------------------------------------------------------- #
+# Ground: query-centric concept decomposition (Point 1).
+# The dominant BIRD/Spider error is "right table, wrong column" / a concept that
+# lives in several tables. Before grounding columns, decompose the QUESTION into
+# the atomic concepts it needs, each of which must map to exactly one column.
+# --------------------------------------------------------------------------- #
+PROMPT_CONCEPTS = """You decompose a natural-language question into the atomic \
+CONCEPTS it needs from the database, so each concept can later be grounded to a \
+single column.
+
+For every concept, output ONE line, EXACT format:
+concept=<short noun phrase> | role=output|filter | value=<literal or empty>
+
+Rules:
+- role=output: the concept is RETURNED / SELECTED, aggregated, or used to sort.
+- role=filter: the concept constrains rows (WHERE / HAVING). If the question gives \
+its literal value, put it in value= (e.g. value=Computer Science); else leave empty.
+- Use short phrases taken from the question's own wording (1-4 words).
+- One concept per line, at most 8 lines. Output nothing except these lines.
+- If the question only counts/returns rows, still output its main concept(s)."""
+
+# --------------------------------------------------------------------------- #
 # Explore: path disambiguation among top-k candidate join paths.
 # HTML section 3 (Explore) + POMDP action FindTopKPaths / Probe.
 # --------------------------------------------------------------------------- #
@@ -143,16 +164,17 @@ External Knowledge (MUST be applied literally):
 Grounding Hints (belief-derived; prefer these bindings):
 {hints}
 
-Planned Query Skeleton (MUST follow unless contradicted by schema evidence):
+Suggested Query Skeleton (a soft prior from a planner; usually right, but you MAY \
+deviate when the question or schema clearly calls for a different shape):
 {skeleton}
 
 Question:
 {question}
 
 Instructions:
-- Follow the Planned Query Skeleton: if it requires INTERSECT/UNION/EXCEPT, nested query, \
-GROUP BY/HAVING, ORDER BY/LIMIT, aggregation, or a specific SELECT arity, reflect that \
-structure in the SQL.
+- Treat the Suggested Query Skeleton as a helpful default, not a hard rule: prefer its \
+INTERSECT/UNION/EXCEPT, nesting, GROUP BY/HAVING, ORDER BY/LIMIT, aggregation and SELECT \
+arity, but override it if faithfully answering the question needs a different structure.
 - The External Knowledge above is authoritative: apply every definition, formula and \
 value mapping it gives (e.g. if it says a concept equals column=VALUE, add that filter; \
 if it defines a ratio as a/b, compute exactly that expression).

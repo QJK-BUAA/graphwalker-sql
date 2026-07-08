@@ -37,6 +37,15 @@ class AblationConfig:
     use_structure_plan: bool = True   # query skeleton before SQL generation
     use_entropy_stop: bool = True     # cost-gated early stop
     use_propose: bool = True          # evidence checkpoint before generation
+    # Point 1: query-centric concept -> column disambiguation (one extra LLM call
+    # for concept extraction + bounded local value probes).
+    use_concept_align: bool = True
+    # Point 2a: confidence-adaptive schema exposure -- widen the generation schema
+    # with bounded graph neighbours when belief is uncertain (else keep it tight).
+    use_adaptive_schema: bool = True
+    # Point 2b: soft skeleton -- a structural mismatch is a hint, not a forced
+    # repair. Set False (hardstruct) to restore the hard structural repair gate.
+    soft_structure: bool = True
     # Optional variant: require join evidence for Propose-added tables. BIRD n=100
     # rerun was slightly negative (47 vs 48), so keep it as an ablation rather
     # than the default method.
@@ -60,7 +69,8 @@ class AblationConfig:
         core_full = all([self.use_inferred_graph, self.use_belief_walk,
                          self.use_topk, self.use_probes, self.use_column_probes,
                          self.use_structure_plan, self.use_entropy_stop,
-                         self.use_propose])
+                         self.use_propose, self.use_concept_align,
+                         self.use_adaptive_schema, self.soft_structure])
         variants = []
         if self.use_evidence_injection: variants.append("evidenceblock")
         if self.use_propose_evidence_gate: variants.append("propgate")
@@ -76,6 +86,9 @@ class AblationConfig:
         if not self.use_structure_plan: off.append("nostruct")
         if not self.use_entropy_stop: off.append("nostop")
         if not self.use_propose: off.append("nopropose")
+        if not self.use_concept_align: off.append("noconcept")
+        if not self.use_adaptive_schema: off.append("noadaptive")
+        if not self.soft_structure: off.append("hardstruct")
         return "+".join(off + variants) if (off or variants) else "full"
 
 
@@ -93,12 +106,15 @@ class GWSResult:
     chosen_path: list[str] = field(default_factory=list)
     n_probes: int = 0
     n_column_probes: int = 0
+    n_concept_probes: int = 0
     column_hints: list[str] = field(default_factory=list)
+    concept_bindings: dict = field(default_factory=dict)
     query_skeleton: dict = field(default_factory=dict)
     structural_feedback: list[str] = field(default_factory=list)
     propose_verdict: str = ""
     missing_added: list[str] = field(default_factory=list)
     missing_rejected: list[str] = field(default_factory=list)
+    widened_tables: list[str] = field(default_factory=list)
     repaired: bool = False
     sql: str = ""
     execution: dict = field(default_factory=dict)
@@ -146,6 +162,16 @@ def run_pipeline(
     trace.append(f"belief0: colH={belief.family_entropy('column'):.3f} "
                  f"valH={belief.family_entropy('value'):.3f}")
 
+    # Point 1: decompose the query into concepts and bind each to its best column
+    # via a white-box belief competition (reinforces column belief + hints).
+    n_concept_probes = 0
+    if ab.use_concept_align:
+        from .concept_align import align_query_concepts
+        ca = align_query_concepts(question, schema, anchors, belief, sqlite_path,
+                                  llm, evidence=evidence)
+        n_concept_probes = ca.n_value_probes
+        trace.extend(f"concept: {s}" for s in ca.steps)
+
     # ----------------------------------------------------------------- Explore
     ex_res = explore(question, schema, graph_obj, anchors.sources,
                      anchors.destinations, belief, sqlite_path, llm,
@@ -171,7 +197,10 @@ def run_pipeline(
                 evidence=evidence, use_evidence_injection=ab.use_evidence_injection,
                 use_column_align=ab.use_column_align,
                 use_propose_evidence_gate=ab.use_propose_evidence_gate,
-                use_structure_plan=ab.use_structure_plan)
+                use_structure_plan=ab.use_structure_plan,
+                concept_bindings=belief.concept_bindings,
+                use_adaptive_schema=ab.use_adaptive_schema,
+                soft_structure=ab.soft_structure)
     trace.extend(f"commit: {s}" for s in cm.steps)
 
     return GWSResult(
@@ -181,10 +210,14 @@ def run_pipeline(
         linked_tables=cm.linked_tables, join_conditions=cm.join_conditions,
         chosen_path=ex_res.chosen_path.tables if ex_res.chosen_path else [],
         n_probes=ex_res.n_probes, n_column_probes=ex_res.n_column_probes,
-        column_hints=ex_res.column_hints, query_skeleton=cm.query_skeleton,
+        n_concept_probes=n_concept_probes,
+        column_hints=ex_res.column_hints,
+        concept_bindings=belief.concept_bindings,
+        query_skeleton=cm.query_skeleton,
         structural_feedback=cm.structural_feedback,
         propose_verdict=cm.propose_verdict,
         missing_added=cm.missing_added, missing_rejected=cm.missing_rejected,
+        widened_tables=cm.widened_tables,
         repaired=cm.repaired, sql=cm.sql, execution=cm.execution,
         belief_entropy={
             "columns": round(belief.family_entropy("column"), 4),

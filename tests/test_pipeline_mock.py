@@ -38,6 +38,10 @@ class MockLLM:
         s = system.lower()
         if "joinability" in s or "foreign-key" in s:
             return "NONE"
+        if "decompose a natural-language question into the atomic" in s:
+            # exercise concept alignment: emit a couple of parseable concepts
+            return ("concept=name | role=output | value=\n"
+                    "concept=count | role=output | value=")
         if "src:" in s or "src=" in system or "map a natural" in s:
             tables = re.findall(r"^(\w+)\(", user, re.M)
             first = tables[0] if tables else "t"
@@ -91,6 +95,9 @@ def main():
                     ("nostop", dict(use_entropy_stop=False)),
                     ("nopropose", dict(use_propose=False)),
                     ("propgate", dict(use_propose_evidence_gate=True)),
+                    ("noconcept", dict(use_concept_align=False)),
+                    ("noadaptive", dict(use_adaptive_schema=False)),
+                    ("hardstruct", dict(soft_structure=False)),
                     ("norepair", dict(max_repairs=0))]:
         res = run_pipeline(schema, ex.sqlite_path, ex.question, MockLLM(),
                            ablation=AblationConfig(**kw))

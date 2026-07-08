@@ -122,6 +122,26 @@ python tests/test_pipeline_mock.py
 | `nopropose` | Propose 证据检查点 | 防幻觉价值 |
 | `norepair` | Commit 的一次定向修正 | 干净版收益归因 |
 | `propgate` | 开启 Propose 加表的连通性证据门 | 验证“LLM 提名缺表必须有结构证据” |
+| `noconcept` | 关闭 Query-Centric Concept Alignment（默认开启） | 验证「以 query 为核心的 concept→列 消歧」的收益 |
+| `noadaptive` | 关闭置信度自适应 schema 扩窗（默认开启） | 验证「不确定时给生成端更多候选表」的收益 |
+| `hardstruct` | 恢复 skeleton 不匹配即强制 repair 的硬门（默认为软提示） | 验证「软化结构约束、留试错空间」的收益 |
+
+> **新增两项改进（针对错题分析中「表对列错 / 强约束不可恢复」两大瓶颈）：**
+> 1. **Query-Centric Concept Alignment（`gws2/concept_align.py`，Point 1）**：Ground 阶段把问题分解为 concept，
+>    对每个 concept 在候选列上做**白盒信念竞争**（词面 + 表锚定先验 + 类型契合 + **字面值命中** + 唯一性），
+>    把 `concept→列` 绑定写回 belief 并作为生成提示。值命中是决定性证据——例如 `county=Fresno` 会被绑定到
+>    `frpm.County Name` 而非 `schools.County`，直接对治「同概念多表选错」。每题 +1 次 LLM 调用（concept 抽取）+ 受上限约束的本地值探针。
+> 2. **置信度自适应约束（`gws2/commit.py`，Point 2）**：信念**高置信**时保持紧约束（只暴露 MAP 子图）；
+>    **低置信**（Propose 判缺表 / 锚点不连通 / 列或路径熵高）时把 1-hop 图邻居作为**可选候选表**注入生成上下文，
+>    让模型有机会修正漏表；同时 skeleton 由「硬 repair 门」降级为「软提示」，只有执行失败/空结果才触发 repair。
+>
+> 对照实验（均需 n≥100 + 逐题 diff 验证净收益，并观察错误类型迁移）：
+> ```bash
+> python run_experiment.py --dataset bird --limit 100                 # full（含两项改进，默认）
+> python run_experiment.py --dataset bird --limit 100 --ablation noconcept
+> python run_experiment.py --dataset bird --limit 100 --ablation noadaptive
+> python run_experiment.py --dataset bird --limit 100 --ablation hardstruct
+> ```
 
 ---
 

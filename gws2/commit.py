@@ -54,13 +54,51 @@ class CommitResult:
     propose_verdict: str = ""
     missing_added: list[str] = field(default_factory=list)
     missing_rejected: list[str] = field(default_factory=list)
+    widened_tables: list[str] = field(default_factory=list)
     repaired: bool = False
     col_aligned: bool = False
     steps: list[str] = field(default_factory=list)
 
 
+def _concept_hint_lines(concept: str, binding: dict, sel: set[str]) -> list[str]:
+    """Render one concept binding as a grounding hint (only if its column is shown)."""
+    col = binding.get("column", "")
+    if not col or col.split(".")[0] not in sel:
+        return []
+    role = binding.get("role", "output")
+    if binding.get("confident"):
+        tag = "value-confirmed" if binding.get("confirmed") else "high-margin"
+        val = binding.get("value") or ""
+        extra = f" filter value '{val}'" if role == "filter" and val else ""
+        return [f"- \"{concept}\" ({role}) -> {col} [{tag}]{extra}"]
+    alts = [a for a in binding.get("alternatives", []) if a.split(".")[0] in sel]
+    cand = ", ".join([col] + alts) if alts else col
+    return [f"- \"{concept}\" ({role}) is ambiguous; choose by semantics among: {cand}"]
+
+
+def _neighbor_tables(graph_obj: SchemaGraph, linked: list[str], cap: int) -> list[str]:
+    """Bounded 1-hop graph neighbours of the linked set, ranked by edge confidence.
+
+    Used by confidence-adaptive schema exposure (Point 2a) to give the generator a
+    little room to recover from a missed table without dumping the whole schema.
+    """
+    g = graph_obj.graph
+    sel = set(linked)
+    best: dict[str, float] = {}
+    for t in sel:
+        if t not in g:
+            continue
+        for nb in g.neighbors(t):
+            if nb in sel:
+                continue
+            conf = g[t][nb].get("confidence", 0.0)
+            best[nb] = max(best.get(nb, 0.0), conf)
+    ranked = sorted(best.items(), key=lambda x: x[1], reverse=True)
+    return [nb for nb, _ in ranked[:cap]]
+
+
 def _belief_hints(schema: Schema, belief: BeliefState, tables: list[str],
-                  evidence: str = "") -> str:
+                  evidence: str = "", concept_bindings: dict | None = None) -> str:
     """Turn the top column / value beliefs into human-readable grounding hints.
 
     When ``evidence`` (BIRD external knowledge) is present, we additionally mine
@@ -68,9 +106,22 @@ def _belief_hints(schema: Schema, belief: BeliefState, tables: list[str],
       * value mappings   e.g. "Operation = 'VYBER KARTOU'", "type = 'OWNER'"
       * ratio/formula     e.g. "rate = a / b", "percentage = ... * 100 / ..."
     These are the failure mode where evidence was available but not applied.
+
+    Query-centric concept bindings (Point 1) are surfaced FIRST when available,
+    because "which column does this concept mean" is the dominant residual error.
     """
     sel = set(tables)
     lines: list[str] = []
+    # (0) concept -> column bindings first: they directly target "right table,
+    # wrong column". Only show bindings whose winning column is in the schema we
+    # are about to expose (so we never point at a trimmed-away table).
+    if concept_bindings:
+        conf_lines = [h for c, b in concept_bindings.items()
+                      for h in _concept_hint_lines(c, b, sel)]
+        if conf_lines:
+            lines.append("Concept -> column bindings (resolve each question concept "
+                         "to THIS column):")
+            lines.extend(conf_lines)
     top_cols = [k for k in belief.map_estimate("column", top=12)
                 if k.split(".")[0] in sel]
     if top_cols:
@@ -432,7 +483,10 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
            evidence: str = "", use_evidence_injection: bool = True,
            use_column_align: bool = False,
            use_propose_evidence_gate: bool = True,
-           use_structure_plan: bool = True) -> CommitResult:
+           use_structure_plan: bool = True,
+           concept_bindings: dict | None = None,
+           use_adaptive_schema: bool = True,
+           soft_structure: bool = True) -> CommitResult:
     steps: list[str] = []
     linked = list(explore_res.linked_tables)
     joins = list(explore_res.join_conditions)
@@ -459,11 +513,41 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
         steps.append(f"[propose={verdict}] no change")
 
     # 2) Generate exactly one SQL -------------------------------------------- #
-    hints = _belief_hints(schema, belief, linked, evidence=ev)
+    hints = _belief_hints(schema, belief, linked, evidence=ev,
+                          concept_bindings=concept_bindings)
     if explore_res.column_hints:
         hints += "\n\nColumn probe evidence (from low-cost SQL probes):\n" + \
             "\n".join(explore_res.column_hints)
-    ctx = schema_context if schema_context else schema.to_ddl_text(linked)
+
+    # Confidence-adaptive schema exposure (Point 2a): when belief is uncertain
+    # (Propose flagged a missing table, anchors were disconnected, or column/path
+    # belief entropy is high), widen the exposed schema with a few 1-hop graph
+    # neighbours as OPTIONAL candidate tables so the model can recover from a
+    # missed table. High-confidence questions keep the tight, MAP-only schema.
+    widened: list[str] = []
+    if use_adaptive_schema and not schema_context:
+        low_conf = (
+            verdict == "MISSING"
+            or explore_res.chosen_path is None
+            or belief.family_entropy("column") >= config.ADAPTIVE_WIDEN_ENTROPY
+            or belief.family_entropy("path") >= config.PATH_ENTROPY_PROBE
+        )
+        if low_conf:
+            widened = _neighbor_tables(graph_obj, linked,
+                                       config.SCHEMA_WIDEN_MAX_TABLES)
+            if widened:
+                steps.append(f"[adaptive schema] low confidence -> +{len(widened)} "
+                             f"optional candidate tables {widened}")
+
+    if schema_context:
+        ctx = schema_context
+    else:
+        ctx = schema.to_ddl_text(linked)
+        if widened:
+            ctx += ("\n\n-- Additional candidate tables (OPTIONAL: only use these if "
+                    "the grounded tables above cannot answer the question; if you use "
+                    "one you must supply your own JOIN condition):\n"
+                    + schema.to_ddl_text(widened))
 
     skeleton: dict = {}
     if use_structure_plan:
@@ -483,29 +567,38 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
         steps.append("structure-check -> " + " | ".join(struct_feedback))
 
     # 3) Confirm: at most one targeted repair -------------------------------- #
+    # Soft skeleton (Point 2b): by default a skeleton mismatch is only a HINT, not
+    # a repair trigger -- so the model keeps the freedom to answer the question
+    # even when its shape differs from the planner's guess (the planner over-
+    # preferred EXCEPT/nested in the Spider1 study). Only execution failures /
+    # empty results trigger repair. The `hardstruct` ablation restores the old
+    # behaviour where a structural mismatch forces a repair.
     repaired = False
+    struct_trigger = bool(struct_feedback) and use_structure_plan and not soft_structure
     if max_repairs > 0:
-        need_repair = bool(struct_feedback) or (not ex.get("ok")) or (
+        exec_bad = (not ex.get("ok")) or (
             allow_repair_on_empty and ex.get("ok") and ex.get("n_shown", 0) == 0)
+        need_repair = exec_bad or struct_trigger
         if need_repair:
-            if struct_feedback:
-                problem = "does not match the planned query skeleton"
-                feedback = "; ".join(struct_feedback)
-            else:
+            if exec_bad:
                 problem = ("failed to execute" if not ex.get("ok")
                            else "executed but returned an empty result")
                 feedback = ex.get("error", "empty result set")
+            else:  # structural-only trigger (hardstruct ablation)
+                problem = "does not match the planned query skeleton"
+                feedback = "; ".join(struct_feedback)
             sql2 = _repair(question, schema, linked, sql, problem, feedback, llm,
                            dialect, schema_context=ctx, evidence=ev,
                            skeleton=skeleton)
             ex2 = run_query(sqlite_path, sql2)
             struct_feedback2 = structural_feedback(sql2, skeleton) \
-                if use_structure_plan else []
+                if (use_structure_plan and not soft_structure) else []
             # keep the repair only if it did not regress
             if ex2.get("ok") and not struct_feedback2 and (
-                    struct_feedback or not ex.get("ok") or ex2.get("n_shown", 0) > 0):
+                    struct_trigger or not ex.get("ok") or ex2.get("n_shown", 0) > 0):
                 sql, ex, repaired = sql2, ex2, True
-                struct_feedback = struct_feedback2
+                struct_feedback = structural_feedback(sql, skeleton) \
+                    if use_structure_plan else []
                 steps.append(f"repair -> ok={ex.get('ok')} rows={ex.get('n_shown')}")
             else:
                 steps.append("repair discarded (no improvement)")
@@ -535,7 +628,7 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
 
     return CommitResult(sql=sql, execution=ex, linked_tables=linked,
                         join_conditions=joins, grounding_hints=hints,
-                        query_skeleton=skeleton,
+                        query_skeleton=skeleton, widened_tables=widened,
                         structural_feedback=struct_feedback,
                         propose_verdict=verdict, missing_added=add,
                         missing_rejected=rejected, repaired=repaired,
