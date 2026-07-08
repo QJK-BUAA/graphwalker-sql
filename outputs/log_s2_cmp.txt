@@ -1,0 +1,29 @@
+########## SPIDER2 ablation=prebaseline ##########
+[spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42] 24 questions | model=deepseek-chat seed=42 ablation=noconcept+noadaptive+hardstruct workers=6
+  [24/24] latest=local099 exec=ok  (58s)
+[spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42] running official spider2-lite evaluator ...
+[spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42] EX = 29.166666666666668  (n=24)
+[spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42.json
+[spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42] LLM: {'num_calls': 133, 'input_tokens': 120030, 'output_tokens': 17602} | 57.6s
+########## SPIDER2 ablation=full ##########
+[spider2-lite_full_deepseek-chat_s2cmp_seed42] 24 questions | model=deepseek-chat seed=42 ablation=full workers=6
+  [24/24] latest=local309 exec=ok  (50s)
+[spider2-lite_full_deepseek-chat_s2cmp_seed42] running official spider2-lite evaluator ...
+[spider2-lite_full_deepseek-chat_s2cmp_seed42] EX = 37.5  (n=24)
+[spider2-lite_full_deepseek-chat_s2cmp_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite_full_deepseek-chat_s2cmp_seed42.json
+[spider2-lite_full_deepseek-chat_s2cmp_seed42] LLM: {'num_calls': 146, 'input_tokens': 129739, 'output_tokens': 15705} | 49.5s
+########## SPIDER2 ablation=noadaptive ##########
+[spider2-lite_noadaptive_deepseek-chat_s2cmp_seed42] 24 questions | model=deepseek-chat seed=42 ablation=noadaptive workers=6
+  [24/24] latest=local309 exec=ok  (44s)
+[spider2-lite_noadaptive_deepseek-chat_s2cmp_seed42] running official spider2-lite evaluator ...
+[spider2-lite_noadaptive_deepseek-chat_s2cmp_seed42] EX = 25.0  (n=24)
+[spider2-lite_noadaptive_deepseek-chat_s2cmp_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite_noadaptive_deepseek-chat_s2cmp_seed42.json
+[spider2-lite_noadaptive_deepseek-chat_s2cmp_seed42] LLM: {'num_calls': 145, 'input_tokens': 116922, 'output_tokens': 15407} | 44.1s
+########## SPIDER2 ablation=noconcept ##########
+[spider2-lite_noconcept_deepseek-chat_s2cmp_seed42] 24 questions | model=deepseek-chat seed=42 ablation=noconcept workers=6
+  [24/24] latest=local019 exec=ERR  (69s)
+[spider2-lite_noconcept_deepseek-chat_s2cmp_seed42] running official spider2-lite evaluator ...
+[spider2-lite_noconcept_deepseek-chat_s2cmp_seed42] EX = 37.5  (n=24)
+[spider2-lite_noconcept_deepseek-chat_s2cmp_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite_noconcept_deepseek-chat_s2cmp_seed42.json
+[spider2-lite_noconcept_deepseek-chat_s2cmp_seed42] LLM: {'num_calls': 119, 'input_tokens': 120280, 'output_tokens': 13609} | 69.4s
+########## SPIDER2 DONE ##########

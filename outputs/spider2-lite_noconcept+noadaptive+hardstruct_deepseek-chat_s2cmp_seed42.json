@@ -1,0 +1,1972 @@
+{
+  "run_id": "spider2-lite_noconcept+noadaptive+hardstruct_deepseek-chat_s2cmp_seed42",
+  "timestamp": "2026-07-08T11:40:34",
+  "args": {
+    "dataset": "spider2-lite",
+    "limit": 20,
+    "full": true,
+    "seed": 42,
+    "model": "deepseek-chat",
+    "ablation": "prebaseline",
+    "workers": 6,
+    "outdir": "outputs",
+    "no_eval": false,
+    "with_snapshot": false,
+    "tag": "s2cmp"
+  },
+  "model": "deepseek-chat",
+  "seed": 42,
+  "ablation": "noconcept+noadaptive+hardstruct",
+  "ablation_config": {
+    "use_inferred_graph": true,
+    "use_belief_walk": true,
+    "use_topk": true,
+    "use_probes": true,
+    "use_column_probes": true,
+    "use_structure_plan": true,
+    "use_entropy_stop": true,
+    "use_propose": true,
+    "use_concept_align": false,
+    "use_adaptive_schema": false,
+    "soft_structure": false,
+    "use_propose_evidence_gate": false,
+    "value_verify": true,
+    "value_probe": true,
+    "max_repairs": 1,
+    "repair_on_empty": true,
+    "use_evidence_injection": false,
+    "use_column_align": false
+  },
+  "dataset": "spider2-lite",
+  "n_questions": 24,
+  "elapsed_sec": 57.6,
+  "llm_stats": {
+    "num_calls": 133,
+    "input_tokens": 120030,
+    "output_tokens": 17602
+  },
+  "official_eval": {
+    "n": 24,
+    "raw_tail": " and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/snowflake/connector/vendored/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n",
+    "ex": 29.166666666666668,
+    "correct": 7,
+    "scored": 24
+  },
+  "records": [
+    {
+      "instance_id": "local003",
+      "db_id": "E_commerce",
+      "difficulty": "",
+      "question": "According to the RFM definition document, calculate the average sales per order for each customer within distinct RFM segments, considering only 'delivered' orders. Use the customer unique identifier. Clearly define how to calculate Recency based on the latest purchase timestamp and specify the criteria for classifying RFM segments. The average sales should be computed as the total spend divided by the total number of orders. Please analyze and report the differences in average sales across the RFM segments",
+      "gold_sql": "WITH RecencyScore AS (\n    SELECT customer_unique_id,\n           MAX(order_purchase_timestamp) AS last_purchase,\n           NTILE(5) OVER (ORDER BY MAX(order_purchase_timestamp) DESC) AS recency\n    FROM orders\n        JOIN customers USING (customer_id)\n    WHERE order_status = 'delivered'\n    GROUP BY customer_unique_id\n),\nFrequencyScore AS (\n    SELECT customer_unique_id,\n           COUNT(order_id) AS total_orders,\n           NTILE(5) OVER (ORDER BY COUNT(order_id) DESC) AS frequency\n    FROM orders\n        JOIN customers USING (customer_id)\n    WHERE order_status = 'delivered'\n    GROUP BY customer_unique_id\n),\nMonetaryScore AS (\n    SELECT customer_unique_id,\n           SUM(price) AS total_spent,\n           NTILE(5) OVER (ORDER BY SUM(price) DESC) AS monetary\n    FROM orders\n        JOIN order_items USING (order_id)\n        JOIN customers USING (customer_id)\n    WHERE order_status = 'delivered'\n    GROUP BY customer_unique_id\n),\n\n-- 2. Assign each customer to a group\nRFM AS (\n    SELECT last_purchase, total_orders, total_spent,\n        CASE\n            WHEN recency = 1 AND frequency + monetary IN (1, 2, 3, 4) THEN \"Champions\"\n            WHEN recency IN (4, 5) AND frequency + monetary IN (1, 2) THEN \"Can't Lose Them\"\n            WHEN recency IN (4, 5) AND frequency + monetary IN (3, 4, 5, 6) THEN \"Hibernating\"\n            WHEN recency IN (4, 5) AND frequency + monetary IN (7, 8, 9, 10) THEN \"Lost\"\n            WHEN recency IN (2, 3) AND frequency + monetary IN (1, 2, 3, 4) THEN \"Loyal Customers\"\n            WHEN recency = 3 AND frequency + monetary IN (5, 6) THEN \"Needs Attention\"\n            WHEN recency = 1 AND frequency + monetary IN (7, 8) THEN \"Recent Users\"\n            WHEN recency = 1 AND frequency + monetary IN (5, 6) OR\n                recency = 2 AND frequency + monetary IN (5, 6, 7, 8) THEN \"Potentital Loyalists\"\n            WHEN recency = 1 AND frequency + monetary IN (9, 10) THEN \"Price Sensitive\"\n            WHEN recency = 2 AND frequency + monetary IN (9, 10) THEN \"Promising\"\n            WHEN recency = 3 AND frequency + monetary IN (7, 8, 9, 10) THEN \"About to Sleep\"\n        END AS RFM_Bucket\n    FROM RecencyScore\n        JOIN FrequencyScore USING (customer_unique_id)\n        JOIN MonetaryScore USING (customer_unique_id)\n)\n\nSELECT RFM_Bucket, \n       AVG(total_spent / total_orders) AS avg_sales_per_customer\nFROM RFM\nGROUP BY RFM_Bucket",
+      "pred_sql": "-- Calculate RFM segments and average sales per order for each customer\nWITH customer_rfm AS (\n    SELECT \n        o.customer_id,\n        -- Recency: days since last purchase (using latest order_purchase_timestamp)\n        CAST(julianday('2018-09-04') - julianday(MAX(o.order_purchase_timestamp)) AS INTEGER) AS recency_days,\n        -- Frequency: total number of orders\n        COUNT(DISTINCT o.order_id) AS frequency,\n        -- Monetary: total spend (sum of payment_value)\n        SUM(op.payment_value) AS monetary\n    FROM orders o\n    JOIN order_payments op ON o.order_id = op.order_id\n    WHERE o.order_status = 'delivered'\n    GROUP BY o.customer_id\n),\nrfm_segments AS (\n    SELECT \n        customer_id,\n        recency_days,\n        frequency,\n        monetary,\n        -- RFM scoring (1-4 scale based on quartiles)\n        CASE \n            WHEN recency_days <= 30 THEN 4\n            WHEN recency_days <= 90 THEN 3\n            WHEN recency_days <= 180 THEN 2\n            ELSE 1\n        END AS r_score,\n        CASE \n            WHEN frequency >= 10 THEN 4\n            WHEN frequency >= 5 THEN 3\n            WHEN frequency >= 2 THEN 2\n            ELSE 1\n        END AS f_score,\n        CASE \n            WHEN monetary >= 1000 THEN 4\n            WHEN monetary >= 500 THEN 3\n            WHEN monetary >= 100 THEN 2\n            ELSE 1\n        END AS m_score\n    FROM customer_rfm\n)\nSELECT \n    CASE \n        WHEN r_score >= 3 AND f_score >= 3 AND m_score >= 3 THEN 'Champions'\n        WHEN r_score >= 3 AND f_score >= 2 AND m_score >= 2 THEN 'Loyal Customers'\n        WHEN r_score >= 3 AND f_score >= 1 AND m_score >= 1 THEN 'Potential Loyalists'\n        WHEN r_score >= 2 AND f_score >= 3 AND m_score >= 3 THEN 'Big Spenders'\n        WHEN r_score >= 2 AND f_score >= 2 AND m_score >= 2 THEN 'At Risk'\n        WHEN r_score >= 1 AND f_score >= 2 AND m_score >= 2 THEN 'Need Attention'\n        WHEN r_score >= 1 AND f_score >= 1 AND m_score >= 1 THEN 'About to Sleep'\n        ELSE 'Lost'\n    END AS rfm_segment,\n    ROUND(AVG(monetary / CAST(frequency AS REAL)), 4) AS avg_sales_per_order\nFROM rfm_segments\nGROUP BY rfm_segment\nORDER BY avg_sales_per_order DESC",
+      "graph_method": "inferred",
+      "n_edges": 9,
+      "sources": [
+        "orders"
+      ],
+      "destinations": [
+        "customers",
+        "orders",
+        "order_payments"
+      ],
+      "linked_tables": [
+        "order_items",
+        "order_payments",
+        "orders"
+      ],
+      "chosen_path": [
+        "orders"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 16,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- orders.order_id: nonnull=99441/99441, distinct=99441, samples=['e481f51cbdc54678b7cc49136f2d6af7', '53cdb2fc8bc7dce0b6741e2150273451', '47770eb9100c2d0c44946d9cf07ec65d']",
+        "- orders.customer_id: nonnull=99441/99441, distinct=99441, samples=['9ef432eb6251297304e76186b10a928d', 'b0830fb4747a6c6d20dea0b8c802d7ef', '41ce2a54c0b03bf3443c3d931a367089']",
+        "- orders.order_purchase_timestamp: nonnull=99441/99441, distinct=98875, samples=['2017-10-02 10:56:33', '2018-07-24 20:41:37', '2018-08-08 08:38:49']",
+        "- orders.order_delivered_customer_date: nonnull=96476/99441, distinct=95664, samples=['2017-10-10 21:25:13', '2018-08-07 15:27:45', '2018-08-17 18:06:29']",
+        "- Prefer orders.order_status for literal filter(s) ['delivered']; profile nonnull=99441/99441, distinct=8, samples=['delivered', 'invoiced', 'shipped']",
+        "- orders.order_approved_at: nonnull=99281/99441, distinct=90733, samples=['2017-10-02 11:07:15', '2018-07-26 03:24:27', '2018-08-08 08:55:23']",
+        "- orders.order_delivered_carrier_date: nonnull=97658/99441, distinct=81018, samples=['2017-10-04 19:55:00', '2018-07-26 14:31:00', '2018-08-08 13:50:00']",
+        "- orders.order_estimated_delivery_date: nonnull=99441/99441, distinct=459, samples=['2017-10-18 00:00:00', '2018-08-13 00:00:00', '2018-09-04 00:00:00']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 3,
+        "aggregation": true,
+        "notes": "Group by customer and RFM segment, compute avg sales per order, filter delivered orders"
+      },
+      "structural_feedback": [
+        "planned select_arity=3, but SQL selects 4 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "order_items",
+        "order_payments"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2,
+      "belief_entropy": {
+        "columns": 2.6757,
+        "values": 0.0,
+        "paths": 0.4774
+      },
+      "trace": [
+        "ground: graph=inferred edges=9",
+        "anchor: src=['orders'] dst=['customers', 'orders', 'order_payments'] literals=['delivered']",
+        "belief0: colH=2.806 valH=0.000",
+        "explore: path entropy=1.581 top_gap=0.15 (3 candidates)",
+        "explore: probe P1 ['orders']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 8 candidates col_entropy=2.806",
+        "explore: column walk finished: sql_probes=16 hints=8",
+        "commit: [propose=MISSING] added missing tables ['order_items', 'order_payments'] -> ['order_items', 'order_payments', 'orders']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"Group by customer and RFM segment, compute avg sales per order, filter delivered orders\", \"order_by\": false, \"select_arity\": 3, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=2",
+        "commit: structure-check -> planned select_arity=3, but SQL selects 4 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local004",
+      "db_id": "E_commerce",
+      "difficulty": "",
+      "question": "Could you tell me the number of orders, average payment per order and customer lifespan in weeks of the 3 custumers with the highest average payment per order, where the lifespan is calculated by subtracting the earliest purchase date from the latest purchase date in days, dividing by seven, and if the result is less than seven days, setting it to 1.0?",
+      "gold_sql": "WITH CustomerData AS (\n    SELECT\n        customer_unique_id,\n        COUNT(DISTINCT orders.order_id) AS order_count,\n        SUM(payment_value) AS total_payment,\n        JULIANDAY(MIN(order_purchase_timestamp)) AS first_order_day,\n        JULIANDAY(MAX(order_purchase_timestamp)) AS last_order_day\n    FROM customers\n        JOIN orders USING (customer_id)\n        JOIN order_payments USING (order_id)\n    GROUP BY customer_unique_id\n)\nSELECT\n    customer_unique_id,\n    order_count AS PF,\n    ROUND(total_payment / order_count, 2) AS AOV,\n    CASE\n        WHEN (last_order_day - first_order_day) < 7 THEN\n            1\n        ELSE\n            (last_order_day - first_order_day) / 7\n        END AS ACL\nFROM CustomerData\nORDER BY AOV DESC\nLIMIT 3\n",
+      "pred_sql": "SELECT \n    c.customer_id,\n    COUNT(DISTINCT o.order_id) AS number_of_orders,\n    AVG(op.payment_value) AS avg_payment_per_order,\n    CASE \n        WHEN (JULIANDAY(MAX(o.order_purchase_timestamp)) - JULIANDAY(MIN(o.order_purchase_timestamp))) / 7.0 < 1.0 \n        THEN 1.0 \n        ELSE (JULIANDAY(MAX(o.order_purchase_timestamp)) - JULIANDAY(MIN(o.order_purchase_timestamp))) / 7.0 \n    END AS customer_lifespan_weeks\nFROM customers c\nJOIN orders o ON c.customer_id = o.customer_id\nJOIN order_payments op ON o.order_id = op.order_id\nGROUP BY c.customer_id\nORDER BY avg_payment_per_order DESC\nLIMIT 3",
+      "graph_method": "inferred",
+      "n_edges": 9,
+      "sources": [
+        "orders",
+        "order_payments"
+      ],
+      "destinations": [
+        "customers",
+        "orders",
+        "order_payments"
+      ],
+      "linked_tables": [
+        "customers",
+        "order_payments",
+        "orders"
+      ],
+      "chosen_path": [
+        "orders"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 8,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- orders.order_id: nonnull=99441/99441, distinct=99441, samples=['e481f51cbdc54678b7cc49136f2d6af7', '53cdb2fc8bc7dce0b6741e2150273451', '47770eb9100c2d0c44946d9cf07ec65d']",
+        "- orders.customer_id: nonnull=99441/99441, distinct=99441, samples=['9ef432eb6251297304e76186b10a928d', 'b0830fb4747a6c6d20dea0b8c802d7ef', '41ce2a54c0b03bf3443c3d931a367089']",
+        "- orders.order_purchase_timestamp: nonnull=99441/99441, distinct=98875, samples=['2017-10-02 10:56:33', '2018-07-24 20:41:37', '2018-08-08 08:38:49']",
+        "- orders.order_delivered_customer_date: nonnull=96476/99441, distinct=95664, samples=['2017-10-10 21:25:13', '2018-08-07 15:27:45', '2018-08-17 18:06:29']",
+        "- orders.order_status: nonnull=99441/99441, distinct=8, samples=['delivered', 'invoiced', 'shipped']",
+        "- orders.order_approved_at: nonnull=99281/99441, distinct=90733, samples=['2017-10-02 11:07:15', '2018-07-26 03:24:27', '2018-08-08 08:55:23']",
+        "- orders.order_delivered_carrier_date: nonnull=97658/99441, distinct=81018, samples=['2017-10-04 19:55:00', '2018-07-26 14:31:00', '2018-08-08 13:50:00']",
+        "- orders.order_estimated_delivery_date: nonnull=99441/99441, distinct=459, samples=['2017-10-18 00:00:00', '2018-08-13 00:00:00', '2018-09-04 00:00:00']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 3,
+        "aggregation": true,
+        "notes": "Need to compute per-customer aggregates (count orders, avg payment, lifespan in weeks) and then order by avg payment descending, limit 3. Lifespan calculation requires subquery or CASE expression."
+      },
+      "structural_feedback": [
+        "planned nested=true, but SQL has no subquery",
+        "planned select_arity=3, but SQL selects 4 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "customers",
+        "order_payments"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 2.5938,
+        "values": 0.0,
+        "paths": 1.0865
+      },
+      "trace": [
+        "ground: graph=inferred edges=9",
+        "anchor: src=['orders', 'order_payments'] dst=['customers', 'orders', 'order_payments'] literals=[]",
+        "belief0: colH=2.956 valH=0.000",
+        "explore: path entropy=2.578 top_gap=0.00 (6 candidates)",
+        "explore: probe P1 ['orders']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 8 candidates col_entropy=2.956",
+        "explore: column walk finished: sql_probes=8 hints=8",
+        "commit: [propose=MISSING] added missing tables ['customers', 'order_payments'] -> ['customers', 'order_payments', 'orders']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": true, \"notes\": \"Need to compute per-customer aggregates (count orders, avg payment, lifespan in weeks) and then order by avg payment descending, limit 3. Lifespan calculation requires subquery or CASE expression.\", \"order_by\": true, \"select_arity\": 3, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=3",
+        "commit: structure-check -> planned nested=true, but SQL has no subquery | planned select_arity=3, but SQL selects 4 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local008",
+      "db_id": "Baseball",
+      "difficulty": "",
+      "question": "I would like to know the given names of baseball players who have achieved the highest value of games played, runs, hits, and home runs, with their corresponding score values.",
+      "gold_sql": "WITH player_stats AS (\n    SELECT\n        b.player_id,\n        p.name_given AS player_name,\n        SUM(b.g) AS games_played,\n        SUM(b.r) AS runs,\n        SUM(b.h) AS hits,\n        SUM(b.hr) AS home_runs\n    FROM player p\n    JOIN batting b ON p.player_id = b.player_id\n    GROUP BY b.player_id, p.name_given\n)\n\nSELECT 'Games Played' AS Category, player_name AS Player_Name, games_played AS Batting_Table_Topper\nFROM player_stats\nWHERE games_played = (SELECT MAX(games_played) FROM player_stats)\n\nUNION ALL\n\nSELECT 'Runs' AS Category, player_name AS Player_Name, runs AS Batting_Table_Topper\nFROM player_stats\nWHERE runs = (SELECT MAX(runs) FROM player_stats)\n\nUNION ALL\n\nSELECT 'Hits' AS Category, player_name AS Player_Name, hits AS Batting_Table_Topper\nFROM player_stats\nWHERE hits = (SELECT MAX(hits) FROM player_stats)\n\nUNION ALL\n\nSELECT 'Home Runs' AS Category, player_name AS Player_Name, home_runs AS Batting_Table_Topper\nFROM player_stats\nWHERE home_runs = (SELECT MAX(home_runs) FROM player_stats);\n",
+      "pred_sql": "SELECT \n    p.name_given,\n    (b.g + b.r + b.h + b.hr) AS score\nFROM batting b\nJOIN player p ON b.player_id = p.player_id\nGROUP BY p.player_id, p.name_given\nORDER BY score DESC\nLIMIT 1",
+      "graph_method": "inferred",
+      "n_edges": 21,
+      "sources": [
+        "batting"
+      ],
+      "destinations": [
+        "player"
+      ],
+      "linked_tables": [
+        "batting",
+        "player"
+      ],
+      "chosen_path": [
+        "batting",
+        "player"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 0,
+      "n_concept_probes": 0,
+      "column_hints": [],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 5,
+        "aggregation": true,
+        "notes": "Group by player to compute max of g, r, h, hr; order by sum of those values descending; limit 1 for highest"
+      },
+      "structural_feedback": [
+        "planned aggregation=true, but SQL has no aggregate function",
+        "planned select_arity=5, but SQL selects 2 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0001,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=21",
+        "anchor: src=['batting'] dst=['player'] literals=[]",
+        "belief0: colH=0.000 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: column walk skipped: col entropy 0.000 below threshold",
+        "commit: [propose=MISSING] no change",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": false, \"notes\": \"Group by player to compute max of g, r, h, hr; order by sum of those values descending; limit 1 for highest\", \"order_by\": true, \"select_arity\": 5, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=1",
+        "commit: structure-check -> planned aggregation=true, but SQL has no aggregate function | planned select_arity=5, but SQL selects 2 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local017",
+      "db_id": "California_Traffic_Collision",
+      "difficulty": "",
+      "question": "In which year were the two most common causes of traffic accidents different from those in other years?",
+      "gold_sql": "WITH AnnualTotals AS (\n    SELECT \n        STRFTIME('%Y', collision_date) AS Year, \n        COUNT(case_id) AS AnnualTotal\n    FROM \n        collisions\n    GROUP BY \n        Year\n),\nCategoryTotals AS (\n    SELECT \n        STRFTIME('%Y', collision_date) AS Year,\n        pcf_violation_category AS Category,\n        COUNT(case_id) AS Subtotal\n    FROM \n        collisions\n    GROUP BY \n        Year, Category\n),\nCategoryPercentages AS (\n    SELECT \n        ct.Year,\n        ct.Category,\n        ROUND((ct.Subtotal * 100.0) / at.AnnualTotal, 1) AS PercentageOfAnnualRoadIncidents\n    FROM \n        CategoryTotals ct\n    JOIN \n        AnnualTotals at ON ct.Year = at.Year\n),\nRankedCategories AS (\n    SELECT\n        Year,\n        Category,\n        PercentageOfAnnualRoadIncidents,\n        ROW_NUMBER() OVER (PARTITION BY Year ORDER BY PercentageOfAnnualRoadIncidents DESC) AS Rank\n    FROM\n        CategoryPercentages\n),\nTopTwoCategories AS (\n    SELECT\n        Year,\n        GROUP_CONCAT(Category, ', ') AS TopCategories\n    FROM\n        RankedCategories\n    WHERE\n        Rank <= 2\n    GROUP BY\n        Year\n),\nUniqueYear AS (\n    SELECT\n        Year\n    FROM\n        TopTwoCategories\n    GROUP BY\n        TopCategories\n    HAVING COUNT(Year) = 1\n),\nresults AS (\nSELECT \n    rc.Year, \n    rc.Category, \n    rc.PercentageOfAnnualRoadIncidents\nFROM \n    UniqueYear u\nJOIN \n    RankedCategories rc ON u.Year = rc.Year\nWHERE \n    rc.Rank <= 2\n)\n\nSELECT distinct Year FROM results",
+      "pred_sql": "-- Step 1: Extract year from collision_date and count accidents per year per primary_collision_factor\n-- Step 2: Rank causes within each year by count\n-- Step 3: For each year, get the top 2 causes as a concatenated string\n-- Step 4: Find years where that string is unique (different from all other years)\nWITH yearly_cause_counts AS (\n    SELECT \n        strftime('%Y', collision_date) AS year,\n        primary_collision_factor,\n        COUNT(*) AS cnt\n    FROM collisions\n    WHERE primary_collision_factor IS NOT NULL\n    GROUP BY year, primary_collision_factor\n),\nranked_causes AS (\n    SELECT \n        year,\n        primary_collision_factor,\n        cnt,\n        ROW_NUMBER() OVER (PARTITION BY year ORDER BY cnt DESC) AS rn\n    FROM yearly_cause_counts\n),\ntop_two_causes AS (\n    SELECT \n        year,\n        GROUP_CONCAT(primary_collision_factor, ', ') AS top_causes\n    FROM ranked_causes\n    WHERE rn <= 2\n    GROUP BY year\n)\nSELECT year\nFROM top_two_causes\nWHERE top_causes IN (\n    SELECT top_causes\n    FROM top_two_causes\n    GROUP BY top_causes\n    HAVING COUNT(*) = 1\n)",
+      "graph_method": "inferred",
+      "n_edges": 0,
+      "sources": [
+        "collisions"
+      ],
+      "destinations": [
+        "collisions"
+      ],
+      "linked_tables": [
+        "collisions"
+      ],
+      "chosen_path": [
+        "collisions"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 2,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- collisions.other_visible_injury_count: nonnull=94243/94243, distinct=10, samples=['0', '1', '2']",
+        "- collisions.case_id: nonnull=94243/94243, distinct=94243, samples=['5419819.0', '6603782.0', '5074872.0']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": true,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to find years where the two most common causes differ from other years, requiring per-year grouping, counting causes, and comparing top causes across years via subquery."
+      },
+      "structural_feedback": [
+        "planned select_arity=1, but SQL selects 3 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 3.3582,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=0",
+        "anchor: src=['collisions'] dst=['collisions'] literals=[]",
+        "belief0: colH=3.440 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: column walk: 2 candidates col_entropy=3.440",
+        "explore: column walk finished: sql_probes=2 hints=2",
+        "commit: [propose=MISSING] no change",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": true, \"limit\": false, \"nested\": true, \"notes\": \"Need to find years where the two most common causes differ from other years, requiring per-year grouping, counting causes, and comparing top causes across years via subquery.\", \"order_by\": false, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=0",
+        "commit: structure-check -> planned select_arity=1, but SQL selects 3 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local019",
+      "db_id": "WWE",
+      "difficulty": "",
+      "question": "For the NXT title that had the shortest match (excluding titles with \"title change\"), what were the names of the two wrestlers involved?",
+      "gold_sql": "WITH MatchDetails AS (\n    SELECT\n        b.name AS titles,\n        m.duration AS match_duration,\n        w1.name || ' vs ' || w2.name AS matches,\n        m.win_type AS win_type,\n        l.name AS location,\n        e.name AS event,\n        ROW_NUMBER() OVER (PARTITION BY b.name ORDER BY m.duration ASC) AS rank\n    FROM \n        Belts b\n    INNER JOIN Matches m ON m.title_id = b.id\n    INNER JOIN Wrestlers w1 ON w1.id = m.winner_id\n    INNER JOIN Wrestlers w2 ON w2.id = m.loser_id\n    INNER JOIN Cards c ON c.id = m.card_id\n    INNER JOIN Locations l ON l.id = c.location_id\n    INNER JOIN Events e ON e.id = c.event_id\n    INNER JOIN Promotions p ON p.id = c.promotion_id\n    WHERE\n        p.name = 'NXT'\n        AND m.duration <> ''\n        AND b.name <> ''\n        AND b.name NOT IN (\n            SELECT name \n            FROM Belts \n            WHERE name LIKE '%title change%'\n        )\n),\nRank1 AS (\nSELECT \n    titles,\n    match_duration,\n    matches,\n    win_type,\n    location,\n    event\nFROM \n    MatchDetails\nWHERE \n    rank = 1\n)\nSELECT\n    SUBSTR(matches, 1, INSTR(matches, ' vs ') - 1) AS wrestler1,\n    SUBSTR(matches, INSTR(matches, ' vs ') + 4) AS wrestler2\nFROM\nRank1\nORDER BY match_duration \nLIMIT 1",
+      "pred_sql": "SELECT w1.name AS wrestler1, w2.name AS wrestler2\nFROM Matches m\nJOIN Wrestlers w1 ON m.winner_id = CAST(w1.id AS TEXT)\nJOIN Wrestlers w2 ON m.loser_id = CAST(w2.id AS TEXT)\nWHERE m.title_id = (\n    SELECT m2.title_id\n    FROM Matches m2\n    JOIN Wrestlers w3 ON m2.winner_id = CAST(w3.id AS TEXT)\n    WHERE w3.name = 'NXT'\n    AND m2.title_change = 0\n    ORDER BY CAST(SUBSTR(m2.duration, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(m2.duration, 4, 2) AS INTEGER) ASC\n    LIMIT 1\n)\nAND m.title_change = 0\nORDER BY CAST(SUBSTR(m.duration, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(m.duration, 4, 2) AS INTEGER) ASC\nLIMIT 1",
+      "graph_method": "inferred",
+      "n_edges": 5,
+      "sources": [
+        "Matches"
+      ],
+      "destinations": [
+        "Wrestlers"
+      ],
+      "linked_tables": [
+        "Belts",
+        "Matches",
+        "Wrestlers"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "n_column_probes": 22,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer Wrestlers.name for literal filter(s) ['NXT']; profile nonnull=17182/17182, distinct=17182, samples=['', '\"A Bryan Kendrick\"', '\"Bob Dylan\"']",
+        "- Matches.match_type_id: nonnull=540800/540800, distinct=1208, samples=['1', '8', '9']",
+        "- Matches.title_id: nonnull=540800/540800, distinct=143, samples=['1', '9', '10']",
+        "- Matches.title_change: nonnull=540800/540800, distinct=2, samples=['0', '1']",
+        "- Matches.id: nonnull=540800/540800, distinct=540800, samples=['1', '2', '3']",
+        "- Wrestlers.id: nonnull=17182/17182, distinct=17182, samples=['1', '2', '3']",
+        "- Matches.card_id: nonnull=540800/540800, distinct=12638, samples=['1', '2', '3']",
+        "- Matches.winner_id: nonnull=540800/540800, distinct=7668, samples=['1', '3', '5']",
+        "- Matches.win_type: nonnull=540800/540800, distinct=25, samples=['def.', 'def. (CO)', 'def. (pin)']",
+        "- Matches.loser_id: nonnull=540800/540800, distinct=13409, samples=['2', '4', '6']",
+        "- Matches.duration: nonnull=540800/540800, distinct=1739, samples=['', '04:02', '04:35']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": false,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 2,
+        "aggregation": false,
+        "notes": "Need subquery to find shortest match for NXT title excluding title changes, then join to get wrestler names"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Belts"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 0.5991,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=5",
+        "anchor: src=['Matches'] dst=['Wrestlers'] literals=['NXT']",
+        "belief0: colH=3.710 valH=0.000",
+        "explore: no path between anchors; union fallback -> ['Matches', 'Wrestlers']",
+        "explore: column walk: 11 candidates col_entropy=3.710",
+        "explore: column walk finished: sql_probes=22 hints=11",
+        "commit: [propose=MISSING] added missing tables ['Belts'] -> ['Belts', 'Matches', 'Wrestlers']",
+        "commit: structure-plan -> {\"aggregation\": false, \"group_by\": false, \"having\": false, \"limit\": true, \"nested\": true, \"notes\": \"Need subquery to find shortest match for NXT title excluding title changes, then join to get wrestler names\", \"order_by\": true, \"select_arity\": 2, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=0",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local022",
+      "db_id": "IPL",
+      "difficulty": "",
+      "question": "Retrieve the names of players who scored no less than 100 runs in a match while playing for the team that lost that match.",
+      "gold_sql": "-- Step 1: Calculate players' total runs in each match\nWITH player_runs AS (\n    SELECT \n        bbb.striker AS player_id, \n        bbb.match_id, \n        SUM(bsc.runs_scored) AS total_runs \n    FROM \n        ball_by_ball AS bbb\n    JOIN \n        batsman_scored AS bsc\n    ON \n        bbb.match_id = bsc.match_id \n        AND bbb.over_id = bsc.over_id \n        AND bbb.ball_id = bsc.ball_id \n        AND bbb.innings_no = bsc.innings_no\n    GROUP BY \n        bbb.striker, bbb.match_id\n    HAVING \n        SUM(bsc.runs_scored) >= 100\n),\n\n-- Step 2: Identify losing teams for each match\nlosing_teams AS (\n    SELECT \n        match_id, \n        CASE \n            WHEN match_winner = team_1 THEN team_2 \n            ELSE team_1 \n        END AS loser \n    FROM \n        match\n),\n\n-- Step 3: Combine the above results to get players who scored 100 or more runs in losing teams\nplayers_in_losing_teams AS (\n    SELECT \n        pr.player_id, \n        pr.match_id \n    FROM \n        player_runs AS pr\n    JOIN \n        losing_teams AS lt\n    ON \n        pr.match_id = lt.match_id\n    JOIN \n        player_match AS pm\n    ON \n        pr.player_id = pm.player_id \n        AND pr.match_id = pm.match_id \n        AND lt.loser = pm.team_id\n)\n\n-- Step 4: Select distinct player names from the player table\nSELECT DISTINCT \n    p.player_name \nFROM \n    player AS p\nJOIN \n    players_in_losing_teams AS plt\nON \n    p.player_id = plt.player_id\nORDER BY \n    p.player_name;",
+      "pred_sql": "SELECT p.player_name\nFROM player p\nJOIN player_match pm ON p.player_id = pm.player_id\nJOIN match m ON pm.match_id = m.match_id\nJOIN batsman_scored bs ON m.match_id = bs.match_id\nWHERE m.match_winner IS NOT NULL\n  AND m.match_winner != pm.team_id\nGROUP BY p.player_id, p.player_name, m.match_id\nHAVING SUM(bs.runs_scored) >= 100",
+      "graph_method": "inferred",
+      "n_edges": 12,
+      "sources": [
+        "player",
+        "team",
+        "match",
+        "batsman_scored"
+      ],
+      "destinations": [
+        "player"
+      ],
+      "linked_tables": [
+        "batsman_scored",
+        "match",
+        "player",
+        "player_match"
+      ],
+      "chosen_path": [
+        "player"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 10,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer player.player_id for literal filter(s) ['100']; profile nonnull=468/468, distinct=468, samples=['1', '2', '3']",
+        "- player.player_name: nonnull=468/468, distinct=468, samples=['SC Ganguly', 'BB McCullum', 'RT Ponting']",
+        "- player.batting_hand: nonnull=468/468, distinct=2, samples=['Left-hand bat', 'Right-hand bat']",
+        "- player.bowling_skill: nonnull=468/468, distinct=14, samples=['Right-arm medium', 'Right-arm offbreak', 'Right-arm fast-medium']",
+        "- player.country_name: nonnull=468/468, distinct=11, samples=['India', 'New Zealand', 'Australia']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": true,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to sum runs per player per match, filter by sum >= 100 and player's team lost the match"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "player_match",
+        "batsman_scored",
+        "match"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 2000,
+      "belief_entropy": {
+        "columns": 0.8667,
+        "values": 1.0,
+        "paths": 1.4641
+      },
+      "trace": [
+        "ground: graph=inferred edges=12",
+        "anchor: src=['player', 'team', 'match', 'batsman_scored'] dst=['player'] literals=['100']",
+        "belief0: colH=0.506 valH=0.000",
+        "explore: path entropy=3.297 top_gap=0.28 (10 candidates)",
+        "explore: probe P0 ['player']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 5 candidates col_entropy=0.506",
+        "explore: column walk finished: sql_probes=10 hints=5",
+        "commit: [propose=MISSING] added missing tables ['player_match', 'batsman_scored', 'match'] -> ['batsman_scored', 'match', 'player', 'player_match']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": true, \"limit\": false, \"nested\": false, \"notes\": \"Need to sum runs per player per match, filter by sum >= 100 and player's team lost the match\", \"order_by\": false, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=2000"
+      ]
+    },
+    {
+      "instance_id": "local023",
+      "db_id": "IPL",
+      "difficulty": "",
+      "question": "Please help me find the names of top 5 players with the highest average runs per match in season 5, along with their batting averages.",
+      "gold_sql": "WITH runs_scored AS (\n    SELECT \n        bb.striker AS player_id,\n        bb.match_id,\n        bs.runs_scored AS runs\n    FROM \n        ball_by_ball AS bb\n    JOIN \n        batsman_scored AS bs ON bb.match_id = bs.match_id \n            AND bb.over_id = bs.over_id \n            AND bb.ball_id = bs.ball_id \n            AND bb.innings_no = bs.innings_no\n    WHERE \n        bb.match_id IN (SELECT match_id FROM match WHERE season_id = 5)\n),\ntotal_runs AS (\n    SELECT \n        player_id, \n        match_id, \n        SUM(runs) AS total_runs \n    FROM \n        runs_scored \n    GROUP BY \n        player_id, match_id\n),\nbatting_averages AS (\n    SELECT \n        player_id, \n        SUM(total_runs) AS runs, \n        COUNT(match_id) AS num_matches,\n        ROUND(SUM(total_runs) / CAST(COUNT(match_id) AS FLOAT), 3) AS batting_avg\n    FROM \n        total_runs \n    GROUP BY \n        player_id \n    ORDER BY \n        batting_avg DESC \n    LIMIT 5\n)\nSELECT \n    p.player_name,\n    b.batting_avg\nFROM \n    player AS p\nJOIN \n    batting_averages AS b ON p.player_id = b.player_id\nORDER BY \n    b.batting_avg DESC;",
+      "pred_sql": "SELECT \n    p.player_name,\n    ROUND(CAST(SUM(bs.runs_scored) AS REAL) / COUNT(DISTINCT pm.match_id), 4) AS avg_runs_per_match,\n    ROUND(CAST(SUM(bs.runs_scored) AS REAL) / COUNT(DISTINCT pm.match_id), 4) AS batting_average\nFROM player p\nJOIN player_match pm ON p.player_id = pm.player_id\nJOIN (\n    SELECT match_id, player_id, SUM(runs_scored) AS runs_scored\n    FROM batsman_scored\n    GROUP BY match_id, player_id\n) bs ON pm.match_id = bs.match_id AND pm.player_id = bs.player_id\nJOIN match m ON pm.match_id = m.match_id\nWHERE m.season_id = 5\nGROUP BY p.player_id, p.player_name\nORDER BY avg_runs_per_match DESC\nLIMIT 5",
+      "graph_method": "inferred",
+      "n_edges": 12,
+      "sources": [
+        "player",
+        "batsman_scored"
+      ],
+      "destinations": [
+        "player"
+      ],
+      "linked_tables": [
+        "player",
+        "player_match"
+      ],
+      "chosen_path": [
+        "player"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 12,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer player.player_id for literal filter(s) ['5']; profile nonnull=468/468, distinct=468, samples=['1', '2', '3']",
+        "- player.batting_hand: nonnull=468/468, distinct=2, samples=['Left-hand bat', 'Right-hand bat']",
+        "- Prefer player.dob for literal filter(s) ['5']; profile nonnull=468/468, distinct=454, samples=['1972-07-08', '1981-09-27', '1974-12-19']",
+        "- player.player_name: nonnull=468/468, distinct=468, samples=['SC Ganguly', 'BB McCullum', 'RT Ponting']",
+        "- player.bowling_skill: nonnull=468/468, distinct=14, samples=['Right-arm medium', 'Right-arm offbreak', 'Right-arm fast-medium']",
+        "- player.country_name: nonnull=468/468, distinct=11, samples=['India', 'New Zealand', 'Australia']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need to group by player to compute average runs per match, order by that average descending, limit 5, and also select batting average (another aggregation)."
+      },
+      "structural_feedback": [
+        "planned select_arity=2, but SQL selects 3 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "player_match"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": false,
+      "exec_rows": null,
+      "belief_entropy": {
+        "columns": 0.2121,
+        "values": 1.5289,
+        "paths": 0.5539
+      },
+      "trace": [
+        "ground: graph=inferred edges=12",
+        "anchor: src=['player', 'batsman_scored'] dst=['player'] literals=['5']",
+        "belief0: colH=1.721 valH=2.585",
+        "explore: path entropy=1.962 top_gap=0.39 (4 candidates)",
+        "explore: probe P0 ['player']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 6 candidates col_entropy=1.721",
+        "explore: column walk finished: sql_probes=12 hints=6",
+        "commit: [propose=MISSING] added missing tables ['player_match'] -> ['player', 'player_match']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": false, \"notes\": \"Need to group by player to compute average runs per match, order by that average descending, limit 5, and also select batting average (another aggregation).\", \"order_by\": true, \"select_arity\": 2, \"set_op\": \"none\"}",
+        "commit: generate -> ok=False rows=no such column: player_id",
+        "commit: structure-check -> planned select_arity=2, but SQL selects 3 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local029",
+      "db_id": "Brazilian_E_Commerce",
+      "difficulty": "",
+      "question": "Please identify the top three customers, based on their customer_unique_id, who have the highest number of delivered orders, and provide the average payment value, city, and state for each of these customers.",
+      "gold_sql": "WITH customer_orders AS (\n    SELECT\n        c.customer_unique_id,\n        COUNT(o.order_id) AS Total_Orders_By_Customers,\n        AVG(p.payment_value) AS Average_Payment_By_Customer,\n        c.customer_city,\n        c.customer_state\n    FROM olist_customers c\n    JOIN olist_orders o ON c.customer_id = o.customer_id\n    JOIN olist_order_payments p ON o.order_id = p.order_id\n    WHERE o.order_status = 'delivered'\n    GROUP BY c.customer_unique_id, c.customer_city, c.customer_state\n)\n\nSELECT \n    Average_Payment_By_Customer,\n    customer_city,\n    customer_state\nFROM customer_orders\nORDER BY Total_Orders_By_Customers DESC\nLIMIT 3;",
+      "pred_sql": "SELECT \n    c.customer_unique_id,\n    AVG(p.payment_value) AS avg_payment_value,\n    c.customer_city,\n    c.customer_state\nFROM olist_customers c\nJOIN olist_orders o ON c.customer_id = o.customer_id\nJOIN olist_order_payments p ON o.order_id = p.order_id\nWHERE o.order_status = 'delivered'\nGROUP BY c.customer_unique_id, c.customer_city, c.customer_state\nORDER BY COUNT(o.order_id) DESC\nLIMIT 3",
+      "graph_method": "inferred",
+      "n_edges": 9,
+      "sources": [
+        "olist_orders",
+        "olist_order_payments"
+      ],
+      "destinations": [
+        "olist_customers",
+        "olist_order_payments"
+      ],
+      "linked_tables": [
+        "olist_customers",
+        "olist_order_items",
+        "olist_order_payments",
+        "olist_orders"
+      ],
+      "chosen_path": [
+        "olist_order_payments"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 10,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- olist_order_payments.payment_type: nonnull=103886/103886, distinct=5, samples=['credit_card', 'boleto', 'voucher']",
+        "- olist_order_payments.payment_sequential: nonnull=103886/103886, distinct=29, samples=['1', '2', '4']",
+        "- olist_order_payments.payment_installments: nonnull=103886/103886, distinct=24, samples=['8', '1', '2']",
+        "- olist_order_payments.payment_value: nonnull=103886/103886, distinct=29077, samples=['99.33', '24.39', '65.71']",
+        "- olist_order_payments.order_id: nonnull=103886/103886, distinct=99440, samples=['b81ef226f3fe1789b1e8b2acac839d17', 'a9810da82917af2d9aefd1278f1dcfa0', '25e8ea4e93396b6fa0d3dd708e76c1bd']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 4,
+        "aggregation": true,
+        "notes": "Group by customer_unique_id, count delivered orders, order by count descending, limit 3, select avg payment value, city, state"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "olist_customers",
+        "olist_orders",
+        "olist_order_items"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 3,
+      "belief_entropy": {
+        "columns": 4.39,
+        "values": 0.0,
+        "paths": 0.6734
+      },
+      "trace": [
+        "ground: graph=inferred edges=9",
+        "anchor: src=['olist_orders', 'olist_order_payments'] dst=['olist_customers', 'olist_order_payments'] literals=['delivered']",
+        "belief0: colH=4.339 valH=0.000",
+        "explore: path entropy=1.993 top_gap=0.15 (4 candidates)",
+        "explore: probe P3 ['olist_order_payments']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 5 candidates col_entropy=4.339",
+        "explore: column walk finished: sql_probes=10 hints=5",
+        "commit: [propose=MISSING] added missing tables ['olist_customers', 'olist_orders', 'olist_order_items'] -> ['olist_customers', 'olist_order_items', 'olist_order_payments', 'olist_orders']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": false, \"notes\": \"Group by customer_unique_id, count delivered orders, order by count descending, limit 3, select avg payment value, city, state\", \"order_by\": true, \"select_arity\": 4, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=3"
+      ]
+    },
+    {
+      "instance_id": "local038",
+      "db_id": "Pagila",
+      "difficulty": "",
+      "question": "Could you help me determine which actor starred most frequently in English-language children's category films that were rated either G or PG, had a running time of 120 minutes or less, and were released between 2000 and 2010? Please provide the actor's full name.",
+      "gold_sql": "SELECT\n    actor.first_name || ' ' || actor.last_name AS full_name\nFROM\n    actor\nINNER JOIN film_actor ON actor.actor_id = film_actor.actor_id\nINNER JOIN film ON film_actor.film_id = film.film_id\nINNER JOIN film_category ON film.film_id = film_category.film_id\nINNER JOIN category ON film_category.category_id = category.category_id\n-- Join with the language table\nINNER JOIN language ON film.language_id = language.language_id\nWHERE\n    category.name = 'Children' AND\n    film.release_year BETWEEN 2000 AND 2010 AND\n    film.rating IN ('G', 'PG') AND\n    language.name = 'English' AND\n    film.length <= 120\nGROUP BY\n    actor.actor_id, actor.first_name, actor.last_name\nORDER BY\n    COUNT(film.film_id) DESC\nLIMIT 1;\n",
+      "pred_sql": "SELECT a.first_name || ' ' || a.last_name AS full_name\nFROM actor a\nJOIN film_actor fa ON a.actor_id = fa.actor_id\nJOIN film f ON fa.film_id = f.film_id\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nJOIN language l ON f.language_id = l.language_id\nWHERE c.name = 'Children'\n  AND f.rating IN ('G', 'PG')\n  AND f.length <= 120\n  AND f.release_year BETWEEN '2000' AND '2010'\n  AND l.name = 'English'\nGROUP BY a.actor_id, a.first_name, a.last_name\nORDER BY COUNT(f.film_id) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "film",
+        "language",
+        "category"
+      ],
+      "destinations": [
+        "actor"
+      ],
+      "linked_tables": [
+        "actor",
+        "category",
+        "film",
+        "film_actor",
+        "film_category",
+        "language"
+      ],
+      "chosen_path": [
+        "category",
+        "film_category",
+        "film",
+        "film_actor",
+        "actor"
+      ],
+      "n_probes": 2,
+      "n_column_probes": 48,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- category.category_id: nonnull=16/16, distinct=16, samples=['1', '2', '3']",
+        "- actor.actor_id: nonnull=200/200, distinct=200, samples=['1', '2', '3']",
+        "- Prefer film.title for literal filter(s) ['English', 'G']; profile nonnull=1000/1000, distinct=1000, samples=['ACADEMY DINOSAUR', 'ACE GOLDFINGER', 'ADAPTATION HOLES']",
+        "- film.language_id: nonnull=1000/1000, distinct=1, samples=['1']",
+        "- film.original_language_id: nonnull=0/1000, distinct=0, samples=[]",
+        "- film_category.category_id: nonnull=1000/1000, distinct=16, samples=['1', '2', '3']",
+        "- film.film_id: nonnull=1000/1000, distinct=1000, samples=['1', '2', '3']",
+        "- film_actor.actor_id: nonnull=5462/5462, distinct=200, samples=['1', '2', '3']",
+        "- film_category.film_id: nonnull=1000/1000, distinct=1000, samples=['1', '2', '3']",
+        "- Prefer category.name for literal filter(s) ['children']; profile nonnull=16/16, distinct=16, samples=['Action', 'Animation', 'Children']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to count films per actor, group by actor, order by count descending, limit 1 to get most frequent actor"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "language"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.3105,
+        "values": 0.5289,
+        "paths": 0.5289
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['film', 'language', 'category'] dst=['actor'] literals=['English', 'children', 'G', 'PG', '120', '2000', '2010']",
+        "belief0: colH=4.040 valH=0.000",
+        "explore: path entropy=1.585 top_gap=0.00 (3 candidates)",
+        "explore: probe P0 ['film', 'film_actor', 'actor']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'no such column: film_actor.film_id'}",
+        "explore: probe P1 ['language', 'film', 'film_actor', 'actor']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: language.language_id'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 17 candidates col_entropy=4.040",
+        "explore: column walk stopped: reached SQL probe cap 48",
+        "explore: column walk finished: sql_probes=48 hints=10",
+        "commit: [propose=MISSING] added missing tables ['language'] -> ['actor', 'category', 'film', 'film_actor', 'film_category', 'language']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": false, \"notes\": \"Need to count films per actor, group by actor, order by count descending, limit 1 to get most frequent actor\", \"order_by\": true, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local039",
+      "db_id": "Pagila",
+      "difficulty": "",
+      "question": "Please help me find the film category with the highest total rental hours in cities where the city's name either starts with \"A\" or contains a hyphen. ",
+      "gold_sql": "SELECT\n    category.name\nFROM\n    category\nINNER JOIN film_category USING (category_id)\nINNER JOIN film USING (film_id)\nINNER JOIN inventory USING (film_id)\nINNER JOIN rental USING (inventory_id)\nINNER JOIN customer USING (customer_id)\nINNER JOIN address USING (address_id)\nINNER JOIN city USING (city_id)\nWHERE\n    LOWER(city.city) LIKE 'a%' OR city.city LIKE '%-%'\nGROUP BY\n    category.name\nORDER BY\n    SUM(CAST((julianday(rental.return_date) - julianday(rental.rental_date)) * 24 AS INTEGER)) DESC\nLIMIT\n    1;",
+      "pred_sql": "SELECT \n    c.name AS category_name,\n    SUM(CAST(ROUND((julianday(r.return_date) - julianday(r.rental_date)) * 24) AS INTEGER)) AS total_rental_hours\nFROM rental r\nJOIN inventory i ON r.inventory_id = i.inventory_id\nJOIN film f ON i.film_id = f.film_id\nJOIN film_category fc ON f.film_id = fc.film_id\nJOIN category c ON fc.category_id = c.category_id\nJOIN store s ON i.store_id = s.store_id\nJOIN address a ON s.address_id = a.address_id\nJOIN city ci ON a.city_id = ci.city_id\nWHERE (ci.city LIKE 'A%' OR ci.city LIKE '%-%')\n  AND r.return_date IS NOT NULL\nGROUP BY c.category_id, c.name\nORDER BY total_rental_hours DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "city"
+      ],
+      "destinations": [
+        "film_category",
+        "film",
+        "rental",
+        "inventory"
+      ],
+      "linked_tables": [
+        "address",
+        "category",
+        "city",
+        "film",
+        "film_category",
+        "inventory",
+        "rental",
+        "store"
+      ],
+      "chosen_path": [
+        "city",
+        "address",
+        "store",
+        "inventory"
+      ],
+      "n_probes": 4,
+      "n_column_probes": 48,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- city.city_id: nonnull=600/600, distinct=600, samples=['1', '2', '3']",
+        "- Prefer city.city for literal filter(s) ['A', '-']; profile nonnull=600/600, distinct=599, samples=['A Corua (La Corua)', 'Abha', 'Abu Dhabi']",
+        "- address.city_id: nonnull=603/603, distinct=599, samples=['1', '2', '3']",
+        "- inventory.film_id: nonnull=4581/4581, distinct=958, samples=['1', '2', '3']",
+        "- address.address_id: nonnull=603/603, distinct=603, samples=['1', '2', '3']",
+        "- store.store_id: nonnull=2/2, distinct=2, samples=['1', '2']",
+        "- store.manager_staff_id: nonnull=2/2, distinct=2, samples=['1', '2']",
+        "- store.address_id: nonnull=2/2, distinct=2, samples=['1', '2']",
+        "- inventory.inventory_id: nonnull=4581/4581, distinct=4581, samples=['1', '2', '3']",
+        "- Prefer address.address for literal filter(s) ['A', '-']; profile nonnull=603/603, distinct=603, samples=['47 MySakila Drive', '28 MySQL Boulevard', '23 Workhaven Lane']",
+        "- address.postal_code: nonnull=599/603, distinct=596, samples=['35200', '17886', '83579']",
+        "- city.country_id: nonnull=600/600, distinct=109, samples=['1', '2', '3']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to group by category, sum rental hours (aggregation), order by total descending, limit 1 for highest"
+      },
+      "structural_feedback": [
+        "planned select_arity=1, but SQL selects 2 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "film",
+        "film_category",
+        "category",
+        "rental"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 0.9904,
+        "values": 2.8074,
+        "paths": 1.9471
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['city'] dst=['film_category', 'film', 'rental', 'inventory'] literals=['A', '-']",
+        "belief0: colH=3.727 valH=1.585",
+        "explore: path entropy=2.807 top_gap=0.00 (7 candidates)",
+        "explore: probe P0 ['city', 'address', 'store', 'inventory', 'film']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: city.city_id'}",
+        "explore: probe P1 ['city', 'address', 'customer', 'rental']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: city.city_id'}",
+        "explore: probe P2 ['city', 'address', 'staff', 'rental']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: city.city_id'}",
+        "explore: probe P3 ['city', 'address', 'customer', 'payment', 'rental']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: city.city_id'}",
+        "explore: LLM tie-break -> P4 ['city', 'address', 'store', 'inventory']",
+        "explore: column walk: 16 candidates col_entropy=3.727",
+        "explore: column walk finished: sql_probes=48 hints=16",
+        "commit: [propose=MISSING] added missing tables ['film', 'film_category', 'category', 'rental'] -> ['address', 'category', 'city', 'film', 'film_category', 'inventory', 'rental', 'store']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": false, \"notes\": \"Need to group by category, sum rental hours (aggregation), order by total descending, limit 1 for highest\", \"order_by\": true, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=0",
+        "commit: structure-check -> planned select_arity=1, but SQL selects 2 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local058",
+      "db_id": "education_business",
+      "difficulty": "",
+      "question": "Can you provide a list of hardware product segments along with their unique product counts for 2020 in the output, ordered by the highest percentage increase in unique fact sales products from 2020 to 2021?",
+      "gold_sql": "WITH UniqueProducts2020 AS (\n    SELECT\n        dp.segment,\n        COUNT(DISTINCT fsm.product_code) AS unique_products_2020\n    FROM\n        hardware_fact_sales_monthly fsm\n    JOIN\n        hardware_dim_product dp ON fsm.product_code = dp.product_code\n    WHERE\n        fsm.fiscal_year = 2020\n    GROUP BY\n        dp.segment\n),\nUniqueProducts2021 AS (\n    SELECT\n        dp.segment,\n        COUNT(DISTINCT fsm.product_code) AS unique_products_2021\n    FROM\n        hardware_fact_sales_monthly fsm\n    JOIN\n        hardware_dim_product dp ON fsm.product_code = dp.product_code\n    WHERE\n        fsm.fiscal_year = 2021\n    GROUP BY\n        dp.segment\n)\nSELECT\n    spc.segment,\n    spc.unique_products_2020 AS product_count_2020\nFROM\n    UniqueProducts2020 spc\nJOIN\n    UniqueProducts2021 fup ON spc.segment = fup.segment\nORDER BY\n    ((fup.unique_products_2021 - spc.unique_products_2020) * 100.0) / (spc.unique_products_2020) DESC;\n",
+      "pred_sql": "WITH \n-- Count unique products sold in 2020 per segment\ncounts_2020 AS (\n    SELECT \n        dp.segment,\n        COUNT(DISTINCT dp.product_code) AS unique_products_2020\n    FROM hardware_dim_product dp\n    INNER JOIN hardware_fact_sales_monthly sm ON dp.product_code = sm.product_code\n    WHERE sm.fiscal_year = 2020\n    GROUP BY dp.segment\n),\n-- Count unique products sold in 2021 per segment\ncounts_2021 AS (\n    SELECT \n        dp.segment,\n        COUNT(DISTINCT dp.product_code) AS unique_products_2021\n    FROM hardware_dim_product dp\n    INNER JOIN hardware_fact_sales_monthly sm ON dp.product_code = sm.product_code\n    WHERE sm.fiscal_year = 2021\n    GROUP BY dp.segment\n)\nSELECT \n    c20.segment,\n    c20.unique_products_2020\nFROM counts_2020 c20\nLEFT JOIN counts_2021 c21 ON c20.segment = c21.segment\nORDER BY \n    (CAST(COALESCE(c21.unique_products_2021, 0) AS REAL) - CAST(c20.unique_products_2020 AS REAL)) / \n    CAST(c20.unique_products_2020 AS REAL) DESC",
+      "graph_method": "inferred",
+      "n_edges": 3,
+      "sources": [
+        "hardware_fact_sales_monthly",
+        "hardware_dim_product"
+      ],
+      "destinations": [
+        "hardware_dim_product"
+      ],
+      "linked_tables": [
+        "hardware_dim_product",
+        "hardware_fact_gross_price",
+        "hardware_fact_manufacturing_cost",
+        "hardware_fact_sales_monthly"
+      ],
+      "chosen_path": [
+        "hardware_dim_product"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 18,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer hardware_dim_product.product_code for literal filter(s) ['2020', '2021']; profile nonnull=397/397, distinct=397, samples=['A0118150101', 'A0118150102', 'A0118150103']",
+        "- hardware_dim_product.product: nonnull=397/397, distinct=73, samples=['AQ Dracula HDD – 3.5 Inch SATA 6 Gb/s 5400 RPM 256 MB Cache', 'AQ WereWolf NAS Internal Hard Drive HDD – 8.89 cm', 'AQ Zion Saga']",
+        "- hardware_dim_product.division: nonnull=397/397, distinct=3, samples=['P & A', 'PC', 'N & S']",
+        "- hardware_dim_product.segment: nonnull=397/397, distinct=6, samples=['Peripherals', 'Accessories', 'Notebook']",
+        "- hardware_dim_product.category: nonnull=397/397, distinct=14, samples=['Internal HDD', 'Graphic Card', 'Processors']",
+        "- hardware_dim_product.variant: nonnull=397/397, distinct=27, samples=['Standard', 'Plus', 'Premium']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": false,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need segment and count of unique products for 2020, then order by percentage increase from 2020 to 2021, requiring two separate aggregations and a ratio calculation."
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "hardware_fact_sales_monthly",
+        "hardware_fact_gross_price",
+        "hardware_fact_manufacturing_cost"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 6,
+      "belief_entropy": {
+        "columns": 0.0002,
+        "values": 1.5289,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=3",
+        "anchor: src=['hardware_fact_sales_monthly', 'hardware_dim_product'] dst=['hardware_dim_product'] literals=['2020', '2021']",
+        "belief0: colH=0.077 valH=2.585",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: column walk: 6 candidates col_entropy=0.077",
+        "explore: column walk finished: sql_probes=18 hints=6",
+        "commit: [propose=MISSING] added missing tables ['hardware_fact_sales_monthly', 'hardware_fact_gross_price', 'hardware_fact_manufacturing_cost'] -> ['hardware_dim_product', 'hardware_fact_gross_price', 'hardware_fact_manufacturing_cost', 'hardware_fact_sales_monthly']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"Need segment and count of unique products for 2020, then order by percentage increase from 2020 to 2021, requiring two separate aggregations and a ratio calculation.\", \"order_by\": true, \"select_arity\": 2, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=6"
+      ]
+    },
+    {
+      "instance_id": "local065",
+      "db_id": "modern_data",
+      "difficulty": "",
+      "question": "Calculate the total income from Meat Lovers pizzas priced at $12 and Vegetarian pizzas at $10. Include any extra toppings charged at $1 each. Ensure that canceled orders are filtered out. How much money has Pizza Runner earned in total?",
+      "gold_sql": "WITH get_extras_count AS (\n    WITH RECURSIVE split_extras AS (\n        SELECT\n            order_id,\n            TRIM(SUBSTR(extras, 1, INSTR(extras || ',', ',') - 1)) AS each_extra,\n            SUBSTR(extras || ',', INSTR(extras || ',', ',') + 1) AS remaining_extras\n        FROM\n            pizza_clean_customer_orders\n        UNION ALL\n        SELECT\n            order_id,\n            TRIM(SUBSTR(remaining_extras, 1, INSTR(remaining_extras, ',') - 1)) AS each_extra,\n            SUBSTR(remaining_extras, INSTR(remaining_extras, ',') + 1)\n        FROM\n            split_extras\n        WHERE\n            remaining_extras <> ''\n    )\n    SELECT\n        order_id,\n        COUNT(each_extra) AS total_extras\n    FROM\n        split_extras\n    GROUP BY\n        order_id\n),\ncalculate_totals AS (\n    SELECT\n        t1.order_id,\n        t1.pizza_id,\n        SUM(\n            CASE\n                WHEN pizza_id = 1 THEN 12\n                WHEN pizza_id = 2 THEN 10\n            END\n        ) AS total_price,\n        t3.total_extras\n    FROM \n        pizza_clean_customer_orders AS t1\n    JOIN\n        pizza_clean_runner_orders AS t2 \n    ON\n        t2.order_id = t1.order_id\n    LEFT JOIN\n        get_extras_count AS t3\n    ON\n        t3.order_id = t1.order_id\n    WHERE\n        t2.cancellation IS NULL\n    GROUP BY \n        t1.order_id,\n        t1.pizza_id,\n        t3.total_extras\n)\nSELECT \n    SUM(total_price) + SUM(total_extras) AS total_income\nFROM \n    calculate_totals;\n",
+      "pred_sql": "SELECT \n    SUM(\n        CASE \n            WHEN pn.pizza_name = 'Meat Lovers' THEN 12\n            WHEN pn.pizza_name = 'Vegetarian' THEN 10\n        END\n        + COALESCE(ge.extras_count, 0) * 1\n    ) AS total_income\nFROM pizza_customer_orders pco\nJOIN pizza_names pn ON pco.pizza_id = pn.pizza_id\nJOIN pizza_clean_runner_orders r ON pco.order_id = r.order_id\nLEFT JOIN pizza_get_extras ge ON pco.order_id = ge.order_id AND pco.extras IS NOT NULL\nWHERE r.cancellation IS NULL\n  AND pn.pizza_name IN ('Meat Lovers', 'Vegetarian')",
+      "graph_method": "inferred",
+      "n_edges": 18,
+      "sources": [
+        "pizza_clean_runner_orders",
+        "pizza_clean_customer_orders",
+        "pizza_names",
+        "pizza_recipes",
+        "pizza_toppings"
+      ],
+      "destinations": [
+        "pizza_clean_runner_orders",
+        "pizza_clean_customer_orders",
+        "pizza_names",
+        "pizza_recipes",
+        "pizza_toppings"
+      ],
+      "linked_tables": [
+        "pizza_clean_runner_orders",
+        "pizza_customer_orders",
+        "pizza_get_extras",
+        "pizza_names",
+        "pizza_toppings"
+      ],
+      "chosen_path": [
+        "pizza_clean_runner_orders"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 20,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer pizza_clean_runner_orders.order_id for literal filter(s) ['10']; profile nonnull=10/10, distinct=10, samples=['1', '2', '3']",
+        "- pizza_clean_runner_orders.runner_id: nonnull=10/10, distinct=3, samples=['1', '2', '3']",
+        "- Prefer pizza_clean_runner_orders.pickup_time for literal filter(s) ['12', '10']; profile nonnull=8/10, distinct=8, samples=['2021-01-01 18:15:34', '2021-01-01 19:10:54', '2021-01-03 00:12:37']",
+        "- pizza_clean_runner_orders.cancellation: nonnull=2/10, distinct=2, samples=['Restaurant Cancellation', 'Customer Cancellation']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": false,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "The question asks for total income, requiring SUM aggregation over computed price per pizza plus extras, with cancellation filter."
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "pizza_names",
+        "pizza_customer_orders",
+        "pizza_toppings",
+        "pizza_get_extras"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.7136,
+        "values": 1.585,
+        "paths": 3.8327
+      },
+      "trace": [
+        "ground: graph=inferred edges=18",
+        "anchor: src=['pizza_clean_runner_orders', 'pizza_clean_customer_orders', 'pizza_names', 'pizza_recipes', 'pizza_toppings'] dst=['pizza_clean_runner_orders', 'pizza_clean_customer_orders', 'pizza_names', 'pizza_recipes', 'pizza_toppings'] literals=['Meat Lovers', '12', 'Vegetarian', '10', '1']",
+        "belief0: colH=3.169 valH=0.000",
+        "explore: path entropy=5.161 top_gap=0.00 (37 candidates)",
+        "explore: probe P0 ['pizza_clean_runner_orders']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 4 candidates col_entropy=3.169",
+        "explore: column walk finished: sql_probes=20 hints=4",
+        "commit: [propose=MISSING] added missing tables ['pizza_names', 'pizza_customer_orders', 'pizza_toppings', 'pizza_get_extras'] -> ['pizza_clean_runner_orders', 'pizza_customer_orders', 'pizza_get_extras', 'pizza_names', 'pizza_toppings']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": false, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"The question asks for total income, requiring SUM aggregation over computed price per pizza plus extras, with cancellation filter.\", \"order_by\": false, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local066",
+      "db_id": "modern_data",
+      "difficulty": "",
+      "question": "Based on our customer pizza order information, summarize the total quantity of each ingredient used in the pizzas we delivered. Output the name and quantity for each ingredient.",
+      "gold_sql": "WITH cte_cleaned_customer_orders AS (\n    SELECT\n        *,\n        ROW_NUMBER() OVER () AS original_row_number\n    FROM \n        pizza_clean_customer_orders\n),\nsplit_regular_toppings AS (\n    SELECT\n        pizza_id,\n        TRIM(SUBSTR(toppings, 1, INSTR(toppings || ',', ',') - 1)) AS topping_id,\n        SUBSTR(toppings || ',', INSTR(toppings || ',', ',') + 1) AS remaining_toppings\n    FROM \n        pizza_recipes\n    UNION ALL\n    SELECT\n        pizza_id,\n        TRIM(SUBSTR(remaining_toppings, 1, INSTR(remaining_toppings, ',') - 1)) AS topping_id,\n        SUBSTR(remaining_toppings, INSTR(remaining_toppings, ',') + 1) AS remaining_toppings\n    FROM \n        split_regular_toppings\n    WHERE\n        remaining_toppings <> ''\n),\ncte_base_toppings AS (\n    SELECT\n        t1.order_id,\n        t1.customer_id,\n        t1.pizza_id,\n        t1.order_time,\n        t1.original_row_number,\n        t2.topping_id\n    FROM \n        cte_cleaned_customer_orders AS t1\n    LEFT JOIN \n        split_regular_toppings AS t2\n    ON \n        t1.pizza_id = t2.pizza_id\n),\nsplit_exclusions AS (\n    SELECT\n        order_id,\n        customer_id,\n        pizza_id,\n        order_time,\n        original_row_number,\n        TRIM(SUBSTR(exclusions, 1, INSTR(exclusions || ',', ',') - 1)) AS topping_id,\n        SUBSTR(exclusions || ',', INSTR(exclusions || ',', ',') + 1) AS remaining_exclusions\n    FROM \n        cte_cleaned_customer_orders\n    WHERE \n        exclusions IS NOT NULL\n    UNION ALL\n    SELECT\n        order_id,\n        customer_id,\n        pizza_id,\n        order_time,\n        original_row_number,\n        TRIM(SUBSTR(remaining_exclusions, 1, INSTR(remaining_exclusions, ',') - 1)) AS topping_id,\n        SUBSTR(remaining_exclusions, INSTR(remaining_exclusions, ',') + 1) AS remaining_exclusions\n    FROM \n        split_exclusions\n    WHERE\n        remaining_exclusions <> ''\n),\nsplit_extras AS (\n    SELECT\n        order_id,\n        customer_id,\n        pizza_id,\n        order_time,\n        original_row_number,\n        TRIM(SUBSTR(extras, 1, INSTR(extras || ',', ',') - 1)) AS topping_id,\n        SUBSTR(extras || ',', INSTR(extras || ',', ',') + 1) AS remaining_extras\n    FROM \n        cte_cleaned_customer_orders\n    WHERE \n        extras IS NOT NULL\n    UNION ALL\n    SELECT\n        order_id,\n        customer_id,\n        pizza_id,\n        order_time,\n        original_row_number,\n        TRIM(SUBSTR(remaining_extras, 1, INSTR(remaining_extras, ',') - 1)) AS topping_id,\n        SUBSTR(remaining_extras, INSTR(remaining_extras, ',') + 1) AS remaining_extras\n    FROM \n        split_extras\n    WHERE\n        remaining_extras <> ''\n),\ncte_combined_orders AS (\n    SELECT \n        order_id,\n        customer_id,\n        pizza_id,\n        order_time,\n        original_row_number,\n        topping_id\n    FROM \n        cte_base_toppings\n    WHERE topping_id NOT IN (SELECT topping_id FROM split_exclusions WHERE split_exclusions.order_id = cte_base_toppings.order_id)\n    UNION ALL\n    SELECT \n        order_id,\n        customer_id,\n        pizza_id,\n        order_time,\n        original_row_number,\n        topping_id\n    FROM \n        split_extras\n)\nSELECT\n    t2.topping_name,\n    COUNT(*) AS topping_count\nFROM \n    cte_combined_orders AS t1\nJOIN \n    pizza_toppings AS t2\nON \n    t1.topping_id = t2.topping_id\nGROUP BY \n    t2.topping_name\nORDER BY \n    topping_count DESC;\n",
+      "pred_sql": "-- We need to count how many times each topping appears across all delivered pizzas.\n-- First, we need to get the delivered orders (not cancelled). Then we need to expand the toppings from pizza_recipes for each pizza ordered.\n-- Since each pizza has a fixed set of toppings (from pizza_recipes), the total quantity of each ingredient is the number of times that topping appears across all delivered pizzas.\n-- We join pizza_clean_customer_orders (for pizza_id per order) with pizza_clean_runner_orders (to filter delivered orders) and pizza_recipes (to get toppings list), then unnest the toppings and count.\n\nWITH delivered_pizzas AS (\n    SELECT co.pizza_id\n    FROM pizza_clean_customer_orders co\n    JOIN pizza_clean_runner_orders ro ON co.order_id = ro.order_id\n    WHERE ro.cancellation IS NULL OR ro.cancellation = ''\n),\ntopping_counts AS (\n    SELECT dp.pizza_id, t.value AS topping_id\n    FROM delivered_pizzas dp\n    JOIN pizza_recipes pr ON dp.pizza_id = pr.pizza_id\n    CROSS JOIN json_each('[' || pr.toppings || ']') AS t\n)\nSELECT pt.topping_name AS ingredient_name, COUNT(*) AS quantity\nFROM topping_counts tc\nJOIN pizza_toppings pt ON tc.topping_id = pt.topping_id\nGROUP BY pt.topping_name\nORDER BY pt.topping_name",
+      "graph_method": "inferred",
+      "n_edges": 14,
+      "sources": [
+        "pizza_clean_customer_orders",
+        "pizza_recipes",
+        "pizza_toppings"
+      ],
+      "destinations": [
+        "pizza_toppings"
+      ],
+      "linked_tables": [
+        "pizza_clean_customer_orders",
+        "pizza_clean_runner_orders",
+        "pizza_recipes",
+        "pizza_toppings"
+      ],
+      "chosen_path": [
+        "pizza_toppings"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 2,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- pizza_toppings.topping_id: nonnull=12/12, distinct=12, samples=['1', '2', '3']",
+        "- pizza_toppings.topping_name: nonnull=12/12, distinct=12, samples=['Bacon', 'BBQ Sauce', 'Beef']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need to sum ingredient quantities per topping, requiring GROUP BY on topping_name and aggregation (SUM)."
+      },
+      "structural_feedback": [
+        "planned select_arity=2, but SQL selects 1 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "pizza_recipes",
+        "pizza_clean_customer_orders",
+        "pizza_clean_runner_orders"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 12,
+      "belief_entropy": {
+        "columns": 3.6754,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=14",
+        "anchor: src=['pizza_clean_customer_orders', 'pizza_recipes', 'pizza_toppings'] dst=['pizza_toppings'] literals=[]",
+        "belief0: colH=3.657 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: column walk: 2 candidates col_entropy=3.657",
+        "explore: column walk finished: sql_probes=2 hints=2",
+        "commit: [propose=MISSING] added missing tables ['pizza_recipes', 'pizza_clean_customer_orders', 'pizza_clean_runner_orders'] -> ['pizza_clean_customer_orders', 'pizza_clean_runner_orders', 'pizza_recipes', 'pizza_toppings']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"Need to sum ingredient quantities per topping, requiring GROUP BY on topping_name and aggregation (SUM).\", \"order_by\": false, \"select_arity\": 2, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=12",
+        "commit: structure-check -> planned select_arity=2, but SQL selects 1 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local075",
+      "db_id": "bank_sales_trading",
+      "difficulty": "",
+      "question": "Can you provide a breakdown of how many times each product was viewed, how many times they were added to the shopping cart, and how many times they were left in the cart without being purchased? Also, give me the count of actual purchases for each product. Ensure that products with a page id in (1, 2, 12, 13) are filtered out.",
+      "gold_sql": "WITH product_viewed AS (\n    SELECT\n        t1.page_id,\n        SUM(CASE WHEN event_type = 1 THEN 1 ELSE 0 END) AS n_page_views,\n        SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) AS n_added_to_cart\n    FROM\n        shopping_cart_page_hierarchy AS t1\n    JOIN\n        shopping_cart_events AS t2\n    ON\n        t1.page_id = t2.page_id\n    WHERE\n        t1.product_id IS NOT NULL\n    GROUP BY\n        t1.page_id\n),\nproduct_purchased AS (\n    SELECT\n        t2.page_id,\n        SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) AS purchased_from_cart\n    FROM\n        shopping_cart_page_hierarchy AS t1\n    JOIN\n        shopping_cart_events AS t2\n    ON\n        t1.page_id = t2.page_id\n    WHERE\n        t1.product_id IS NOT NULL\n        AND EXISTS (\n            SELECT\n                visit_id\n            FROM\n                shopping_cart_events\n            WHERE\n                event_type = 3\n                AND t2.visit_id = visit_id\n        )\n        AND t1.page_id NOT IN (1, 2, 12, 13)\n    GROUP BY\n        t2.page_id\n),\nproduct_abandoned AS (\n    SELECT\n        t2.page_id,\n        SUM(CASE WHEN event_type = 2 THEN 1 ELSE 0 END) AS abandoned_in_cart\n    FROM\n        shopping_cart_page_hierarchy AS t1\n    JOIN\n        shopping_cart_events AS t2\n    ON\n        t1.page_id = t2.page_id\n    WHERE\n        t1.product_id IS NOT NULL\n        AND NOT EXISTS (\n            SELECT\n                visit_id\n            FROM\n                shopping_cart_events\n            WHERE\n                event_type = 3\n                AND t2.visit_id = visit_id\n        )\n        AND t1.page_id NOT IN (1, 2, 12, 13)\n    GROUP BY\n        t2.page_id\n)\nSELECT\n    t1.page_id,\n    t1.page_name,\n    t2.n_page_views AS 'number of product being viewed',\n    t2.n_added_to_cart AS 'number added to the cart',\n    t4.abandoned_in_cart AS 'without being purchased in cart',\n    t3.purchased_from_cart AS 'count of actual purchases'\nFROM\n    shopping_cart_page_hierarchy AS t1\nJOIN\n    product_viewed AS t2 \nON\n    t2.page_id = t1.page_id\nJOIN\n    product_purchased AS t3 \nON \n    t3.page_id = t1.page_id\nJOIN\n    product_abandoned AS t4 \nON \n    t4.page_id = t1.page_id;\n",
+      "pred_sql": "SELECT \n    p.page_name AS product,\n    SUM(CASE WHEN e.event_type = 1 THEN 1 ELSE 0 END) AS views,\n    SUM(CASE WHEN e.event_type = 2 THEN 1 ELSE 0 END) AS cart_adds,\n    SUM(CASE WHEN e.event_type = 3 THEN 1 ELSE 0 END) AS left_in_cart,\n    SUM(CASE WHEN e.event_type = 4 THEN 1 ELSE 0 END) AS purchases\nFROM shopping_cart_events e\nJOIN shopping_cart_page_hierarchy p ON e.page_id = p.page_id\nJOIN shopping_cart_event_identifier ei ON e.event_type = ei.event_type\nWHERE p.page_id NOT IN (1, 2, 12, 13)\nGROUP BY p.page_id, p.page_name\nORDER BY p.page_name",
+      "graph_method": "inferred",
+      "n_edges": 8,
+      "sources": [
+        "shopping_cart_page_hierarchy"
+      ],
+      "destinations": [
+        "shopping_cart_page_hierarchy",
+        "shopping_cart_events",
+        "shopping_cart_event_identifier"
+      ],
+      "linked_tables": [
+        "shopping_cart_event_identifier",
+        "shopping_cart_events",
+        "shopping_cart_page_hierarchy"
+      ],
+      "chosen_path": [
+        "shopping_cart_page_hierarchy"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 20,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer shopping_cart_page_hierarchy.page_id for literal filter(s) ['1', '2', '12', '13']; profile nonnull=13/13, distinct=13, samples=['1', '2', '3']",
+        "- Prefer shopping_cart_page_hierarchy.product_id for literal filter(s) ['1', '2']; profile nonnull=9/13, distinct=9, samples=['1.0', '2.0', '3.0']",
+        "- shopping_cart_page_hierarchy.page_name: nonnull=13/13, distinct=13, samples=['Home Page', 'All Products', 'Salmon']",
+        "- shopping_cart_page_hierarchy.product_category: nonnull=9/13, distinct=3, samples=['Fish', 'Luxury', 'Shellfish']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 4,
+        "aggregation": true,
+        "notes": "Need counts per product for different event types, grouped by product, filtering out specific page IDs"
+      },
+      "structural_feedback": [
+        "planned select_arity=4, but SQL selects 5 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "shopping_cart_events",
+        "shopping_cart_event_identifier"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 9,
+      "belief_entropy": {
+        "columns": 0.012,
+        "values": 2.2796,
+        "paths": 0.4077
+      },
+      "trace": [
+        "ground: graph=inferred edges=8",
+        "anchor: src=['shopping_cart_page_hierarchy'] dst=['shopping_cart_page_hierarchy', 'shopping_cart_events', 'shopping_cart_event_identifier'] literals=['1', '2', '12', '13']",
+        "belief0: colH=2.168 valH=3.170",
+        "explore: path entropy=1.538 top_gap=0.15 (3 candidates)",
+        "explore: probe P0 ['shopping_cart_page_hierarchy']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 4 candidates col_entropy=2.168",
+        "explore: column walk finished: sql_probes=20 hints=4",
+        "commit: [propose=MISSING] added missing tables ['shopping_cart_events', 'shopping_cart_event_identifier'] -> ['shopping_cart_event_identifier', 'shopping_cart_events', 'shopping_cart_page_hierarchy']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"Need counts per product for different event types, grouped by product, filtering out specific page IDs\", \"order_by\": false, \"select_arity\": 4, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=9",
+        "commit: structure-check -> planned select_arity=4, but SQL selects 5 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local078",
+      "db_id": "bank_sales_trading",
+      "difficulty": "",
+      "question": "Identify the top 10 and bottom 10 interest categories based on their highest composition values across all months. For each category, display the time(MM-YYYY), interest name, and the composition value",
+      "gold_sql": "WITH get_interest_rank AS (\n    SELECT\n        t1.month_year,\n        t2.interest_name,\n        t1.composition,\n        RANK() OVER (\n            PARTITION BY t2.interest_name\n            ORDER BY t1.composition DESC\n        ) AS interest_rank\n    FROM \n        interest_metrics AS t1\n    JOIN \n        interest_map AS t2\n    ON \n        t1.interest_id = t2.id\n    WHERE \n        t1.month_year IS NOT NULL\n),\nget_top_10 AS (\n    SELECT\n        month_year,\n        interest_name,\n        composition\n    FROM \n        get_interest_rank\n    WHERE \n        interest_rank = 1\n    ORDER BY \n        composition DESC\n    LIMIT 10\n),\nget_bottom_10 AS (\n    SELECT\n        month_year,\n        interest_name,\n        composition\n    FROM \n        get_interest_rank\n    WHERE \n        interest_rank = 1\n    ORDER BY \n        composition ASC\n    LIMIT 10\n)\nSELECT * \nFROM \n    get_top_10\nUNION\nSELECT * \nFROM \n    get_bottom_10\nORDER BY \n    composition DESC;\n",
+      "pred_sql": "-- Step 1: For each interest_id, find the month with the highest composition value\n-- Step 2: Get top 10 and bottom 10 based on that max composition\n-- Step 3: Join with interest_map to get interest name and format month_year as MM-YYYY\n\nWITH max_composition_per_interest AS (\n    SELECT \n        interest_id,\n        MAX(composition) AS max_composition\n    FROM interest_metrics\n    GROUP BY interest_id\n),\nranked_interests AS (\n    SELECT \n        interest_id,\n        max_composition,\n        ROW_NUMBER() OVER (ORDER BY max_composition DESC) AS rank_desc,\n        ROW_NUMBER() OVER (ORDER BY max_composition ASC) AS rank_asc\n    FROM max_composition_per_interest\n),\nselected_interests AS (\n    SELECT interest_id, max_composition\n    FROM ranked_interests\n    WHERE rank_desc <= 10 OR rank_asc <= 10\n),\nbest_month_per_selected AS (\n    SELECT \n        im.interest_id,\n        im.month_year,\n        im.composition,\n        ROW_NUMBER() OVER (PARTITION BY im.interest_id ORDER BY im.composition DESC) AS rn\n    FROM interest_metrics im\n    INNER JOIN selected_interests si ON im.interest_id = si.interest_id\n    WHERE im.composition = si.max_composition\n)\nSELECT \n    bm.month_year AS \"time(MM-YYYY)\",\n    mp.interest_name,\n    bm.composition\nFROM best_month_per_selected bm\nINNER JOIN interest_map mp ON bm.interest_id = mp.id\nWHERE bm.rn = 1\nORDER BY bm.composition DESC",
+      "graph_method": "inferred",
+      "n_edges": 8,
+      "sources": [
+        "interest_metrics"
+      ],
+      "destinations": [
+        "interest_metrics",
+        "interest_map"
+      ],
+      "linked_tables": [
+        "interest_map",
+        "interest_metrics"
+      ],
+      "chosen_path": [
+        "interest_metrics"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 3,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- interest_metrics.interest_id: nonnull=13080/14273, distinct=1202, samples=['32486.0', '6106.0', '18923.0']",
+        "- interest_metrics.composition: nonnull=14273/14273, distinct=884, samples=['11.89', '9.93', '10.85']",
+        "- interest_metrics.index_value: nonnull=14273/14273, distinct=345, samples=['6.19', '5.31', '5.29']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": false,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 3,
+        "aggregation": false,
+        "notes": "Need subqueries to get top 10 and bottom 10 per interest_id based on max composition, then union results with order and limit"
+      },
+      "structural_feedback": [
+        "planned limit=true, but SQL has no LIMIT",
+        "planned select_arity=3, but SQL selects 2 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "interest_map"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 20,
+      "belief_entropy": {
+        "columns": 4.6953,
+        "values": 0.0,
+        "paths": 0.2473
+      },
+      "trace": [
+        "ground: graph=inferred edges=8",
+        "anchor: src=['interest_metrics'] dst=['interest_metrics', 'interest_map'] literals=[]",
+        "belief0: colH=4.685 valH=0.000",
+        "explore: path entropy=0.996 top_gap=0.15 (2 candidates)",
+        "explore: probe P0 ['interest_metrics']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 3 candidates col_entropy=4.685",
+        "explore: column walk finished: sql_probes=3 hints=3",
+        "commit: [propose=MISSING] added missing tables ['interest_map'] -> ['interest_map', 'interest_metrics']",
+        "commit: structure-plan -> {\"aggregation\": false, \"group_by\": false, \"having\": false, \"limit\": true, \"nested\": true, \"notes\": \"Need subqueries to get top 10 and bottom 10 per interest_id based on max composition, then union results with order and limit\", \"order_by\": true, \"select_arity\": 3, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=20",
+        "commit: structure-check -> planned limit=true, but SQL has no LIMIT | planned select_arity=3, but SQL selects 2 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local099",
+      "db_id": "Db-IMDB",
+      "difficulty": "",
+      "question": "I need you to look into the actor collaborations and tell me how many actors have made more films with Yash Chopra than with any other director. This will help us understand his influence on the industry better.",
+      "gold_sql": "WITH YASH_CHOPRAS_PID AS (\n    SELECT\n        TRIM(P.PID) AS PID\n    FROM\n        Person P\n    WHERE\n        TRIM(P.Name) = 'Yash Chopra'\n),\nNUM_OF_MOV_BY_ACTOR_DIRECTOR AS (\n    SELECT\n        TRIM(MC.PID) AS ACTOR_PID,\n        TRIM(MD.PID) AS DIRECTOR_PID,\n        COUNT(DISTINCT TRIM(MD.MID)) AS NUM_OF_MOV\n    FROM\n        M_Cast MC\n    JOIN\n        M_Director MD ON TRIM(MC.MID) = TRIM(MD.MID)\n    GROUP BY\n        ACTOR_PID,\n        DIRECTOR_PID\n),\nNUM_OF_MOVIES_BY_YC AS (\n    SELECT\n        NM.ACTOR_PID,\n        NM.DIRECTOR_PID,\n        NM.NUM_OF_MOV AS NUM_OF_MOV_BY_YC\n    FROM\n        NUM_OF_MOV_BY_ACTOR_DIRECTOR NM\n    JOIN\n        YASH_CHOPRAS_PID YCP ON NM.DIRECTOR_PID = YCP.PID\n),\nMAX_MOV_BY_OTHER_DIRECTORS AS (\n    SELECT\n        ACTOR_PID,\n        MAX(NUM_OF_MOV) AS MAX_NUM_OF_MOV\n    FROM\n        NUM_OF_MOV_BY_ACTOR_DIRECTOR NM\n    JOIN\n        YASH_CHOPRAS_PID YCP ON NM.DIRECTOR_PID <> YCP.PID\n    GROUP BY\n        ACTOR_PID\n),\nACTORS_MOV_COMPARISION AS (\n    SELECT\n        NMY.ACTOR_PID,\n        CASE WHEN NMY.NUM_OF_MOV_BY_YC > IFNULL(NMO.MAX_NUM_OF_MOV, 0) THEN 'Y' ELSE 'N' END AS MORE_MOV_BY_YC\n    FROM\n        NUM_OF_MOVIES_BY_YC NMY\n    LEFT OUTER JOIN\n        MAX_MOV_BY_OTHER_DIRECTORS NMO ON NMY.ACTOR_PID = NMO.ACTOR_PID\n)\nSELECT\n    COUNT(DISTINCT TRIM(P.PID)) AS \"Number of actor\"\nFROM\n    Person P\nWHERE\n    TRIM(P.PID) IN (\n        SELECT\n            DISTINCT ACTOR_PID\n        FROM\n            ACTORS_MOV_COMPARISION\n        WHERE\n            MORE_MOV_BY_YC = 'Y'\n    );\n",
+      "pred_sql": "SELECT COUNT(*) AS actor_count\nFROM (\n    SELECT a.PID\n    FROM M_Cast a\n    JOIN M_Director d ON a.MID = d.MID\n    JOIN Person p ON d.PID = p.PID\n    WHERE p.Name = 'Yash Chopra'\n    GROUP BY a.PID\n    HAVING COUNT(*) > (\n        SELECT MAX(cnt)\n        FROM (\n            SELECT COUNT(*) AS cnt\n            FROM M_Cast a2\n            JOIN M_Director d2 ON a2.MID = d2.MID\n            JOIN Person p2 ON d2.PID = p2.PID\n            WHERE p2.Name != 'Yash Chopra'\n              AND a2.PID = a.PID\n            GROUP BY d2.PID\n        )\n    )\n) AS actors_with_yash_chopra",
+      "graph_method": "inferred",
+      "n_edges": 5,
+      "sources": [
+        "M_Cast",
+        "M_Director"
+      ],
+      "destinations": [
+        "Person"
+      ],
+      "linked_tables": [
+        "M_Cast",
+        "M_Director",
+        "Movie",
+        "Person"
+      ],
+      "chosen_path": [],
+      "n_probes": 0,
+      "n_column_probes": 24,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer Person.Name for literal filter(s) ['Yash Chopra']; profile nonnull=38284/38285, distinct=36312, samples=[' Christian Bale', ' Cate Blanchett', ' Benedict Cumberbatch']",
+        "- M_Director.MID: nonnull=3475/3475, distinct=3475, samples=['tt2388771', 'tt5164214', 'tt1365519']",
+        "- Person.PID: nonnull=38284/38285, distinct=37565, samples=['nm0000288', 'nm0000949', 'nm1212722']",
+        "- M_Cast.index: nonnull=82837/82837, distinct=82837, samples=['0', '1', '2']",
+        "- M_Cast.ID: nonnull=82837/82837, distinct=82837, samples=['0', '1', '2']",
+        "- M_Director.index: nonnull=3475/3475, distinct=3475, samples=['0', '1', '2']",
+        "- M_Director.ID: nonnull=3475/3475, distinct=3475, samples=['0', '1', '2']",
+        "- Person.index: nonnull=38285/38285, distinct=38285, samples=['0', '1', '2']",
+        "- M_Cast.MID: nonnull=82837/82837, distinct=3475, samples=['tt2388771', 'tt5164214', 'tt1365519']",
+        "- M_Cast.PID: nonnull=82835/82837, distinct=32127, samples=[' nm0000288', ' nm0000949', ' nm1212722']",
+        "- M_Director.PID: nonnull=3475/3475, distinct=1464, samples=['nm0785227', 'nm0002657', 'nm1012385']",
+        "- Person.Gender: nonnull=29490/38285, distinct=2, samples=['Male', 'Female']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": true,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to count actors whose film count with Yash Chopra is greater than with any other director, requiring subquery per actor-director pair and aggregation with HAVING"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "Movie"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 2.6807,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=5",
+        "anchor: src=['M_Cast', 'M_Director'] dst=['Person'] literals=['Yash Chopra']",
+        "belief0: colH=2.879 valH=0.000",
+        "explore: no path between anchors; union fallback -> ['M_Cast', 'M_Director', 'Person']",
+        "explore: column walk: 12 candidates col_entropy=2.879",
+        "explore: column walk finished: sql_probes=24 hints=12",
+        "commit: [propose=MISSING] added missing tables ['Movie'] -> ['M_Cast', 'M_Director', 'Movie', 'Person']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": true, \"limit\": false, \"nested\": true, \"notes\": \"Need to count actors whose film count with Yash Chopra is greater than with any other director, requiring subquery per actor-director pair and aggregation with HAVING\", \"order_by\": false, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=False rows=interrupted",
+        "commit: repair -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local131",
+      "db_id": "EntertainmentAgency",
+      "difficulty": "",
+      "question": "Could you list each musical style with the number of times it appears as a 1st, 2nd, or 3rd preference in a single row per style?",
+      "gold_sql": "SELECT \n  Musical_Styles.StyleName,\n  COUNT(RankedPreferences.FirstStyle)\n    AS FirstPreference,\n  COUNT(RankedPreferences.SecondStyle)\n    AS SecondPreference,\n  COUNT(RankedPreferences.ThirdStyle)\n    AS ThirdPreference\nFROM Musical_Styles,\n (SELECT (CASE WHEN\n    Musical_Preferences.PreferenceSeq = 1\n               THEN Musical_Preferences.StyleID\n               ELSE Null END) As FirstStyle,\n         (CASE WHEN\n    Musical_Preferences.PreferenceSeq = 2\n               THEN Musical_Preferences.StyleID\n               ELSE Null END) As SecondStyle,\n         (CASE WHEN\n    Musical_Preferences.PreferenceSeq = 3\n               THEN Musical_Preferences.StyleID\n               ELSE Null END) AS ThirdStyle\n   FROM Musical_Preferences)  AS RankedPreferences\nWHERE Musical_Styles.StyleID =\n         RankedPreferences.FirstStyle\n  OR Musical_Styles.StyleID =\n         RankedPreferences.SecondStyle\n  OR Musical_Styles.StyleID =\n         RankedPreferences.ThirdStyle\nGROUP BY StyleID, StyleName\nHAVING COUNT(FirstStyle) > 0\n     OR     COUNT(SecondStyle) > 0\n     OR     COUNT(ThirdStyle) > 0\nORDER BY FirstPreference DESC,\n        SecondPreference DESC,\n        ThirdPreference DESC, StyleID;",
+      "pred_sql": "SELECT \n    ms.StyleName,\n    SUM(CASE WHEN mp.PreferenceSeq = 1 THEN 1 ELSE 0 END) AS FirstPreferenceCount,\n    SUM(CASE WHEN mp.PreferenceSeq = 2 THEN 1 ELSE 0 END) AS SecondPreferenceCount,\n    SUM(CASE WHEN mp.PreferenceSeq = 3 THEN 1 ELSE 0 END) AS ThirdPreferenceCount\nFROM Musical_Styles ms\nJOIN Musical_Preferences mp ON ms.StyleID = mp.StyleID\nGROUP BY ms.StyleID, ms.StyleName\nORDER BY ms.StyleName",
+      "graph_method": "declared",
+      "n_edges": 9,
+      "sources": [
+        "Musical_Preferences"
+      ],
+      "destinations": [
+        "Musical_Styles",
+        "Musical_Preferences"
+      ],
+      "linked_tables": [
+        "Musical_Preferences",
+        "Musical_Styles"
+      ],
+      "chosen_path": [
+        "Musical_Preferences",
+        "Musical_Styles"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 20,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Musical_Styles.StyleID: nonnull=25/25, distinct=25, samples=['1', '2', '3']",
+        "- Musical_Styles.StyleName: nonnull=25/25, distinct=25, samples=[\"40's Ballroom Music\", \"50's Music\", \"60's Music\"]",
+        "- Musical_Preferences.StyleID: nonnull=36/36, distinct=20, samples=['1', '3', '4']",
+        "- Musical_Preferences.PreferenceSeq: nonnull=36/36, distinct=3, samples=['2', '1', '3']",
+        "- Musical_Preferences.CustomerID: nonnull=36/36, distinct=15, samples=['10001', '10002', '10003']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 4,
+        "aggregation": true,
+        "notes": "Group by style, count occurrences for each preference rank in separate columns"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "OK",
+      "missing_added": [],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 20,
+      "belief_entropy": {
+        "columns": 2.4952,
+        "values": 0.0,
+        "paths": 0.2754
+      },
+      "trace": [
+        "ground: graph=declared edges=9",
+        "anchor: src=['Musical_Preferences'] dst=['Musical_Styles', 'Musical_Preferences'] literals=['1st', '2nd', '3rd']",
+        "belief0: colH=2.949 valH=0.000",
+        "explore: path entropy=1.000 top_gap=0.00 (2 candidates)",
+        "explore: probe P0 ['Musical_Preferences', 'Musical_Styles']: {'ok': True, 'nonempty': True, 'count': 36}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 5 candidates col_entropy=2.949",
+        "explore: column walk finished: sql_probes=20 hints=5",
+        "commit: [propose=OK] no change",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"Group by style, count occurrences for each preference rank in separate columns\", \"order_by\": false, \"select_arity\": 4, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=20"
+      ]
+    },
+    {
+      "instance_id": "local163",
+      "db_id": "education_business",
+      "difficulty": "",
+      "question": "Which university faculty members' salaries are closest to the average salary for their respective ranks? Please provide the ranks, first names, last names, and salaries.university",
+      "gold_sql": "WITH AvgSalaries AS (\n    SELECT \n        facrank AS FacRank,\n        AVG(facsalary) AS AvSalary\n    FROM \n        university_faculty\n    GROUP BY \n        facrank\n),\nSalaryDifferences AS (\n    SELECT \n        university_faculty.facrank AS FacRank, \n        university_faculty.facfirstname AS FacFirstName, \n        university_faculty.faclastname AS FacLastName, \n        university_faculty.facsalary AS Salary, \n        ABS(university_faculty.facsalary - AvgSalaries.AvSalary) AS Diff\n    FROM \n        university_faculty\n    JOIN \n        AvgSalaries ON university_faculty.facrank = AvgSalaries.FacRank\n),\nMinDifferences AS (\n    SELECT \n        FacRank, \n        MIN(Diff) AS MinDiff\n    FROM \n        SalaryDifferences\n    GROUP BY \n        FacRank\n)\nSELECT \n    s.FacRank, \n    s.FacFirstName, \n    s.FacLastName, \n    s.Salary\nFROM \n    SalaryDifferences s\nJOIN \n    MinDifferences m ON s.FacRank = m.FacRank AND s.Diff = m.MinDiff;\n",
+      "pred_sql": "SELECT \n    f.FacRank,\n    f.FacFirstName,\n    f.FacLastName,\n    f.FacSalary\nFROM university_faculty f\nINNER JOIN (\n    SELECT \n        FacRank,\n        AVG(CAST(FacSalary AS REAL)) AS avg_salary\n    FROM university_faculty\n    GROUP BY FacRank\n) avg_tbl ON f.FacRank = avg_tbl.FacRank\nORDER BY ABS(f.FacSalary - avg_tbl.avg_salary)",
+      "graph_method": "inferred",
+      "n_edges": 3,
+      "sources": [
+        "university_faculty"
+      ],
+      "destinations": [
+        "university_faculty"
+      ],
+      "linked_tables": [
+        "university_faculty"
+      ],
+      "chosen_path": [
+        "university_faculty"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 6,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- university_faculty.FacLastName: nonnull=8/8, distinct=8, samples=['VINCE', 'EMMANUEL', 'FIBON']",
+        "- university_faculty.FacSalary: nonnull=8/8, distinct=8, samples=['35000', '120000', '70000']",
+        "- university_faculty.FacFirstName: nonnull=8/8, distinct=7, samples=['LEONARD', 'VICTORIA', 'NICKI']",
+        "- university_faculty.FacNo: nonnull=8/8, distinct=8, samples=['98765432', '543210987', '654321098']",
+        "- university_faculty.FacHireDate: nonnull=8/8, distinct=8, samples=['1997-04-10', '1998-04-15', '1996-05-01']",
+        "- university_faculty.FacZipCode: nonnull=8/8, distinct=8, samples=['98111-9921', '98011-2242', '98121-0094']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": false,
+        "select_arity": 4,
+        "aggregation": true,
+        "notes": "Need subquery to compute average salary per rank, then join to find faculty with salary closest to that average per rank; requires GROUP BY on rank, ORDER BY absolute difference, and no limit since al"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 8,
+      "belief_entropy": {
+        "columns": 3.942,
+        "values": 0.0,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=3",
+        "anchor: src=['university_faculty'] dst=['university_faculty'] literals=[]",
+        "belief0: colH=4.285 valH=0.000",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: column walk: 6 candidates col_entropy=4.285",
+        "explore: column walk finished: sql_probes=6 hints=6",
+        "commit: [propose=MISSING] no change",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": true, \"notes\": \"Need subquery to compute average salary per rank, then join to find faculty with salary closest to that average per rank; requires GROUP BY on rank, ORDER BY absolute difference, and no limit since al\", \"order_by\": true, \"select_arity\": 4, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=8"
+      ]
+    },
+    {
+      "instance_id": "local197",
+      "db_id": "sqlite-sakila",
+      "difficulty": "",
+      "question": "Among our top 10 paying customers, can you identify the largest change in payment amounts from one month to the immediately following month? Specifically, please determine for which customer and during which month this maximum month-over-month difference occurred, and provide the difference rounded to two decimal places.",
+      "gold_sql": "WITH result_table AS (\n  SELECT \n    strftime('%m', pm.payment_date) AS pay_mon, \n    customer_id,\n    COUNT(pm.amount) AS pay_countpermon, \n    SUM(pm.amount) AS pay_amount \n  FROM \n    payment AS pm \n  GROUP BY \n    pay_mon, \n    customer_id\n), \ntop10_customer AS (\n  SELECT \n    customer_id,\n    SUM(tb.pay_amount) AS total_payments \n  FROM \n    result_table AS tb \n  GROUP BY \n    customer_id\n  ORDER BY \n    SUM(tb.pay_amount) DESC \n  LIMIT \n    10\n), \ndifference_per_mon AS (\n  SELECT \n    pay_mon AS month_number, \n    pay_mon AS month, \n    tb.pay_countpermon, \n    tb.pay_amount, \n    ABS(tb.pay_amount - LAG(tb.pay_amount) OVER (PARTITION BY tb.customer_id)) AS diff \n  FROM \n    result_table tb \n    JOIN top10_customer top ON top.customer_id = tb.customer_id\n) \nSELECT \n  month, \n  ROUND(max_diff, 2) AS max_diff \nFROM (\n  SELECT \n    month, \n    diff, \n    month_number, \n    MAX(diff) OVER (PARTITION BY month) AS max_diff \n  FROM \n    difference_per_mon\n) AS max_per_mon \nWHERE \n  diff = max_diff \nORDER BY \n  max_diff DESC \nLIMIT \n  1;\n",
+      "pred_sql": "WITH top_customers AS (\n    SELECT customer_id\n    FROM payment\n    GROUP BY customer_id\n    ORDER BY SUM(amount) DESC\n    LIMIT 10\n),\nmonthly_payments AS (\n    SELECT \n        p.customer_id,\n        c.first_name,\n        c.last_name,\n        strftime('%Y-%m', p.payment_date) AS month,\n        SUM(p.amount) AS total_amount\n    FROM payment p\n    JOIN customer c ON p.customer_id = c.customer_id\n    WHERE p.customer_id IN (SELECT customer_id FROM top_customers)\n    GROUP BY p.customer_id, strftime('%Y-%m', p.payment_date)\n),\nmonthly_diff AS (\n    SELECT \n        customer_id,\n        first_name,\n        last_name,\n        month AS current_month,\n        total_amount - LAG(total_amount) OVER (PARTITION BY customer_id ORDER BY month) AS month_diff\n    FROM monthly_payments\n)\nSELECT \n    first_name || ' ' || last_name AS customer,\n    current_month AS month,\n    ROUND(ABS(month_diff), 2) AS max_change\nFROM monthly_diff\nWHERE month_diff IS NOT NULL\nORDER BY ABS(month_diff) DESC\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "customer",
+        "payment"
+      ],
+      "destinations": [
+        "customer",
+        "payment"
+      ],
+      "linked_tables": [
+        "customer",
+        "payment"
+      ],
+      "chosen_path": [
+        "customer"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 6,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- customer.customer_id: nonnull=599/599, distinct=599, samples=['1', '2', '3']",
+        "- customer.address_id: nonnull=599/599, distinct=599, samples=['5', '6', '7']",
+        "- customer.first_name: nonnull=599/599, distinct=591, samples=['MARY', 'PATRICIA', 'LINDA']",
+        "- customer.last_name: nonnull=599/599, distinct=599, samples=['ABNEY', 'ADAM', 'ADAMS']",
+        "- customer.email: nonnull=599/599, distinct=599, samples=['MARY.SMITH@sakilacustomer.org', 'PATRICIA.JOHNSON@sakilacustomer.org', 'LINDA.WILLIAMS@sakilacustomer.org']",
+        "- customer.store_id: nonnull=599/599, distinct=2, samples=['1', '2']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 3,
+        "aggregation": true,
+        "notes": "Need to find top 10 paying customers (subquery with GROUP BY, ORDER BY SUM(amount) DESC, LIMIT 10), then compute month-over-month difference per customer (requires window function or self-join with LA"
+      },
+      "structural_feedback": [
+        "planned select_arity=3, but SQL selects 1 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "payment"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.5609,
+        "values": 0.0,
+        "paths": 1.5499
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['customer', 'payment'] dst=['customer', 'payment'] literals=[]",
+        "belief0: colH=3.985 valH=0.000",
+        "explore: path entropy=3.000 top_gap=0.00 (8 candidates)",
+        "explore: probe P0 ['customer']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 6 candidates col_entropy=3.985",
+        "explore: column walk finished: sql_probes=6 hints=6",
+        "commit: [propose=MISSING] added missing tables ['payment'] -> ['customer', 'payment']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": true, \"notes\": \"Need to find top 10 paying customers (subquery with GROUP BY, ORDER BY SUM(amount) DESC, LIMIT 10), then compute month-over-month difference per customer (requires window function or self-join with LA\", \"order_by\": true, \"select_arity\": 3, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=1",
+        "commit: structure-check -> planned select_arity=3, but SQL selects 1 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local199",
+      "db_id": "sqlite-sakila",
+      "difficulty": "",
+      "question": "Can you identify the year and month with the highest rental orders created by the store's staff for each store? Please list the store ID, the year, the month, and the total rentals for those dates.",
+      "gold_sql": "WITH result_table AS (\n  SELECT \n    strftime('%Y', RE.RENTAL_DATE) AS YEAR, \n    strftime('%m', RE.RENTAL_DATE) AS RENTAL_MONTH, \n    ST.STORE_ID, \n    COUNT(RE.RENTAL_ID) AS count \n  FROM \n    RENTAL RE \n    JOIN STAFF ST ON RE.STAFF_ID = ST.STAFF_ID \n  GROUP BY \n    YEAR, \n    RENTAL_MONTH, \n    ST.STORE_ID \n), \nmonthly_sales AS (\n  SELECT \n    YEAR, \n    RENTAL_MONTH, \n    STORE_ID, \n    SUM(count) AS total_rentals \n  FROM \n    result_table \n  GROUP BY \n    YEAR, \n    RENTAL_MONTH, \n    STORE_ID\n),\nstore_max_sales AS (\n  SELECT \n    STORE_ID, \n    YEAR, \n    RENTAL_MONTH, \n    total_rentals, \n    MAX(total_rentals) OVER (PARTITION BY STORE_ID) AS max_rentals \n  FROM \n    monthly_sales\n)\nSELECT \n  STORE_ID, \n  YEAR, \n  RENTAL_MONTH, \n  total_rentals \nFROM \n  store_max_sales \nWHERE \n  total_rentals = max_rentals\nORDER BY \n  STORE_ID;\n",
+      "pred_sql": "WITH store_rentals AS (\n    SELECT \n        s.store_id,\n        strftime('%Y', r.rental_date) AS year,\n        strftime('%m', r.rental_date) AS month,\n        COUNT(*) AS total_rentals\n    FROM rental r\n    JOIN staff st ON r.staff_id = st.staff_id\n    JOIN store s ON st.store_id = s.store_id\n    GROUP BY s.store_id, year, month\n),\nranked_rentals AS (\n    SELECT \n        store_id,\n        year,\n        month,\n        total_rentals,\n        ROW_NUMBER() OVER (PARTITION BY store_id ORDER BY total_rentals DESC, year, month) AS rn\n    FROM store_rentals\n)\nSELECT \n    store_id,\n    year,\n    month,\n    total_rentals\nFROM ranked_rentals\nWHERE rn = 1\nORDER BY store_id\nLIMIT 1",
+      "graph_method": "declared",
+      "n_edges": 20,
+      "sources": [
+        "rental",
+        "staff",
+        "store"
+      ],
+      "destinations": [
+        "rental",
+        "staff",
+        "store"
+      ],
+      "linked_tables": [
+        "rental",
+        "staff",
+        "store"
+      ],
+      "chosen_path": [
+        "rental"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 6,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- rental.rental_id: nonnull=16044/16044, distinct=16044, samples=['1', '2', '3']",
+        "- rental.rental_date: nonnull=16044/16044, distinct=15815, samples=['2005-05-24 22:53:30.000', '2005-05-24 22:54:33.000', '2005-05-24 23:03:39.000']",
+        "- rental.staff_id: nonnull=16044/16044, distinct=2, samples=['1', '2']",
+        "- rental.return_date: nonnull=15861/16044, distinct=15836, samples=['2005-05-26 22:04:30.000', '2005-05-28 19:40:33.000', '2005-06-01 22:12:39.000']",
+        "- rental.inventory_id: nonnull=16044/16044, distinct=4580, samples=['1', '2', '3']",
+        "- rental.customer_id: nonnull=16044/16044, distinct=599, samples=['1', '2', '3']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 4,
+        "aggregation": true,
+        "notes": "Need subquery to find max rentals per store, group by store, year, month, order by count desc, limit 1 per store"
+      },
+      "structural_feedback": [],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "staff",
+        "store"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": true,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 3.146,
+        "values": 0.0,
+        "paths": 3.1563
+      },
+      "trace": [
+        "ground: graph=declared edges=20",
+        "anchor: src=['rental', 'staff', 'store'] dst=['rental', 'staff', 'store'] literals=[]",
+        "belief0: colH=3.066 valH=0.000",
+        "explore: path entropy=4.392 top_gap=0.00 (21 candidates)",
+        "explore: probe P0 ['rental']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 6 candidates col_entropy=3.066",
+        "explore: column walk finished: sql_probes=6 hints=6",
+        "commit: [propose=MISSING] added missing tables ['staff', 'store'] -> ['rental', 'staff', 'store']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": true, \"notes\": \"Need subquery to find max rentals per store, group by store, year, month, order by count desc, limit 1 per store\", \"order_by\": true, \"select_arity\": 4, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=2",
+        "commit: structure-check -> planned limit=true, but SQL has no LIMIT",
+        "commit: repair -> ok=True rows=1"
+      ]
+    },
+    {
+      "instance_id": "local210",
+      "db_id": "delivery_center",
+      "difficulty": "",
+      "question": "Can you identify the hubs that saw more than a 20% increase in finished orders from February to March?",
+      "gold_sql": "WITH february_orders AS (\n    SELECT\n        h.hub_name AS hub_name,\n        COUNT(*) AS orders_february\n    FROM \n        orders o \n    LEFT JOIN\n        stores s ON o.store_id = s.store_id \n    LEFT JOIN \n        hubs h ON s.hub_id = h.hub_id \n    WHERE o.order_created_month = 2 AND o.order_status = 'FINISHED'\n    GROUP BY\n        h.hub_name\n),\nmarch_orders AS (\n    SELECT\n        h.hub_name AS hub_name,\n        COUNT(*) AS orders_march\n    FROM \n        orders o \n    LEFT JOIN\n        stores s ON o.store_id = s.store_id \n    LEFT JOIN \n        hubs h ON s.hub_id = h.hub_id \n    WHERE o.order_created_month = 3 AND o.order_status = 'FINISHED'\n    GROUP BY\n        h.hub_name\n)\nSELECT\n    fo.hub_name\nFROM\n    february_orders fo\nLEFT JOIN \n    march_orders mo ON fo.hub_name = mo.hub_name\nWHERE \n    fo.orders_february > 0 AND \n    mo.orders_march > 0 AND\n    (CAST((mo.orders_march - fo.orders_february) AS REAL) / CAST(fo.orders_february AS REAL)) > 0.2  -- Filter for hubs with more than a 20% increase",
+      "pred_sql": "WITH feb_orders AS (\n    SELECT \n        h.hub_id,\n        h.hub_name,\n        COUNT(o.order_id) AS feb_count\n    FROM hubs h\n    LEFT JOIN orders o ON h.hub_id = o.delivery_order_id\n    WHERE o.order_moment_finished IS NOT NULL\n      AND o.order_created_month = 2\n    GROUP BY h.hub_id, h.hub_name\n),\nmar_orders AS (\n    SELECT \n        h.hub_id,\n        h.hub_name,\n        COUNT(o.order_id) AS mar_count\n    FROM hubs h\n    LEFT JOIN orders o ON h.hub_id = o.delivery_order_id\n    WHERE o.order_moment_finished IS NOT NULL\n      AND o.order_created_month = 3\n    GROUP BY h.hub_id, h.hub_name\n)\nSELECT \n    f.hub_name\nFROM feb_orders f\nJOIN mar_orders m ON f.hub_id = m.hub_id\nWHERE f.feb_count > 0\n  AND (CAST(m.mar_count AS REAL) - f.feb_count) / CAST(f.feb_count AS REAL) > 0.20\nORDER BY f.hub_name",
+      "graph_method": "inferred",
+      "n_edges": 6,
+      "sources": [
+        "orders",
+        "hubs"
+      ],
+      "destinations": [
+        "hubs"
+      ],
+      "linked_tables": [
+        "hubs",
+        "orders"
+      ],
+      "chosen_path": [
+        "hubs"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 18,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- hubs.hub_id: nonnull=32/32, distinct=32, samples=['2', '3', '4']",
+        "- hubs.hub_name: nonnull=32/32, distinct=32, samples=['BLUE SHOPPING', 'GREEN SHOPPING', 'RED SHOPPING']",
+        "- hubs.hub_latitude: nonnull=32/32, distinct=32, samples=['-30.0474148', '-30.0374149', '-30.0219481']",
+        "- hubs.hub_longitude: nonnull=32/32, distinct=32, samples=['-51.21351', '-51.20352', '-51.2083816']",
+        "- hubs.hub_city: nonnull=32/32, distinct=4, samples=['PORTO ALEGRE', 'RIO DE JANEIRO', 'SÃO PAULO']",
+        "- hubs.hub_state: nonnull=32/32, distinct=4, samples=['RS', 'RJ', 'SP']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": true,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 1,
+        "aggregation": true,
+        "notes": "Need to count finished orders per hub for Feb and Mar, then compute percentage increase and filter hubs with >20% increase using HAVING"
+      },
+      "structural_feedback": [
+        "planned having=true, but SQL has no HAVING",
+        "planned select_arity=1, but SQL selects 3 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "orders"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 4.1105,
+        "values": 0.0,
+        "paths": 0.2253
+      },
+      "trace": [
+        "ground: graph=inferred edges=6",
+        "anchor: src=['orders', 'hubs'] dst=['hubs'] literals=['February', 'March']",
+        "belief0: colH=4.053 valH=0.000",
+        "explore: path entropy=0.986 top_gap=0.28 (2 candidates)",
+        "explore: probe P1 ['hubs']: {'ok': True, 'nonempty': True, 'count': None, 'note': 'single table'}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk: 6 candidates col_entropy=4.053",
+        "explore: column walk finished: sql_probes=18 hints=6",
+        "commit: [propose=MISSING] added missing tables ['orders'] -> ['hubs', 'orders']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": true, \"limit\": false, \"nested\": false, \"notes\": \"Need to count finished orders per hub for Feb and Mar, then compute percentage increase and filter hubs with >20% increase using HAVING\", \"order_by\": false, \"select_arity\": 1, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=0",
+        "commit: structure-check -> planned having=true, but SQL has no HAVING | planned select_arity=1, but SQL selects 3 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local219",
+      "db_id": "EU_soccer",
+      "difficulty": "",
+      "question": "In each league, considering all seasons, which single team has the fewest total match wins based on comparing home and away goals, including teams with zero wins, ensuring that if multiple teams tie for the fewest wins, only one team is returned for each league?",
+      "gold_sql": "WITH match_view AS(\nSELECT\n    M.id,\n    L.name AS league,\n    M.season,\n    M.match_api_id,\n    T.team_long_name AS home_team,\n    TM.team_long_name AS away_team,\n    M.home_team_goal,\n    M.away_team_goal,\n    P1.player_name AS home_gk,\n    P2.player_name AS home_center_back_1,\n    P3.player_name AS home_center_back_2,\n    P4.player_name AS home_right_back,\n    P5.player_name AS home_left_back,\n    P6.player_name AS home_midfield_1,\n    P7.player_name AS home_midfield_2,\n    P8.player_name AS home_midfield_3,\n    P9.player_name AS home_midfield_4,\n    P10.player_name AS home_second_forward,\n    P11.player_name AS home_center_forward,\n    P12.player_name AS away_gk,\n    P13.player_name AS away_center_back_1,\n    P14.player_name AS away_center_back_2,\n    P15.player_name AS away_right_back,\n    P16.player_name AS away_left_back,\n    P17.player_name AS away_midfield_1,\n    P18.player_name AS away_midfield_2,\n    P19.player_name AS away_midfield_3,\n    P20.player_name AS away_midfield_4,\n    P21.player_name AS away_second_forward,\n    P22.player_name AS away_center_forward,\n    M.goal,\n    M.card\nFROM\n    match M\nLEFT JOIN\n    league L ON M.league_id = L.id\nLEFT JOIN\n    team T ON M.home_team_api_id = T.team_api_id\nLEFT JOIN\n    team TM ON M.away_team_api_id = TM.team_api_id\nLEFT JOIN\n    player P1 ON M.home_player_1 = P1.player_api_id\nLEFT JOIN\n    player P2 ON M.home_player_2 = P2.player_api_id\nLEFT JOIN\n    player P3 ON M.home_player_3 = P3.player_api_id\nLEFT JOIN\n    player P4 ON M.home_player_4 = P4.player_api_id\nLEFT JOIN\n    player P5 ON M.home_player_5 = P5.player_api_id\nLEFT JOIN\n    player P6 ON M.home_player_6 = P6.player_api_id\nLEFT JOIN\n    player P7 ON M.home_player_7 = P7.player_api_id\nLEFT JOIN\n    player P8 ON M.home_player_8 = P8.player_api_id\nLEFT JOIN\n    player P9 ON M.home_player_9 = P9.player_api_id\nLEFT JOIN\n    player P10 ON M.home_player_10 = P10.player_api_id\nLEFT JOIN\n    player P11 ON M.home_player_11 = P11.player_api_id\nLEFT JOIN\n    player P12 ON M.away_player_1 = P12.player_api_id\nLEFT JOIN\n    player P13 ON M.away_player_2 = P13.player_api_id\nLEFT JOIN\n    player P14 ON M.away_player_3 = P14.player_api_id\nLEFT JOIN\n    player P15 ON M.away_player_4 = P15.player_api_id\nLEFT JOIN\n    player P16 ON M.away_player_5 = P16.player_api_id\nLEFT JOIN\n    player P17 ON M.away_player_6 = P17.player_api_id\nLEFT JOIN\n    player P18 ON M.away_player_7 = P18.player_api_id\nLEFT JOIN\n    player P19 ON M.away_player_8 = P19.player_api_id\nLEFT JOIN\n    player P20 ON M.away_player_9 = P20.player_api_id\nLEFT JOIN\n    player P21 ON M.away_player_10 = P21.player_api_id\nLEFT JOIN\n    player P22 ON M.away_player_11 = P22.player_api_id\n),\nmatch_score AS\n(\n    SELECT  -- Displaying teams and their goals as home_team\n        id,\n        home_team AS team,\n        CASE\n            WHEN home_team_goal > away_team_goal THEN 1 ELSE 0 END AS Winning_match\n    FROM\n        match_view\n\n    UNION ALL\n\n    SELECT  -- Displaying teams and their goals as away_team\n        id,\n        away_team AS team,\n        CASE\n            WHEN away_team_goal > home_team_goal THEN 1 ELSE 0 END AS Winning_match\n    FROM\n        match_view\n),\nwinning_matches AS\n(\n    SELECT  -- Displaying total match wins for each team\n        MV.league,\n        M.team,\n        COUNT(CASE WHEN M.Winning_match = 1 THEN 1 END) AS wins,\n        ROW_NUMBER() OVER(PARTITION BY MV.league ORDER BY COUNT(CASE WHEN M.Winning_match = 1 THEN 1 END) ASC) AS rn\n    FROM\n        match_score M\n    JOIN\n        match_view MV\n    ON\n        M.id = MV.id\n    GROUP BY\n        MV.league,\n        team\n    ORDER BY\n        league,\n        wins ASC\n)\nSELECT\n    league,\n    team\nFROM\n    winning_matches\nWHERE\n    rn = 1  -- Getting the team with the least number of wins in each league\nORDER BY\n    league;",
+      "pred_sql": "-- For each league, compute total wins per team (home wins + away wins), then pick the team with the fewest wins.\n-- If ties occur, we arbitrarily pick one (e.g., the team with smallest team_api_id) to ensure single result per league.\nWITH team_wins AS (\n    -- Home wins: home_team_goal > away_team_goal\n    SELECT \n        m.league_id,\n        m.home_team_api_id AS team_api_id,\n        COUNT(*) AS wins\n    FROM Match m\n    WHERE m.home_team_goal > m.away_team_goal\n    GROUP BY m.league_id, m.home_team_api_id\n    UNION ALL\n    -- Away wins: away_team_goal > home_team_goal\n    SELECT \n        m.league_id,\n        m.away_team_api_id AS team_api_id,\n        COUNT(*) AS wins\n    FROM Match m\n    WHERE m.away_team_goal > m.home_team_goal\n    GROUP BY m.league_id, m.away_team_api_id\n),\ntotal_wins AS (\n    SELECT \n        league_id,\n        team_api_id,\n        SUM(wins) AS total_wins\n    FROM team_wins\n    GROUP BY league_id, team_api_id\n),\nall_teams_in_league AS (\n    -- Ensure teams with zero wins are included (teams that played but never won)\n    SELECT DISTINCT\n        m.league_id,\n        t.team_api_id,\n        COALESCE(tw.total_wins, 0) AS total_wins\n    FROM Match m\n    JOIN Team t ON t.team_api_id = m.home_team_api_id OR t.team_api_id = m.away_team_api_id\n    LEFT JOIN total_wins tw ON tw.league_id = m.league_id AND tw.team_api_id = t.team_api_id\n),\nmin_wins_per_league AS (\n    SELECT \n        league_id,\n        MIN(total_wins) AS min_wins\n    FROM all_teams_in_league\n    GROUP BY league_id\n)\nSELECT \n    l.name AS league_name,\n    t.team_long_name AS team_name,\n    atl.total_wins AS fewest_wins\nFROM all_teams_in_league atl\nJOIN min_wins_per_league mw ON atl.league_id = mw.league_id AND atl.total_wins = mw.min_wins\nJOIN League l ON l.id = atl.league_id\nJOIN Team t ON t.team_api_id = atl.team_api_id\nGROUP BY l.id, t.team_api_id  -- GROUP BY to allow MIN/arbitrary tiebreaker\nORDER BY l.name, t.team_api_id  -- tiebreaker: smallest team_api_id first\nLIMIT 1;  -- Since we need only one team per league, but the question asks for each league, we need to adjust.\n-- Actually the question asks for each league, so we need one row per league. Let's fix:\n-- We'll use a different approach: for each league, pick the team with smallest team_api_id among those with min wins.",
+      "graph_method": "declared",
+      "n_edges": 5,
+      "sources": [
+        "Match",
+        "League"
+      ],
+      "destinations": [
+        "Team",
+        "League"
+      ],
+      "linked_tables": [
+        "League",
+        "Match",
+        "Team"
+      ],
+      "chosen_path": [
+        "Match",
+        "Team"
+      ],
+      "n_probes": 1,
+      "n_column_probes": 0,
+      "n_concept_probes": 0,
+      "column_hints": [],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": true,
+        "limit": true,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need to compute total wins per team per league using aggregation (SUM of wins), then find the team with fewest wins per league using a subquery with MIN, and use ORDER BY and LIMIT to return only one "
+      },
+      "structural_feedback": [
+        "planned select_arity=2, but SQL selects 3 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "League"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 1,
+      "belief_entropy": {
+        "columns": 0.0,
+        "values": 0.0,
+        "paths": 0.7633
+      },
+      "trace": [
+        "ground: graph=declared edges=5",
+        "anchor: src=['Match', 'League'] dst=['Team', 'League'] literals=[]",
+        "belief0: colH=0.000 valH=0.000",
+        "explore: path entropy=2.000 top_gap=0.00 (4 candidates)",
+        "explore: probe P0 ['Match', 'Team']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: stop: Top-1 path now clearly leads",
+        "explore: column walk skipped: col entropy 0.000 below threshold",
+        "commit: [propose=MISSING] added missing tables ['League'] -> ['League', 'Match', 'Team']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": true, \"nested\": true, \"notes\": \"Need to compute total wins per team per league using aggregation (SUM of wins), then find the team with fewest wins per league using a subquery with MIN, and use ORDER BY and LIMIT to return only one \", \"order_by\": true, \"select_arity\": 2, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=1",
+        "commit: structure-check -> planned select_arity=2, but SQL selects 3 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local301",
+      "db_id": "bank_sales_trading",
+      "difficulty": "",
+      "question": "For weekly-sales data, I need an analysis of our sales performance around mid-June for the years 2018, 2019, and 2020. Specifically, calculate the percentage change in sales between the four weeks leading up to June 15 and the four weeks following June 15 for each year.",
+      "gold_sql": "SELECT \n    before_effect,\n    after_effect,\n    after_effect - before_effect AS change_amount,\n    ROUND(((after_effect * 1.0 / before_effect) - 1) * 100, 2) AS percent_change,\n    '2018' AS year\nFROM (\n    SELECT \n        SUM(CASE WHEN delta_weeks BETWEEN 1 AND 4 THEN sales END) AS after_effect,\n        SUM(CASE WHEN delta_weeks BETWEEN -3 AND 0 THEN sales END) AS before_effect\n    FROM (\n        SELECT \n            week_date,\n            ROUND((JULIANDAY(week_date) - JULIANDAY('2018-06-15')) / 7.0) + 1 AS delta_weeks,\n            sales \n        FROM cleaned_weekly_sales\n    ) add_delta_weeks\n) AS add_before_after\nUNION ALL\nSELECT \n    before_effect,\n    after_effect,\n    after_effect - before_effect AS change_amount,\n    ROUND(((after_effect * 1.0 / before_effect) - 1) * 100, 2) AS percent_change,\n    '2019' AS year\nFROM (\n    SELECT \n        SUM(CASE WHEN delta_weeks BETWEEN 1 AND 4 THEN sales END) AS after_effect,\n        SUM(CASE WHEN delta_weeks BETWEEN -3 AND 0 THEN sales END) AS before_effect\n    FROM (\n        SELECT \n            week_date,\n            ROUND((JULIANDAY(week_date) - JULIANDAY('2019-06-15')) / 7.0) + 1 AS delta_weeks,\n            sales \n        FROM cleaned_weekly_sales\n    ) add_delta_weeks\n) AS add_before_after\nUNION ALL\nSELECT \n    before_effect,\n    after_effect,\n    after_effect - before_effect AS change_amount,\n    ROUND(((after_effect * 1.0 / before_effect) - 1) * 100, 2) AS percent_change,\n    '2020' AS year\nFROM (\n    SELECT \n        SUM(CASE WHEN delta_weeks BETWEEN 1 AND 4 THEN sales END) AS after_effect,\n        SUM(CASE WHEN delta_weeks BETWEEN -3 AND 0 THEN sales END) AS before_effect\n    FROM (\n        SELECT \n            week_date,\n            ROUND((JULIANDAY(week_date) - JULIANDAY('2020-06-15')) / 7.0) + 1 AS delta_weeks,\n            sales \n        FROM cleaned_weekly_sales\n    ) add_delta_weeks\n) AS add_before_after\nORDER BY year;\n",
+      "pred_sql": "WITH \n-- Define the target date: June 15 of each year\ntarget_dates AS (\n  SELECT '2018-06-15' AS target_date, 2018 AS year\n  UNION ALL\n  SELECT '2019-06-15', 2019\n  UNION ALL\n  SELECT '2020-06-15', 2020\n),\n-- Get sales for 4 weeks before June 15 (weeks ending on or before June 15, going back 4 weeks)\nbefore_sales AS (\n  SELECT \n    t.year,\n    SUM(w.sales) AS total_sales_before\n  FROM cleaned_weekly_sales w\n  JOIN target_dates t ON w.calendar_year = t.year\n  WHERE w.week_date_formatted >= DATE(t.target_date, '-28 days')\n    AND w.week_date_formatted < t.target_date\n  GROUP BY t.year\n),\n-- Get sales for 4 weeks after June 15 (weeks starting on or after June 15, going forward 4 weeks)\nafter_sales AS (\n  SELECT \n    t.year,\n    SUM(w.sales) AS total_sales_after\n  FROM cleaned_weekly_sales w\n  JOIN target_dates t ON w.calendar_year = t.year\n  WHERE w.week_date_formatted >= t.target_date\n    AND w.week_date_formatted < DATE(t.target_date, '+28 days')\n  GROUP BY t.year\n)\n-- Calculate percentage change: ((after - before) / before) * 100\nSELECT \n  b.year,\n  ROUND(\n    (CAST(a.total_sales_after AS REAL) - b.total_sales_before) / \n    CAST(b.total_sales_before AS REAL) * 100, \n    4\n  ) AS percentage_change\nFROM before_sales b\nJOIN after_sales a ON b.year = a.year\nORDER BY b.year",
+      "graph_method": "inferred",
+      "n_edges": 8,
+      "sources": [
+        "cleaned_weekly_sales"
+      ],
+      "destinations": [
+        "cleaned_weekly_sales"
+      ],
+      "linked_tables": [
+        "cleaned_weekly_sales"
+      ],
+      "chosen_path": [
+        "cleaned_weekly_sales"
+      ],
+      "n_probes": 0,
+      "n_column_probes": 48,
+      "n_concept_probes": 0,
+      "column_hints": [
+        "- Prefer cleaned_weekly_sales.sales for literal filter(s) ['2018', '2019', '2020']; profile nonnull=17117/17117, distinct=16559, samples=['3656163', '996575', '16509610']",
+        "- Prefer cleaned_weekly_sales.calendar_year for literal filter(s) ['2018', '2019', '2020']; profile nonnull=17117/17117, distinct=3, samples=['2020', '2019', '2018']",
+        "- Prefer cleaned_weekly_sales.week_date_formatted for literal filter(s) ['2018', '2019', '2020']; profile nonnull=17117/17117, distinct=72, samples=['2020-8-31', '2020-8-24', '2020-8-17']",
+        "- Prefer cleaned_weekly_sales.week_date for literal filter(s) ['2018', '2019', '2020']; profile nonnull=17117/17117, distinct=72, samples=['2020-08-31', '2020-08-24', '2020-08-17']",
+        "- Prefer cleaned_weekly_sales.transactions for literal filter(s) ['2018', '2019', '2020']; profile nonnull=17117/17117, distinct=9307, samples=['120631', '31574', '529151']",
+        "- cleaned_weekly_sales.region: nonnull=17117/17117, distinct=7, samples=['ASIA', 'USA', 'EUROPE']",
+        "- cleaned_weekly_sales.platform: nonnull=17117/17117, distinct=2, samples=['Retail', 'Shopify']",
+        "- cleaned_weekly_sales.segment: nonnull=17117/17117, distinct=8, samples=['C3', 'F1', 'unknown']",
+        "- cleaned_weekly_sales.customer_type: nonnull=17117/17117, distinct=3, samples=['New', 'Guest', 'Existing']",
+        "- cleaned_weekly_sales.age_band: nonnull=17117/17117, distinct=4, samples=['Retirees', 'Young Adults', 'unknown']"
+      ],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": false,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 2,
+        "aggregation": true,
+        "notes": "Need to compute percentage change per year between two aggregated sales sums (4 weeks before vs 4 weeks after June 15), requiring GROUP BY year and aggregation of sales."
+      },
+      "structural_feedback": [
+        "planned select_arity=2, but SQL selects 7 columns"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 0,
+      "belief_entropy": {
+        "columns": 1.5641,
+        "values": 2.8508,
+        "paths": 0.0
+      },
+      "trace": [
+        "ground: graph=inferred edges=8",
+        "anchor: src=['cleaned_weekly_sales'] dst=['cleaned_weekly_sales'] literals=['2018', '2019', '2020', 'June 15']",
+        "belief0: colH=4.061 valH=2.322",
+        "explore: path entropy=0.000 top_gap=inf (1 candidates)",
+        "explore: no probe: Top-1 path confident or probing disabled",
+        "explore: column walk: 11 candidates col_entropy=4.061",
+        "explore: column walk stopped: reached SQL probe cap 48",
+        "explore: column walk finished: sql_probes=48 hints=10",
+        "commit: [propose=MISSING] no change",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": false, \"notes\": \"Need to compute percentage change per year between two aggregated sales sums (4 weeks before vs 4 weeks after June 15), requiring GROUP BY year and aggregation of sales.\", \"order_by\": false, \"select_arity\": 2, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=0",
+        "commit: structure-check -> planned select_arity=2, but SQL selects 7 columns",
+        "commit: repair discarded (no improvement)"
+      ]
+    },
+    {
+      "instance_id": "local309",
+      "db_id": "f1",
+      "difficulty": "",
+      "question": "For each year, which driver and which constructor scored the most points? I want the full name of each driver.",
+      "gold_sql": "with year_points as (\n    select races.year,\n           drivers.forename || ' ' || drivers.surname as driver,\n           constructors.name as constructor,\n           sum(results.points) as points\n    from results\n    left join races on results.race_id = races.race_id  -- Ensure these columns exist in your schema\n    left join drivers on results.driver_id = drivers.driver_id  -- Ensure these columns exist in your schema\n    left join constructors on results.constructor_id = constructors.constructor_id  -- Ensure these columns exist in your schema\n    group by races.year, driver\n    union\n    select races.year,\n           null as driver,\n           constructors.name as constructor,\n           sum(results.points) as points\n    from results\n    left join races on results.race_id = races.race_id  -- Ensure these columns exist in your schema\n    left join drivers on results.driver_id = drivers.driver_id  -- Ensure these columns exist in your schema\n    left join constructors on results.constructor_id = constructors.constructor_id  -- Ensure these columns exist in your schema\n    group by races.year, constructor\n),\nmax_points as (\n    select year,\n           max(case when driver is not null then points else null end) as max_driver_points,\n           max(case when constructor is not null then points else null end) as max_constructor_points\n    from year_points\n    group by year\n)\nselect max_points.year,\n       drivers_year_points.driver,\n       constructors_year_points.constructor\nfrom max_points\nleft join year_points as drivers_year_points on\n    max_points.year = drivers_year_points.year and\n    max_points.max_driver_points = drivers_year_points.points and\n    drivers_year_points.driver is not null\nleft join year_points as constructors_year_points on\n    max_points.year = constructors_year_points.year and\n    max_points.max_constructor_points = constructors_year_points.points and\n    constructors_year_points.constructor is not null\norder by max_points.year;",
+      "pred_sql": "SELECT \n    r.year,\n    d.full_name AS driver_name,\n    c.name AS constructor_name\nFROM (\n    SELECT \n        race_id,\n        constructor_id,\n        points,\n        ROW_NUMBER() OVER (PARTITION BY race_id ORDER BY points DESC) AS rn\n    FROM constructor_results\n) cr\nJOIN races r ON cr.race_id = r.race_id\nJOIN constructors c ON cr.constructor_id = c.constructor_id\nJOIN (\n    SELECT \n        race_id,\n        driver_id,\n        points,\n        ROW_NUMBER() OVER (PARTITION BY race_id ORDER BY points DESC) AS rn\n    FROM driver_standings\n) ds ON r.race_id = ds.race_id\nJOIN drivers d ON ds.driver_id = d.driver_id\nWHERE cr.rn = 1 AND ds.rn = 1\nGROUP BY r.year, d.full_name, c.name\nORDER BY r.year",
+      "graph_method": "inferred",
+      "n_edges": 49,
+      "sources": [
+        "driver_standings",
+        "constructor_standings"
+      ],
+      "destinations": [
+        "drivers",
+        "constructors"
+      ],
+      "linked_tables": [
+        "constructor_results",
+        "constructors",
+        "driver_standings",
+        "drivers",
+        "races"
+      ],
+      "chosen_path": [
+        "driver_standings",
+        "races",
+        "constructor_results",
+        "constructors"
+      ],
+      "n_probes": 4,
+      "n_column_probes": 0,
+      "n_concept_probes": 0,
+      "column_hints": [],
+      "concept_bindings": {},
+      "query_skeleton": {
+        "set_op": "none",
+        "nested": true,
+        "group_by": true,
+        "having": false,
+        "order_by": false,
+        "limit": false,
+        "select_arity": 3,
+        "aggregation": true,
+        "notes": "Need per-year max points for drivers and constructors, requiring subqueries to find the top scorer in each group."
+      },
+      "structural_feedback": [
+        "planned aggregation=true, but SQL has no aggregate function"
+      ],
+      "propose_verdict": "MISSING",
+      "missing_added": [
+        "drivers"
+      ],
+      "missing_rejected": [],
+      "widened_tables": [],
+      "repaired": false,
+      "exec_ok": true,
+      "exec_rows": 387,
+      "belief_entropy": {
+        "columns": 0.4392,
+        "values": 0.0,
+        "paths": 1.8619
+      },
+      "trace": [
+        "ground: graph=inferred edges=49",
+        "anchor: src=['driver_standings', 'constructor_standings'] dst=['drivers', 'constructors'] literals=[]",
+        "belief0: colH=0.439 valH=0.000",
+        "explore: path entropy=3.579 top_gap=0.00 (12 candidates)",
+        "explore: probe P0 ['driver_standings', 'drivers']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: probe P9 ['constructor_standings', 'constructors']: {'ok': True, 'nonempty': True, 'count': 1000}",
+        "explore: probe P1 ['driver_standings', 'races', 'lap_times', 'drivers']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: races.race_id'}",
+        "explore: probe P2 ['driver_standings', 'races', 'pit_stops', 'drivers']: {'ok': False, 'nonempty': False, 'count': 0, 'error': 'ambiguous column name: races.race_id'}",
+        "explore: LLM tie-break -> P3 ['driver_standings', 'races', 'constructor_results', 'constructors']",
+        "explore: column walk skipped: col entropy 0.439 below threshold",
+        "commit: [propose=MISSING] added missing tables ['drivers'] -> ['constructor_results', 'constructors', 'driver_standings', 'drivers', 'races']",
+        "commit: structure-plan -> {\"aggregation\": true, \"group_by\": true, \"having\": false, \"limit\": false, \"nested\": true, \"notes\": \"Need per-year max points for drivers and constructors, requiring subqueries to find the top scorer in each group.\", \"order_by\": false, \"select_arity\": 3, \"set_op\": \"none\"}",
+        "commit: generate -> ok=True rows=387",
+        "commit: structure-check -> planned aggregation=true, but SQL has no aggregate function",
+        "commit: repair discarded (no improvement)"
+      ]
+    }
+  ]
+}

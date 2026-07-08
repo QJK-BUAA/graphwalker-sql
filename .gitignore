@@ -18,3 +18,7 @@ env/
 data/
 *.sqlite
 *.db
+
+# transient evaluator working dirs / mock outputs
+outputs/eval_work/
+outputs/mocktest/

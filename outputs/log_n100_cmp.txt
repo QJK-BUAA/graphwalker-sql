@@ -1,0 +1,51 @@
+########## RUN ablation=full ##########
+[bird_full_deepseek-chat_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=full workers=6
+  [25/100] latest=bird_230 exec=ok  (25s)
+  [50/100] latest=bird_782 exec=ok  (79s)
+  [75/100] latest=bird_1177 exec=ok  (186s)
+  [100/100] latest=bird_1526 exec=ok  (211s)
+[bird_full_deepseek-chat_n100_seed42] running official bird evaluator ...
+[bird_full_deepseek-chat_n100_seed42] EX = 49.0  (n=100)
+[bird_full_deepseek-chat_n100_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/bird_full_deepseek-chat_n100_seed42.json
+[bird_full_deepseek-chat_n100_seed42] LLM: {'num_calls': 510, 'input_tokens': 438801, 'output_tokens': 25849} | 210.8s
+########## RUN ablation=prebaseline ##########
+[bird_noconcept+noadaptive+hardstruct_deepseek-chat_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=noconcept+noadaptive+hardstruct workers=6
+  [25/100] latest=bird_230 exec=ok  (23s)
+  [50/100] latest=bird_792 exec=ok  (81s)
+  [75/100] latest=bird_1177 exec=ok  (178s)
+  [100/100] latest=bird_1526 exec=ok  (200s)
+[bird_noconcept+noadaptive+hardstruct_deepseek-chat_n100_seed42] running official bird evaluator ...
+[bird_noconcept+noadaptive+hardstruct_deepseek-chat_n100_seed42] EX = 51.0  (n=100)
+[bird_noconcept+noadaptive+hardstruct_deepseek-chat_n100_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/bird_noconcept+noadaptive+hardstruct_deepseek-chat_n100_seed42.json
+[bird_noconcept+noadaptive+hardstruct_deepseek-chat_n100_seed42] LLM: {'num_calls': 425, 'input_tokens': 366640, 'output_tokens': 21119} | 199.7s
+########## RUN ablation=noconcept ##########
+[bird_noconcept_deepseek-chat_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=noconcept workers=6
+  [25/100] latest=bird_265 exec=ok  (23s)
+  [50/100] latest=bird_782 exec=ok  (73s)
+  [75/100] latest=bird_1177 exec=ok  (176s)
+  [100/100] latest=bird_1526 exec=ok  (197s)
+[bird_noconcept_deepseek-chat_n100_seed42] running official bird evaluator ...
+[bird_noconcept_deepseek-chat_n100_seed42] EX = 48.0  (n=100)
+[bird_noconcept_deepseek-chat_n100_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/bird_noconcept_deepseek-chat_n100_seed42.json
+[bird_noconcept_deepseek-chat_n100_seed42] LLM: {'num_calls': 409, 'input_tokens': 405069, 'output_tokens': 20656} | 197.2s
+########## RUN ablation=noadaptive ##########
+[bird_noadaptive_deepseek-chat_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=noadaptive workers=6
+  [25/100] latest=bird_226 exec=ok  (28s)
+  [50/100] latest=bird_792 exec=ok  (80s)
+  [75/100] latest=bird_1177 exec=ok  (174s)
+  [100/100] latest=bird_1526 exec=ok  (198s)
+[bird_noadaptive_deepseek-chat_n100_seed42] running official bird evaluator ...
+[bird_noadaptive_deepseek-chat_n100_seed42] EX = 47.0  (n=100)
+[bird_noadaptive_deepseek-chat_n100_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/bird_noadaptive_deepseek-chat_n100_seed42.json
+[bird_noadaptive_deepseek-chat_n100_seed42] LLM: {'num_calls': 508, 'input_tokens': 393786, 'output_tokens': 24979} | 198.2s
+########## RUN ablation=hardstruct ##########
+[bird_hardstruct_deepseek-chat_n100_seed42] 100 questions | model=deepseek-chat seed=42 ablation=hardstruct workers=6
+  [25/100] latest=bird_284 exec=ok  (26s)
+  [50/100] latest=bird_792 exec=ok  (76s)
+  [75/100] latest=bird_1177 exec=ok  (160s)
+  [100/100] latest=bird_1526 exec=ok  (187s)
+[bird_hardstruct_deepseek-chat_n100_seed42] running official bird evaluator ...
+[bird_hardstruct_deepseek-chat_n100_seed42] EX = 49.0  (n=100)
+[bird_hardstruct_deepseek-chat_n100_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/bird_hardstruct_deepseek-chat_n100_seed42.json
+[bird_hardstruct_deepseek-chat_n100_seed42] LLM: {'num_calls': 528, 'input_tokens': 459749, 'output_tokens': 28204} | 186.6s
+########## ALL RUNS DONE ##########
