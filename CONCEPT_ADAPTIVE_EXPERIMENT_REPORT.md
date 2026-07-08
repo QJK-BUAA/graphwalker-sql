@@ -11,17 +11,34 @@ concepts and bind each to its best column by a white-box competition (Point 1); 
 neighbours when belief is uncertain, and soften the query skeleton from a hard repair gate to
 a hint (Point 2). Ablations: `noconcept` / `noadaptive` / `hardstruct`; `prebaseline` = all three off.
 
-## 1. Headline (honest, and it cuts both ways)
+## 1. Headline (honest — and the full-set result overturns the small-sample one)
 
-| Setting | pre-branch default | **full (all 3 on)** | Δ EX | driver |
+| Setting | pre-branch default | **full (all 3 on)** | Δ EX | verdict |
 |---|---:|---:|---:|---|
-| **Spider2-lite local (n=24, FK-sparse / inferred graph)** | 29.17 (7/24) | **37.50 (9/24)** | **+8.3** | adaptive widening |
-| **BIRD-Dev (n=100, declared FK / clean schema)** | 51.0 | 49.0 | **−2.0** | SELECT-shape + widening noise |
+| Spider2-lite local (**n=24**, FK-sparse) | 29.17 (7/24) | 37.50 (9/24) | +8.3 | ⚠️ small-sample noise |
+| **Spider2-lite local (n=135, full set)** | **19.26 (26/135)** | **17.04 (23/135)** | **−2.2** | ❌ net negative |
+| BIRD-Dev (n=100, declared FK) | 51.0 | 49.0 | −2.0 | ❌ net negative |
 
-**The mechanisms help exactly where schema grounding is the bottleneck (FK-sparse Spider2) and
-add noise where grounding is already solved (clean-FK BIRD).** This is consistent with the error
-analysis finding that on BIRD ~69% of wrong answers already link the correct tables — so
-grounding-focused mechanisms have little to gain and some prompt-noise to lose.
+**Corrected conclusion: as implemented, the three mechanisms do NOT provide a reliable improvement
+on either benchmark.** The n=24 Spider2 "+8.3" was small-sample noise (2 questions; the project's own
+noise band at n≈20 is ±~8 EX) and **did not survive scaling to the full 135-question set (−2.2)**.
+
+Worse, **adaptive widening actively backfires by inducing over-joins**: on the 135-set the full config
+produced 4 *non-terminating* queries (`local022/100/219/344`) that stalled the official evaluator for
+>25 min. In every case prebaseline answered the same question in <1s with fewer joins, while widening's
+extra optional tables pushed the model to add joins (e.g. `local100` 2→6 joins) → runaway SQL:
+
+```
+local022  PREbase 0.3s ok joins=3  |  FULL 12s+ FAIL joins=4
+local100  PREbase 0.0s ok joins=2  |  FULL 12s+ FAIL joins=6
+local219  PREbase 0.8s ok joins=2  |  FULL 12s+ FAIL joins=3
+local344  PREbase 0.8s ok joins=2  |  FULL 12s+ FAIL joins=2
+```
+
+This is the value of validating at scale before shipping: the small-sample signal was misleading.
+The surviving contributions are the white-box error analysis and the (negative) finding that naive
+belief-driven schema widening over-joins; concept alignment is neutral and needs stronger
+disambiguation to pay off.
 
 ## 2. Spider2-lite local (n=24) — where the improvements are designed to help
 
@@ -67,30 +84,31 @@ Concept extraction adds ~1 LLM call/question (BIRD 4.25→5.1). Value/column pro
 (no LLM). On BIRD this extra cost buys nothing; on Spider2 the widening gain comes with no extra LLM
 call (noconcept, which drops the concept call, keeps the +8.3).
 
-## 5. Conclusion & the shipped default (graph-type gating)
+## 5. Conclusion & recommendation (updated after the 135-set)
 
-- **Do NOT apply these on clean, declared-FK schemas (BIRD-style)** — they are net-negative there.
-- **DO apply them on FK-sparse / inferred-graph settings (Spider2-style)** — +8.3 EX, driven by
-  adaptive widening recovering missed tables.
-- For a paper, the BIRD-negative / Spider2-positive **contrast is itself the finding**: grounding-focused
-  belief refinement helps iff grounding is the bottleneck.
+The earlier recommendation ("gate on graph type, keep it on for Spider2") was based on the n=24 subset.
+**The full 135-set overturns it**: the mechanisms are net-negative on Spider2 too (−2.2), and adaptive
+widening introduces a real robustness failure (non-terminating over-joined queries). So:
 
-**Implemented as the default (`gate_by_graph`, `gws2/pipeline.py`).** The three mechanisms are gated on an
-observable per-question signal — whether the schema graph is *inferred* (no usable declared FKs → grounding
-is uncertain). Declared-FK questions run the tight/hard baseline; inferred-graph questions run the full
-mechanisms. Verified on the real model:
+- **Do not ship the three mechanisms on by default anywhere.** As implemented they are net-negative on
+  BIRD (−2.0) and on full Spider2 (−2.2), and widening can generate runaway SQL.
+- Keep them as **opt-in research switches** (`--ablation nogate` to force on; the individual
+  `noconcept/noadaptive/hardstruct` remain for study). The proven-best default is `prebaseline` behaviour.
+- Concrete redesign directions before they could earn a default:
+  - **Widening**: hard-cap the *total* join count in generation, and only add ONE highest-confidence
+    missing table (not up to 6 optional ones); or add a table only after an execution probe shows the
+    grounded set is insufficient. The current "dump k neighbours as optional" over-joins.
+  - **Concept alignment**: only surface *value-confirmed* bindings (suppress ambiguous ones, which add
+    prompt noise), and never let output-concept hints add SELECT columns (BIRD SELECT-shape regressions).
+  - **Soft skeleton**: keep the hard skeleton (it was a useful guardrail on strict whole-row grading).
 
-| BIRD n=10 | LLM calls/q |
-|---|---:|
-| default (gated → mechanisms off on declared FK) | 4.2 |
-| `nogate` (mechanisms forced on) | 5.1 |
+**Context on `gate_by_graph` (`gws2/pipeline.py`):** it still correctly makes BIRD skip the mechanisms
+(and the extra concept LLM call: 4.2 vs 5.1 calls/q, verified), i.e. it removes the BIRD regression. But
+because Spider2 is inferred-graph, gating leaves the mechanisms ON there — where the 135-set shows −2.2.
+So gating alone is not enough; the mechanisms themselves need the redesign above, or should default OFF.
 
-So the gated default recovers the clean-schema baseline **at lower cost** (the concept-extraction call is
-skipped on BIRD) while keeping the Spider2 gain. By construction the gated default equals `prebaseline` on
-BIRD (≈51 EX) and `full` on Spider2 (37.5 EX). Use `--ablation nogate` to apply the mechanisms everywhere.
-
-> Remaining validation: confirm the Spider2 gain on the 135-question local set and/or multiple seeds
-> (current Spider2 result is n=24, where 2 questions ≈ 8 EX).
+> Methodological takeaway: the n=24 "+8.3" was noise; only the 135-set (and, ideally, multiple seeds)
+> gave the trustworthy answer. Validate at scale before shipping.
 
 > Caveats: Spider2-lite local is only n=24 (±~8 EX per 2 questions); confirm on the 135-question local
 > set and/or multiple seeds before headline claims. BIRD n=100 variants fall in a 47–51 band that is

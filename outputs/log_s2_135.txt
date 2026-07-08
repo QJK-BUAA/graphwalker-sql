@@ -1,0 +1,21 @@
+########## S2-135 ablation=prebaseline ##########
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_g135_seed42] 135 questions | model=deepseek-chat seed=42 ablation=noconcept+noadaptive+hardstruct workers=8
+  [25/135] latest=local039 exec=ok  (43s)
+  [50/135] latest=local060 exec=ERR  (82s)
+  [75/135] latest=local195 exec=ok  (113s)
+  [100/135] latest=local220 exec=ok  (179s)
+  [125/135] latest=local331 exec=ok  (215s)
+  [135/135] latest=local355 exec=ERR  (236s)
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_g135_seed42] running official spider2-lite-local evaluator ...
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_g135_seed42] EX = 19.25925925925926  (n=135)
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_g135_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_g135_seed42.json
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_g135_seed42] LLM: {'num_calls': 741, 'input_tokens': 708512, 'output_tokens': 129293} | 236.1s
+########## S2-135 ablation=full ##########
+[spider2-lite-local_full_deepseek-chat_g135_seed42] 135 questions | model=deepseek-chat seed=42 ablation=full workers=8
+  [25/135] latest=local032 exec=ERR  (49s)
+  [50/135] latest=local068 exec=ok  (90s)
+  [75/135] latest=local195 exec=ok  (137s)
+  [100/135] latest=local220 exec=ok  (197s)
+  [125/135] latest=local331 exec=ok  (249s)
+  [135/135] latest=local286 exec=ERR  (322s)
+[spider2-lite-local_full_deepseek-chat_g135_seed42] running official spider2-lite-local evaluator ...
