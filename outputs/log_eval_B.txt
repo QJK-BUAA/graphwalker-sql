@@ -1,0 +1,3 @@
+[safe-eval] spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_gen-deepseek-reasoner_r1gen_seed42.json
+[safe-eval] neutralized 2 non-terminating preds: ['local169', 'local170']
+[safe-eval] EX=27.40740740740741 correct=37 scored=135 n=135

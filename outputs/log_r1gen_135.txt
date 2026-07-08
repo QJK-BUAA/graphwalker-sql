@@ -1,0 +1,21 @@
+##### B: R1-gen K=1 #####
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_gen-deepseek-reasoner_r1gen_seed42] 135 questions | model=deepseek-chat seed=42 ablation=noconcept+noadaptive+hardstruct workers=8
+  [25/135] latest=local037 exec=ok  (177s)
+  [50/135] latest=local077 exec=ok  (361s)
+  [75/135] latest=local167 exec=ok  (514s)
+  [100/135] latest=local272 exec=ok  (685s)
+  [125/135] latest=local331 exec=ok  (829s)
+  [135/135] latest=local356 exec=ok  (938s)
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_gen-deepseek-reasoner_r1gen_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_gen-deepseek-reasoner_r1gen_seed42.json
+[spider2-lite-local_noconcept+noadaptive+hardstruct_deepseek-chat_gen-deepseek-reasoner_r1gen_seed42] LLM: {'num_calls': 512, 'input_tokens': 429151, 'output_tokens': 38535} | 938.3s
+##### C: R1-gen K=5 consensus #####
+[spider2-lite-local_noconcept+noadaptive+hardstruct+k5_deepseek-chat_gen-deepseek-reasoner_r1gen_k5_seed42] 135 questions | model=deepseek-chat seed=42 ablation=noconcept+noadaptive+hardstruct+k5 workers=8
+  [25/135] latest=local041 exec=ok  (589s)
+  [50/135] latest=local085 exec=ok  (1103s)
+  [75/135] latest=local195 exec=ok  (1718s)
+  [100/135] latest=local262 exec=ok  (2143s)
+  [125/135] latest=local302 exec=ok  (2708s)
+  [135/135] latest=local336 exec=ok  (3078s)
+[spider2-lite-local_noconcept+noadaptive+hardstruct+k5_deepseek-chat_gen-deepseek-reasoner_r1gen_k5_seed42] wrote /Users/bytedance/Desktop/研二下/graphwalker-sql-push-staging/outputs/spider2-lite-local_noconcept+noadaptive+hardstruct+k5_deepseek-chat_gen-deepseek-reasoner_r1gen_k5_seed42.json
+[spider2-lite-local_noconcept+noadaptive+hardstruct+k5_deepseek-chat_gen-deepseek-reasoner_r1gen_k5_seed42] LLM: {'num_calls': 477, 'input_tokens': 403735, 'output_tokens': 36154} | 3077.5s
+##### DONE #####
