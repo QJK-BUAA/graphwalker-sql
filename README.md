@@ -158,6 +158,11 @@ schema grounding 与 join-path 消歧，尤其在无外键 / 大 schema / 多路
 
 ### 实测结果（deepseek-chat, temperature=0, seed=42, 官方评测脚本）
 
+> **模型口径更正**：`deepseek-chat` 是 DeepSeek 的滚动别名。自 **2026-04-24** 起该别名指向
+> **DeepSeek-V4-Flash 的非思考（non-thinking）模式**。以下正式实验的时间戳均在此之后，因此论文中
+> 应记为 **"DeepSeek-V4-Flash (non-thinking), accessed via the legacy `deepseek-chat` alias"**，
+> 不要只写 `deepseek-chat`。这也意味着与 ReFoRCE（o3 级推理模型）之间存在明显的**模型代差**。
+
 | 数据集 | n | 图来源 | **EX(%)** | 平均LLM调用 | 平均探针 | 备注 |
 |--------|---|--------|-----------|------------|----------|------|
 | **BIRD-Dev（全量）** | **1534** | declared | **55.74** | 3.12 | 0.68 | 官方评测；简单62.49 / 中46.77 / 难41.38；执行成功率97.8%；46.2min(6并发) |
@@ -167,8 +172,16 @@ schema grounding 与 join-path 消歧，尤其在无外键 / 大 schema / 多路
 | BIRD-Dev（n=100）+Propose gate | 100 | declared | 47.0 | 3.06 | - | `--ablation propgate`；同批默认/无门控为48.0，暂不默认开启 |
 | BIRD-Dev（全量）+列裁剪 | 1534 | declared | 55.67 | 3.30 | 0.69 | `--ablation colalign`；裁剪触发42题、机制净+5（7修复/2打破），全局净+3落在噪声带；见错题反思报告§六 |
 
-**BIRD 全量（1534题）是当前主结果**：**EX 55.74%**，接近 Interactive-T2S 论文的 54.56%（GPT-4o, w/ oracle knowledge）。
+**BIRD 全量（1534题）是当前主结果**：**EX 55.74%**（本结果**使用了 external evidence**，即等价于 BIRD 的 **w/ oracle knowledge** 设定）。
 难度梯度平滑（62.49 / 46.77 / 41.38），执行成功率 97.8%，平均 3.12 次 LLM 调用/题、0.68 探针/题 —— 成本可控的设计目标达成。Spider1 全量 **77.10%** 说明在干净外键 schema 上，方法稳定性明显高于 BIRD；Spider2-lite local 从 24 条 gold/sql 子集扩到 135 条全集后降到 **22.96%**，说明长尾复杂分析题和方言/业务语义仍是主要短板。
+
+> **⚠️ 对比口径更正（重要，勿再错配）**：本结果用了 evidence，属 **w/ oracle** 设定，因此**只能**与
+> Interactive-T2S 的 **BIRD-Dev w/ oracle = 60.76** 比较——同设定下 GraphWalker **低约 5 个点**（55.74 vs 60.76）。
+> **不能**与 Interactive-T2S 的 **w/o oracle = 54.56**（leaderboard 54.11，其无 evidence 设定下的 SOTA claim）比较，
+> 二者设定不同。若要主张"接近/持平"，需另跑一版 **GraphWalker w/o evidence** 再与 54.56 对比。
+>
+> **一个真实有利的对比点**：在 **Spider2-lite SQLite** 上，GraphWalker local-135 的 **22.96** 明显高于同族交互式方法
+> Interactive-T2S 报告的 **12.69**（Interactive-T2S 论文 Table 14；注意两者子集/设定可能不同，写作时需注明）。
 
 Propose 连通性证据门已实现为实验变体 `--ablation propgate`：LLM 提名缺表后，只有与当前 grounded subgraph 存在 schema 图 join 边的表才会被加入；孤立表进入 `missing_rejected` 和 trace。该改动对齐方案 §7 的“不要让 LLM 猜测变成硬事实”，但 BIRD n=100 重跑为 **47.0 vs 默认 48.0**，所以暂不作为默认主方法。
 
