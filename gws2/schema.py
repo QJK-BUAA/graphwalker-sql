@@ -7,6 +7,7 @@ approximate uniqueness). The statistics feed the white-box belief scores in
 """
 from __future__ import annotations
 
+import re
 import sqlite3
 from dataclasses import dataclass, field
 
@@ -49,6 +50,9 @@ class Schema:
     tables: dict[str, list[Column]] = field(default_factory=dict)
     declared_fks: list[ForeignKey] = field(default_factory=list)
     raw_ddl: dict[str, str] = field(default_factory=dict)
+    # {table_lower: {col_lower: {"desc": str, "value_desc": str}}}, loaded from a
+    # benchmark's column-description files (e.g. BIRD database_description/*.csv).
+    descriptions: dict = field(default_factory=dict)
 
     @property
     def has_declared_fks(self) -> bool:
@@ -63,7 +67,8 @@ class Schema:
                 return c
         return None
 
-    def to_ddl_text(self, tables: list[str] | None = None) -> str:
+    def to_ddl_text(self, tables: list[str] | None = None,
+                    annotate: bool = True) -> str:
         names = tables if tables is not None else self.table_names()
         chunks = []
         for t in names:
@@ -74,7 +79,32 @@ class Schema:
             else:
                 cols = ",\n    ".join(f'"{c.name}" {c.type}' for c in self.tables[t])
                 chunks.append(f'CREATE TABLE "{t}" (\n    {cols}\n);')
+            # Attach human column meanings + value notes when available (e.g. BIRD
+            # database_description). This is the main lever for correct column
+            # binding (which column "Low Grade"/"District Name" refer to).
+            if annotate and self.descriptions:
+                notes = self._column_notes(t)
+                if notes:
+                    chunks.append(notes)
         return "\n\n".join(chunks)
+
+    def _column_notes(self, table: str) -> str:
+        d = self.descriptions.get(table.lower())
+        if not d:
+            return ""
+        lines = []
+        for c in self.tables.get(table, []):
+            info = d.get(c.name.lower())
+            if not info:
+                continue
+            desc, vd = info.get("desc", ""), info.get("value_desc", "")
+            if not desc and not vd:
+                continue
+            line = f'--   "{c.name}": {desc}'.rstrip()
+            if vd:
+                line += f" | values: {vd}"
+            lines.append(line)
+        return (f"-- column meanings for {table}:\n" + "\n".join(lines)) if lines else ""
 
     def compact_text(self, tables: list[str] | None = None) -> str:
         names = tables if tables is not None else self.table_names()
@@ -150,3 +180,51 @@ def collect_column_stats(sqlite_path: str, schema: Schema,
     finally:
         timer.cancel()
         con.close()
+
+
+def _clean_desc(text: str, max_len: int = 140) -> str:
+    if not text:
+        return ""
+    t = text.replace("commonsense evidence:", " ").replace("\r", " ").replace("\n", " ")
+    t = re.sub(r"\s+", " ", t).strip().strip('"').strip()
+    return t[:max_len]
+
+
+def load_column_descriptions(desc_dir: str) -> dict:
+    """Parse a directory of BIRD-style ``<table>.csv`` column-description files.
+
+    Each CSV has columns original_column_name, column_name, column_description,
+    data_format, value_description. Returns {table_lower: {col_lower: {desc,
+    value_desc}}}. Robust to the mixed encodings BIRD ships (utf-8/latin-1/gbk).
+    """
+    import csv
+    import glob
+    import os
+
+    out: dict[str, dict] = {}
+    if not os.path.isdir(desc_dir):
+        return out
+    for path in sorted(glob.glob(os.path.join(desc_dir, "*.csv"))):
+        table = os.path.basename(path)[:-4]
+        rows = None
+        for enc in ("utf-8-sig", "latin-1", "gbk"):
+            try:
+                with open(path, encoding=enc, newline="") as f:
+                    rows = list(csv.DictReader(f))
+                break
+            except Exception:  # noqa: BLE001
+                continue
+        if not rows:
+            continue
+        colmap: dict[str, dict] = {}
+        for r in rows:
+            oc = (r.get("original_column_name") or "").strip()
+            if not oc:
+                continue
+            desc = _clean_desc(r.get("column_description") or "")
+            vd = _clean_desc(r.get("value_description") or "")
+            if desc or vd:
+                colmap[oc.lower()] = {"desc": desc, "value_desc": vd}
+        if colmap:
+            out[table.lower()] = colmap
+    return out

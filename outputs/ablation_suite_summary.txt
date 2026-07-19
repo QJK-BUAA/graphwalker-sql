@@ -1,0 +1,45 @@
+# Spider2-Lite AutoLink / LinkAlign / ReFoRCE Validation
+# All local runs are complete: 135/135 scored, zero pipeline/network errors.
+# Model: link=deepseek-chat, generation=deepseek-reasoner.
+
+# Local135
+A_base                   EX=27.407  correct=37  delta=+0.000
+B_values                 EX=34.074  correct=46  delta=+6.667
+C_isolate                EX=32.593  correct=44  delta=+5.186
+D_values_isolate         EX=34.815  correct=47  delta=+7.408
+E_repair2                EX=32.593  correct=44  delta=+5.186
+F_refine2                EX=27.407  correct=37  delta=+0.000
+G_repair_refine          EX=33.333  correct=45  delta=+5.926
+H_vote3                  EX=31.852  correct=43  delta=+4.445
+I_fullstack              EX=40.000  correct=54  delta=+12.593  BEST
+J_values_isolate_repair  EX=33.333  correct=45  delta=+5.926
+K_values_isolate_vote3   EX=35.556  correct=48  delta=+8.149
+
+# Cloud exact-same random100 (seed=42; 38 BQ / 6 GA / 56 SF)
+old_full547_predictions  EX=13.000  correct=13
+cloud_R1_no_value_store  EX=14.000  correct=14  delta=+1.000
+# cloud flags: isolation + repair2 + refine2 + vote3; no live value embedding
+# overlap=6, new-only wins=8, old-only wins=7
+# new correct by backend: BQ=8, SF=6, GA=0
+# exact-sample executable SQL: old=58/100, new=65/100
+#
+# Cloud recovery v2 (Snowflake exact quoting + safe consensus ties):
+# - targeted the 35 previously non-executable examples;
+# - all 35 completed: 13 became executable and 3 became correct;
+# - correct recoveries: bq098, sf_bq213, sf_bq456;
+# - merged sample100 official score: EX=17.000, correct=17/100;
+# - improvement versus exact-sample old predictions: +4 points.
+#
+# Full547 backend-specific composition:
+# - old full547: EX=13.528, correct=74/547;
+# - local I_fullstack + existing cloud predictions:
+#   EX=17.733, correct=97/547, delta=+4.205 / +23 examples;
+# - adding the safe cloud recovery overlay re-evaluated at 96/547, so the
+#   97/547 backend hybrid remains the best full547 artifact.
+
+# Conclusions
+# - Full stack is the best local configuration: values + isolation + repair2
+#   + refine2 + execution-result vote3.
+# - Refine alone is neutral; its benefit appears only in combination.
+# - Cloud recovery lifts the same sample from 13% to 17%, but cloud schema/value
+#   grounding and Snowflake execution remain the dominant bottlenecks.

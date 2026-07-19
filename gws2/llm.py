@@ -40,8 +40,19 @@ class LLM:
         self.client = OpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
         self.model = model
         self.temperature = temperature
-        self.max_retries = max_retries
+        self.max_retries = int(os.environ.get("GWS2_LLM_MAX_RETRIES",
+                                              str(max_retries)))
+        self.retry_base = float(os.environ.get("GWS2_LLM_RETRY_BASE", "1.5"))
+        self.retry_cap = float(os.environ.get("GWS2_LLM_RETRY_CAP", "60"))
         self.seed = seed
+        # Zhipu GLM-5.x defaults to deep reasoning (reasoning_effort=max), which
+        # is ~10x slower/costlier per call. For this white-box, latency-bounded
+        # pipeline we disable it so GLM is comparable to the non-reasoning
+        # deepseek-chat baseline. Toggle with $GWS2_GLM_THINKING=enabled.
+        self.extra_body: dict = {}
+        if "glm" in model.lower():
+            mode = os.environ.get("GWS2_GLM_THINKING", "disabled").strip().lower()
+            self.extra_body["thinking"] = {"type": mode}
         self.num_calls = 0
         self.in_tokens = 0
         self.out_tokens = 0
@@ -52,6 +63,16 @@ class LLM:
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ]
+        return self.complete_messages(messages, temperature=temperature)
+
+    def complete_messages(self, messages: list[dict],
+                          temperature: float | None = None) -> str:
+        """Complete an explicit multi-turn conversation.
+
+        AutoLink-style iterative SQL revision needs to preserve prior assistant
+        SQL and execution feedback across turns; the legacy ``complete`` helper
+        remains a two-message convenience wrapper.
+        """
         last_err = None
         for attempt in range(self.max_retries):
             try:
@@ -62,6 +83,8 @@ class LLM:
                 )
                 if self.seed is not None:
                     kwargs["seed"] = self.seed
+                if self.extra_body:
+                    kwargs["extra_body"] = self.extra_body
                 resp = self.client.chat.completions.create(**kwargs)
                 with self._lock:
                     self.num_calls += 1
@@ -71,7 +94,16 @@ class LLM:
                 return (resp.choices[0].message.content or "").strip()
             except Exception as e:  # noqa: BLE001
                 last_err = e
-                time.sleep(1.5 * (attempt + 1))
+                text = str(e).lower()
+                # Authentication/billing failures are definitive, not transient.
+                if any(x in text for x in (
+                        "insufficient balance", "status code: 401",
+                        "error code: 401", "error code: 402")):
+                    break
+                if attempt + 1 < self.max_retries:
+                    delay = min(self.retry_cap,
+                                self.retry_base * (2 ** attempt))
+                    time.sleep(delay)
         raise RuntimeError(f"LLM call failed after {self.max_retries} retries: {last_err}")
 
     def stats(self) -> dict:

@@ -36,6 +36,14 @@ class CloudResult:
 
 
 def _cred(name: str) -> Path:
+    if name == "bigquery_credential.json":
+        override = os.environ.get("GWS2_BIGQUERY_CREDENTIAL")
+        if override:
+            return Path(override)
+    if name == "snowflake_credential.json":
+        override = os.environ.get("GWS2_SNOWFLAKE_CREDENTIAL")
+        if override:
+            return Path(override)
     return Path(config.SPIDER2_CRED_DIR) / name
 
 

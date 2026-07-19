@@ -19,6 +19,7 @@ import argparse
 import csv
 import json
 import os
+import random
 import re
 import shutil
 import subprocess
@@ -39,7 +40,7 @@ from gws2.llm import LLM
 from gws2.online_schema import build_compressed_context, load_online_schema
 from gws2.pipeline import AblationConfig, load_db, run_pipeline
 from gws2.prompts import (PROMPT_SNOWFLAKE_DIALECT, PROMPT_SPIDER2_ONLINE_REPAIR,
-                          PROMPT_SPIDER2_ONLINE_SQL)
+                          PROMPT_SPIDER2_ONLINE_SQL, PROMPT_SPIDER2_SELF_REFINE)
 
 
 SPIDER2_ROOT = Path(config.SPIDER2_ROOT)
@@ -237,6 +238,7 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
         "schema_context_chars": len(schema_context),
         "selected_tables": table_trace,
         "repairs": 0,
+        "refines": 0,
         "probe_sql": 0,
         "probe_hints": [],
         "probe_trace": [],
@@ -306,6 +308,38 @@ def generate_online_sql(ex: Spider2OnlineExample, llm: LLM,
                 meta["est_gb"] = res.est_gb
         else:
             meta["exec_trace"].append(f"repair{attempt+1}: discarded (no improvement)")
+            break
+
+    # --- P4: result-driven self-refinement ---------------------------------- #
+    # The query now RUNS and is non-empty, but "runs" != "correct" on Spider2.
+    # Show the actual result back and let the model critique/fix it, a few rounds.
+    for attempt in range(config.CLOUD_MAX_REFINES):
+        if (not res.ok) or res.n_shown == 0:
+            break  # error/empty is the repair loop's job, not self-refine's
+        sc = schema_context + (("\n\n" + PROMPT_SNOWFLAKE_DIALECT)
+                               if ex.backend == "snowflake" else "")
+        refine_sys = PROMPT_SPIDER2_SELF_REFINE.format(
+            dialect=dialect, schema_context=sc, external_knowledge=external,
+            question=ex.question, sql=sql, result_preview=_result_preview(res))
+        resp = llm.complete(refine_sys, "Review, then CONFIRM or output fixed SQL.",
+                            temperature=0.0).strip()
+        if resp.upper().startswith("CONFIRM"):
+            meta["exec_trace"].append(f"refine{attempt+1}: CONFIRM")
+            break
+        csql = _extract_sql(resp)
+        if not csql or csql.strip() == sql.strip():
+            meta["exec_trace"].append(f"refine{attempt+1}: no-change, stop")
+            break
+        cres = run_cloud(ex.backend, csql, database=ex.db_id)
+        meta["exec_trace"].append(_exec_summary(f"refine{attempt+1}", cres))
+        meta["refines"] += 1
+        # accept only if it still runs and stays non-empty (never regress a working answer)
+        if cres.ok and cres.n_shown > 0:
+            sql, res = csql, cres
+            if cres.est_gb is not None:
+                meta["est_gb"] = cres.est_gb
+        else:
+            meta["exec_trace"].append(f"refine{attempt+1}: discarded (regressed)")
             break
 
     # --- P3: belief-gated selective consensus ------------------------------- #
@@ -399,6 +433,17 @@ def _exec_summary(stage: str, res) -> str:
     return f"{stage}: {tag} {res.error[:80]}"
 
 
+def _result_preview(res, max_rows: int = 5, max_cols: int = 12) -> str:
+    """Compact preview of an execution result for the self-refine critique."""
+    cols = [str(c) for c in (res.columns or [])[:max_cols]]
+    lines = ["columns: " + (", ".join(cols) if cols else "(none)")]
+    for r in (res.rows or [])[:max_rows]:
+        lines.append("row: " + " | ".join(str(x)[:40] for x in list(r)[:max_cols]))
+    if not res.rows:
+        lines.append("(0 rows returned)")
+    return "\n".join(lines)
+
+
 _SQL_BLOCK = re.compile(r"```sql\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 _ANY_BLOCK = re.compile(r"```\s*(.*?)```", re.DOTALL)
 
@@ -445,8 +490,12 @@ def _prepare_eval_work(run_id: str, result_dir: Path) -> Path:
     # evaluate.py refers to ../resource/databases/spider2-localdb for local
     # examples, so the temporary workdir must mirror that relative layout.
     os.symlink(SPIDER2_ROOT / "resource", work.parent / "resource")
-    bq_cred = Path("/Users/bytedance/Desktop/研二下/spider2凭证文件/bigquery_credential.json")
-    sf_cred = Path("/Users/bytedance/Desktop/研二下/spider2凭证文件/snowflake_credential.json")
+    bq_cred = Path(os.environ.get(
+        "GWS2_BIGQUERY_CREDENTIAL",
+        str(Path(config.SPIDER2_CRED_DIR) / "bigquery_credential.json")))
+    sf_cred = Path(os.environ.get(
+        "GWS2_SNOWFLAKE_CREDENTIAL",
+        str(Path(config.SPIDER2_CRED_DIR) / "snowflake_credential.json")))
     if bq_cred.exists():
         shutil.copy2(bq_cred, work / "bigquery_credential.json")
     if sf_cred.exists():
@@ -498,6 +547,10 @@ def main() -> int:
                     help="disable the P2 remote belief probes (ablation)")
     ap.add_argument("--consensus", action="store_true",
                     help="enable P3 belief-gated selective consensus (extra cloud cost)")
+    ap.add_argument("--sample", type=int, default=None,
+                    help="randomly sample N examples across all selected prefixes "
+                         "(seeded/reproducible). Applied after prefix filtering.")
+    ap.add_argument("--sample-seed", type=int, default=42)
     args = ap.parse_args()
 
     prefixes = set(args.prefix or VALID_PREFIXES)
@@ -505,6 +558,11 @@ def main() -> int:
     examples = load_spider2_lite_mixed(prefixes=prefixes, limit_per_backend=limit)
     if not examples:
         raise SystemExit("No examples selected.")
+    if args.sample and args.sample < len(examples):
+        rng = random.Random(args.sample_seed)
+        examples = sorted(rng.sample(examples, args.sample), key=lambda e: e.idx)
+        print(f"[sample] randomly selected {len(examples)} of the loaded examples "
+              f"(seed={args.sample_seed})")
 
     run_id = f"spider2-lite_{args.tag}_{args.model}_seed{config.DEFAULT_SEED}"
     out_dir = Path("outputs")
@@ -562,11 +620,12 @@ def main() -> int:
     records = [records_by_id[ex.instance_id] for ex in examples]
     close_cloud()
     n_repairs = sum(r.get("repairs", 0) for r in records)
+    n_refines = sum(r.get("refines", 0) for r in records)
     n_probes = sum(r.get("probe_sql", 0) for r in records)
     n_consensus = sum(1 for r in records
                       if str(r.get("consensus", "")).startswith("triggered"))
-    print(f"[{run_id}] cloud repairs: {n_repairs} | probe SQLs: {n_probes} | "
-          f"consensus triggered: {n_consensus}")
+    print(f"[{run_id}] cloud repairs: {n_repairs} | self-refines: {n_refines} | "
+          f"probe SQLs: {n_probes} | consensus triggered: {n_consensus}")
     eval_result = {}
     if not args.no_eval:
         print(f"[{run_id}] running official Spider2-Lite evaluator ...")

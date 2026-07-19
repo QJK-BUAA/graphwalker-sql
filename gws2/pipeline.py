@@ -24,7 +24,9 @@ from .explore import explore
 from .graph_builder import build_schema_graph
 from .ground import anchor, initialise_belief
 from .llm import LLM
-from .schema import Schema, collect_column_stats, extract_schema
+from .prompts import PROMPT_ANALYTICAL_HINT
+from .schema import (Schema, collect_column_stats, extract_schema,
+                     load_column_descriptions)
 
 
 @dataclass
@@ -149,6 +151,9 @@ def run_pipeline(
     schema_context: str | None = None,
     prefer_declared: bool = True,
     with_snapshot: bool = False,
+    gen_llm: LLM | None = None,
+    fewshot_retriever=None,
+    fewshot_k: int = 0,
 ) -> GWSResult:
     ab = ablation or AblationConfig()
     trace: list[str] = []
@@ -221,6 +226,22 @@ def run_pipeline(
     else:
         q_for_gen = (question + (f"\nExternal knowledge: {evidence}"
                                  if evidence else "")).strip()
+
+    # Retrieval-based few-shot: fetch similar solved (question -> SQL) exemplars
+    # from the TRAIN split and inject them into the generation prompt (no LLM call).
+    fewshot_block = ""
+    if fewshot_retriever is not None and fewshot_k:
+        fewshot_block = fewshot_retriever.block(question, fewshot_k)
+        if fewshot_block:
+            trace.append(f"fewshot: injected {fewshot_k} retrieved exemplars")
+    # On FK-sparse / inferred-graph schemas (Spider2-like), the gold SQL is a
+    # multi-step CTE pipeline, so nudge the generator toward that shape. Gated OFF
+    # on declared-FK schemas (BIRD/Spider1) to avoid over-complicating simpler queries.
+    if grounding_uncertain:
+        fewshot_block = ((PROMPT_ANALYTICAL_HINT + "\n\n" + fewshot_block)
+                         if fewshot_block else PROMPT_ANALYTICAL_HINT)
+        trace.append("analytical: CTE-pipeline guidance (inferred graph)")
+
     cm = commit(q_for_gen, schema, graph_obj, ex_res, belief, sqlite_path, llm,
                 dialect=dialect, schema_context=schema_context,
                 use_propose=ab.use_propose, max_repairs=ab.max_repairs,
@@ -232,7 +253,9 @@ def run_pipeline(
                 concept_bindings=belief.concept_bindings,
                 use_adaptive_schema=eff_adaptive,
                 soft_structure=eff_soft,
-                n_candidates=ab.n_candidates)
+                n_candidates=ab.n_candidates,
+                gen_llm=gen_llm,
+                fewshot_block=fewshot_block)
     trace.extend(f"commit: {s}" for s in cm.steps)
 
     return GWSResult(
@@ -261,9 +284,19 @@ def run_pipeline(
     )
 
 
-def load_db(sqlite_path: str, with_stats: bool = True) -> Schema:
-    """Extract schema + (optionally) column statistics for belief scoring."""
+def load_db(sqlite_path: str, with_stats: bool = True,
+            with_descriptions: bool = True) -> Schema:
+    """Extract schema + (optionally) column statistics for belief scoring.
+
+    ``with_descriptions`` loads a sibling ``database_description/`` directory
+    (BIRD ships one per DB) so human column meanings + value notes reach the
+    generation prompt. No-op when the directory is absent (Spider/Spider2).
+    """
     schema = extract_schema(sqlite_path)
     if with_stats:
         collect_column_stats(sqlite_path, schema)
+    if with_descriptions:
+        import os
+        desc_dir = os.path.join(os.path.dirname(sqlite_path), "database_description")
+        schema.descriptions = load_column_descriptions(desc_dir)
     return schema

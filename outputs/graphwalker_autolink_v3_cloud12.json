@@ -1,0 +1,898 @@
+{
+  "run_id": "graphwalker_autolink_v3_cloud12",
+  "timestamp": "2026-07-13T16:30:13",
+  "args": {
+    "prefix": null,
+    "ids": "bq076,bq009,bq235,bq199,bq151,ga003,sf_bq043,sf_bq341,sf_bq033,sf_bq359,sf_bq254,sf014",
+    "ids_file": "",
+    "sample": 0,
+    "sample_seed": 42,
+    "workers": 2,
+    "model": "deepseek-reasoner",
+    "candidates": 5,
+    "revisions": 5,
+    "tag": "cloud12",
+    "schema_dir": "/Users/bytedance/Desktop/研二下/AutoLink/linking_results",
+    "bq_credential": "<redacted-local-credential-path>",
+    "sf_credential": "<redacted-local-credential-path>",
+    "resume": false,
+    "no_eval": false
+  },
+  "n": 12,
+  "pred": {
+    "bq009": "-- CTE: all 2017 sessions with non-null transaction revenue\nWITH revenue_2017 AS (\n  SELECT\n    trafficSource.source AS traffic_source,\n    date,\n    COALESCE(totals.totalTransactionRevenue, 0) AS revenue_micros\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n),\n\n-- Find traffic source with highest total revenue in 2017\ntop_source AS (\n  SELECT\n    traffic_source,\n    SUM(revenue_micros) AS total_rev_micros\n  FROM revenue_2017\n  GROUP BY traffic_source\n  ORDER BY total_rev_micros DESC\n  LIMIT 1\n),\n\n-- Monthly revenue for the top traffic source only\nmonthly_top AS (\n  SELECT\n    r.traffic_source,\n    SUBSTR(r.date, 1, 6) AS month,\n    SUM(r.revenue_micros) / 1e6 AS monthly_rev_dollars\n  FROM revenue_2017 r\n  INNER JOIN top_source t\n    ON r.traffic_source = t.traffic_source\n  GROUP BY r.traffic_source, month\n),\n\n-- Highest and lowest monthly revenue\nmonthly_stats AS (\n  SELECT\n    traffic_source,\n    MAX(monthly_rev_dollars) AS max_monthly_dollars,\n    MIN(monthly_rev_dollars) AS min_monthly_dollars\n  FROM monthly_top\n  GROUP BY traffic_source\n)\n\n-- Final answer: top source and difference in millions\nSELECT\n  traffic_source AS top_traffic_source,\n  ROUND((max_monthly_dollars - min_monthly_dollars) / 1e6, 2) AS diff_millions\nFROM monthly_stats",
+    "sf_bq033": "WITH RECURSIVE\n-- Generate complete month series from Jan 2008 to Dec 2022\nmonth_series AS (\n    SELECT DATE '2008-01-01' AS \"month_start\"\n    UNION ALL\n    SELECT DATEADD('MONTH', 1, \"month_start\")\n    FROM month_series\n    WHERE \"month_start\" < DATE '2022-12-01'\n),\n\n-- Identify IoT-related US publications with English abstracts containing 'internet of things'\niot_publications AS (\n    SELECT DISTINCT\n        p.\"publication_number\",\n        p.\"filing_date\"\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n         LATERAL FLATTEN(INPUT => p.\"abstract_localized\") f\n    WHERE p.\"country_code\" = 'US'\n      AND p.\"filing_date\" > 0\n      AND p.\"filing_date\" BETWEEN 20080101 AND 20221231\n      AND f.value:\"language\"::STRING = 'en'\n      AND f.value:\"text\"::STRING ILIKE '%internet of things%'\n),\n\n-- Aggregate count per month\nmonthly_counts AS (\n    SELECT\n        DATE_TRUNC('MONTH', TO_DATE(TO_VARCHAR(i.\"filing_date\"), 'YYYYMMDD')) AS \"month\",\n        COUNT(DISTINCT i.\"publication_number\") AS cnt\n    FROM iot_publications i\n    GROUP BY \"month\"\n)\n\n-- Final result with zeros for missing months\nSELECT\n    ms.\"month_start\" AS \"filing_month\",\n    COALESCE(mc.cnt, 0) AS \"num_publications\"\nFROM month_series ms\nLEFT JOIN monthly_counts mc ON ms.\"month_start\" = mc.\"month\"\nORDER BY ms.\"month_start\"",
+    "bq235": "WITH combined_costs AS (\n  SELECT provider_name, average_total_payments\n  FROM `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n  UNION ALL\n  SELECT provider_name, average_total_payments\n  FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n)\nSELECT provider_name AS healthcare_provider,\n       AVG(average_total_payments) AS combined_avg_cost\nFROM combined_costs\nGROUP BY provider_name\nORDER BY combined_avg_cost DESC\nLIMIT 1",
+    "sf_bq359": "WITH \"commit_counts\" AS (\n  SELECT\n    \"repo_name\",\n    COUNT(*) AS \"commit_count\"\n  FROM \"GITHUB_REPOS\".\"GITHUB_REPOS\".\"SAMPLE_COMMITS\"\n  GROUP BY \"repo_name\"\n),\n\"language_flat\" AS (\n  SELECT\n    l.\"repo_name\",\n    f.value:\"name\"::STRING AS \"lang_name\",\n    f.value:\"bytes\"::NUMBER AS \"lang_bytes\"\n  FROM \"GITHUB_REPOS\".\"GITHUB_REPOS\".\"LANGUAGES\" l,\n  LATERAL FLATTEN(input => l.\"language\") f\n),\n\"primary_languages\" AS (\n  SELECT\n    \"repo_name\",\n    \"lang_name\" AS \"primary_language\"\n  FROM \"language_flat\"\n  QUALIFY ROW_NUMBER() OVER (PARTITION BY \"repo_name\" ORDER BY \"lang_bytes\" DESC) = 1\n)\nSELECT\n  c.\"repo_name\",\n  c.\"commit_count\"\nFROM \"commit_counts\" c\nJOIN \"primary_languages\" p ON c.\"repo_name\" = p.\"repo_name\"\nWHERE p.\"primary_language\" = 'JavaScript'\nORDER BY c.\"commit_count\" DESC\nLIMIT 2",
+    "sf_bq341": "WITH\n-- All credits (incoming transfers)\nincoming AS (\n    SELECT \n        \"to_address\" AS address,\n        TRY_CAST(\"value\" AS NUMBER(38,0)) AS amount\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n-- All debits (outgoing transfers)\noutgoing AS (\n    SELECT \n        \"from_address\" AS address,\n        -TRY_CAST(\"value\" AS NUMBER(38,0)) AS amount\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n-- Combined flows\nall_flows AS (\n    SELECT * FROM incoming\n    UNION ALL\n    SELECT * FROM outgoing\n),\n-- Net balance per address\nnet_balances AS (\n    SELECT \n        address,\n        SUM(amount) AS balance\n    FROM all_flows\n    WHERE address IS NOT NULL\n    GROUP BY address\n    HAVING balance > 0   -- only positive (token holders)\n)\n-- Top 3 smallest positive balances\nSELECT \n    address,\n    balance\nFROM net_balances\nORDER BY balance ASC\nLIMIT 3",
+    "bq076": "WITH monthly_counts AS (\n  SELECT\n    EXTRACT(YEAR FROM date) AS year,\n    EXTRACT(MONTH FROM date) AS month,\n    COUNT(*) AS num_incidents\n  FROM `bigquery-public-data.chicago_crime.crime`\n  WHERE\n    EXTRACT(YEAR FROM date) = 2016\n    AND primary_type = 'MOTOR VEHICLE THEFT'\n  GROUP BY year, month\n)\nSELECT MAX(num_incidents) AS max_incidents_in_month\nFROM monthly_counts",
+    "bq199": "WITH\n  -- Step 1: compute per-liter retail price for each transaction and aggregate by category and year\n  yearly_avg AS (\n    SELECT\n      category_name,\n      EXTRACT(YEAR FROM date) AS year,\n      AVG(state_bottle_retail * 1000.0 / NULLIF(bottle_volume_ml, 0)) AS avg_price_per_liter\n    FROM `bigquery-public-data.iowa_liquor_sales.sales`\n    WHERE EXTRACT(YEAR FROM date) IN (2019, 2020, 2021)\n      AND bottle_volume_ml > 0  -- avoid division by zero\n    GROUP BY category_name, year\n  ),\n\n  -- Step 2: rank categories by 2021 average price\n  ranked_2021 AS (\n    SELECT\n      category_name,\n      avg_price_per_liter AS avg_2021,\n      RANK() OVER (ORDER BY avg_price_per_liter DESC) AS rnk\n    FROM yearly_avg\n    WHERE year = 2021\n  ),\n\n  -- Step 3: keep only the top 10 categories\n  top10 AS (\n    SELECT\n      category_name,\n      avg_2021\n    FROM ranked_2021\n    WHERE rnk <= 10\n  )\n\n-- Step 4: retrieve the 2019, 2020, and 2021 averages for those categories\nSELECT\n  t.category_name,\n  MAX(CASE WHEN y.year = 2019 THEN y.avg_price_per_liter END) AS avg_price_2019,\n  MAX(CASE WHEN y.year = 2020 THEN y.avg_price_per_liter END) AS avg_price_2020,\n  t.avg_2021 AS avg_price_2021\nFROM top10 t\nLEFT JOIN yearly_avg y\n  ON t.category_name = y.category_name\nGROUP BY t.category_name, t.avg_2021\nORDER BY t.avg_2021 DESC",
+    "sf_bq043": "WITH \"cdkn2a_mutated_cases\" /* Step 1: Identify bladder cancer cases with CDKN2A mutations (hg19, Feb 2017) */ AS (\n  SELECT DISTINCT\n    \"m\".\"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_DCC_2017_02\" AS \"m\"\n  WHERE\n    \"m\".\"project_short_name\" = 'TCGA-BLCA' AND \"m\".\"Hugo_Symbol\" = 'CDKN2A'\n), \"clinical_info\" /* Step 2: Clinical information from GDC Release 39 */ AS (\n  SELECT\n    \"c\".\"submitter_id\" AS \"case_barcode\",\n    \"c\".\"demo__gender\" AS \"gender\",\n    \"c\".\"diag__age_at_diagnosis\" AS \"age_at_diagnosis_days\",\n    \"c\".\"demo__vital_status\" AS \"vital_status\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"CLINICAL_GDC_R39\" AS \"c\"\n  WHERE\n    \"c\".\"submitter_id\" IN (\n      SELECT\n        \"case_barcode\"\n      FROM \"cdkn2a_mutated_cases\"\n    )\n), \"rna_expression\" /* Step 3: RNA expression (FPKM) for the four target genes in BLCA */ AS (\n  SELECT\n    \"r\".\"case_barcode\",\n    \"r\".\"gene_name\",\n    \"r\".\"fpkm_unstranded\" AS \"fpkm\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"RNASEQ_HG38_GDC_R39\" AS \"r\"\n  WHERE\n    \"r\".\"project_short_name\" = 'TCGA-BLCA'\n    AND \"r\".\"gene_name\" IN ('MDM2', 'TP53', 'CDKN1A', 'CCNE1')\n    AND \"r\".\"case_barcode\" IN (\n      SELECT\n        \"case_barcode\"\n      FROM \"cdkn2a_mutated_cases\"\n    )\n), \"expression_pivot\" /* Step 4: Pivot expression to one row per case */ AS (\n  SELECT\n    \"case_barcode\",\n    MAX(CASE WHEN \"gene_name\" = 'MDM2' THEN \"fpkm\" END) AS \"mdm2_fpkm\",\n    MAX(CASE WHEN \"gene_name\" = 'TP53' THEN \"fpkm\" END) AS \"tp53_fpkm\",\n    MAX(CASE WHEN \"gene_name\" = 'CDKN1A' THEN \"fpkm\" END) AS \"cdkn1a_fpkm\",\n    MAX(CASE WHEN \"gene_name\" = 'CCNE1' THEN \"fpkm\" END) AS \"ccne1_fpkm\"\n  FROM \"rna_expression\"\n  GROUP BY\n    \"case_barcode\"\n)\n/* Final output: clinical info + expression levels */\nSELECT\n  \"ci\".\"case_barcode\",\n  \"ci\".\"gender\",\n  \"ci\".\"age_at_diagnosis_days\",\n  \"ci\".\"vital_status\",\n  \"ep\".\"mdm2_fpkm\",\n  \"ep\".\"tp53_fpkm\",\n  \"ep\".\"cdkn1a_fpkm\",\n  \"ep\".\"ccne1_fpkm\"\nFROM \"clinical_info\" AS \"ci\"\nLEFT JOIN \"expression_pivot\" AS \"ep\"\n  ON \"ci\".\"case_barcode\" = \"ep\".\"case_barcode\"\nORDER BY\n  \"ci\".\"case_barcode\"",
+    "sf_bq254": "WITH ref_geom AS (\n    SELECT ST_GEOGRAPHYFROMWKB(pf.\"geometry\") AS geom\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES pf\n       , LATERAL FLATTEN(input => pf.\"all_tags\") f\n    WHERE pf.\"feature_type\" = 'multipolygons'\n      AND f.value:\"key\"::STRING = 'wikidata'\n      AND f.value:\"value\"::STRING = 'Q191'\n    QUALIFY ROW_NUMBER() OVER (ORDER BY pf.\"osm_way_id\") = 1\n),\n\ncandidate_tags AS (\n    SELECT\n        pf.\"osm_way_id\",\n        ST_GEOGRAPHYFROMWKB(pf.\"geometry\") AS geom,\n        IFF(MAX(CASE WHEN ft.value:\"key\"::STRING = 'wikidata' THEN 1 ELSE 0 END) = 1, TRUE, FALSE) AS has_wikidata,\n        MAX(CASE WHEN ft.value:\"key\"::STRING = 'name' THEN ft.value:\"value\"::STRING END) AS name\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES pf\n       , LATERAL FLATTEN(input => pf.\"all_tags\") ft\n    WHERE pf.\"feature_type\" = 'multipolygons'\n    GROUP BY pf.\"osm_way_id\", pf.\"geometry\"\n),\n\ncandidates AS (\n    SELECT ct.\"osm_way_id\", ct.geom, ct.name\n    FROM candidate_tags ct\n       , ref_geom rg\n    WHERE ST_WITHIN(ct.geom, rg.geom)\n      AND ct.has_wikidata = FALSE\n      AND ct.name IS NOT NULL\n),\n\nnode_counts AS (\n    SELECT\n        c.\"osm_way_id\",\n        c.name,\n        COUNT(*) AS point_count\n    FROM candidates c\n    INNER JOIN GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_NODES n\n        ON ST_WITHIN(ST_MAKEPOINT(n.\"longitude\", n.\"latitude\"), c.geom)\n    GROUP BY c.\"osm_way_id\", c.name\n)\n\nSELECT name, point_count\nFROM node_counts\nORDER BY point_count DESC\nLIMIT 2",
+    "bq151": "WITH\n  -- PAAD patients from clinical follow-up table (original)\n  paad_clinical AS (\n    SELECT DISTINCT bcr_patient_barcode AS ParticipantBarcode\n    FROM `isb-cgc-bq.pancancer_atlas.Original_clinical_PANCAN_patient_with_followup`\n    WHERE acronym = 'PAAD'\n  ),\n  -- PAAD tumor samples from BarcodeMap to ensure sequencing data exists\n  paad_tumor_samples AS (\n    SELECT DISTINCT ParticipantBarcode\n    FROM `isb-cgc-bq.pancancer_atlas.BarcodeMap`\n    WHERE Study = 'PAAD'\n      AND SampleTypeLetterCode = 'TP'   -- primary solid tumor\n  ),\n  -- PAAD patients with both clinical record and tumor sequencing sample\n  cohort AS (\n    SELECT c.ParticipantBarcode\n    FROM paad_clinical c\n    INNER JOIN paad_tumor_samples s\n      ON c.ParticipantBarcode = s.ParticipantBarcode\n  ),\n  -- High-quality somatic mutations (non-silent, PASS) for KRAS and TP53\n  mutation_status AS (\n    SELECT\n      ParticipantBarcode,\n      MAX(CASE WHEN Hugo_Symbol = 'KRAS' THEN 1 ELSE 0 END) AS kras_mut,\n      MAX(CASE WHEN Hugo_Symbol = 'TP53' THEN 1 ELSE 0 END) AS tp53_mut\n    FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample`\n    WHERE Study = 'PAAD'\n      AND FILTER = 'PASS'\n      AND Variant_Classification IN (\n        'Missense_Mutation', 'Nonsense_Mutation',\n        'Frame_Shift_Ins', 'Frame_Shift_Del',\n        'In_Frame_Ins', 'In_Frame_Del',\n        'Splice_Site', 'Translation_Start_Site', 'Nonstop_Mutation'\n      )\n    GROUP BY ParticipantBarcode\n  ),\n  -- Combine cohort with mutation data (left join: patients with no mutations get 0)\n  patient_mutation AS (\n    SELECT\n      c.ParticipantBarcode,\n      COALESCE(m.kras_mut, 0) AS kras_mut,\n      COALESCE(m.tp53_mut, 0) AS tp53_mut\n    FROM cohort c\n    LEFT JOIN mutation_status m\n      ON c.ParticipantBarcode = m.ParticipantBarcode\n  ),\n  -- Contingency table counts\n  contingency AS (\n    SELECT\n      COUNTIF(kras_mut = 1 AND tp53_mut = 1) AS a,   -- both\n      COUNTIF(kras_mut = 1 AND tp53_mut = 0) AS b,   -- KRAS only\n      COUNTIF(kras_mut = 0 AND tp53_mut = 1) AS c,   -- TP53 only\n      COUNTIF(kras_mut = 0 AND tp53_mut = 0) AS d    -- neither\n    FROM patient_mutation\n  )\n-- Compute chi-squared statistic\nSELECT\n  ROUND(\n    ( (a + b + c + d) * (a * d - b * c) * (a * d - b * c) )\n    / NULLIF( (a + b) * (c + d) * (a + c) * (b + d), 0 ),\n    4\n  ) AS chi_squared_statistic\nFROM contingency",
+    "sf014": "WITH \"zip_commuters\" AS (\n  SELECT\n    \"f\".\"ZipCode\",\n    SUM(\"f\".\"CensusValueByZip\") AS \"total_commuters_over_1hr\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_CensusValues_ACS2021_ByZip\" AS \"f\"\n  JOIN \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"LU_GeographyExpanded\" AS \"g\"\n    ON \"f\".\"ZipCode\" = \"g\".\"ZipCode\"\n  WHERE\n    \"g\".\"PreferredStateAbbrev\" = 'NY'\n    AND \"f\".\"MetricID\" IN ('B08303_011E', 'B08303_012E')\n  GROUP BY\n    \"f\".\"ZipCode\"\n)\nSELECT\n  \"z\".\"ZipCode\",\n  \"z\".\"total_commuters_over_1hr\",\n  (\n    SELECT COALESCE(SUM(\"StateBenchmarkValue\"), 0)\n    FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n    WHERE \"StateAbbrev\" = 'NY'\n      AND \"MetricID\" IN ('B08303_011E', 'B08303_012E')\n  ) AS \"state_benchmark_over_1hr\",\n  (\n    SELECT COALESCE(\"StateBenchmarkValue\", 0)\n    FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n    WHERE \"StateAbbrev\" = 'NY'\n      AND \"MetricID\" = 'B01003_001E'\n    LIMIT 1\n  ) AS \"state_population\"\nFROM \"zip_commuters\" AS \"z\"\nORDER BY \"z\".\"total_commuters_over_1hr\" DESC\nLIMIT 1",
+    "ga003": "SELECT\n  board_type,\n  AVG(score) AS avg_score\nFROM (\n  SELECT\n    COALESCE(\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board_type'),\n      SAFE_CAST((SELECT value.int_value    FROM UNNEST(event_params) WHERE key = 'board_type') AS STRING),\n      SAFE_CAST((SELECT value.float_value  FROM UNNEST(event_params) WHERE key = 'board_type') AS STRING),\n      SAFE_CAST((SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'board_type') AS STRING)\n    ) AS board_type,\n    COALESCE(\n      (SELECT value.float_value  FROM UNNEST(event_params) WHERE key = 'score'),\n      (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'score'),\n      SAFE_CAST((SELECT value.int_value    FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64),\n      SAFE_CAST((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64)\n    ) AS score\n  FROM `firebase-public-project.analytics_153293282.events_20180915`\n  WHERE event_name = 'level_end_quickplay'\n)\nWHERE board_type IS NOT NULL\n  AND score IS NOT NULL\nGROUP BY board_type\nORDER BY avg_score DESC"
+  },
+  "meta": {
+    "bq009": {
+      "instance_id": "bq009",
+      "backend": "bigquery",
+      "db_id": "ga360",
+      "selection": {
+        "decision": "unique_plurality_2",
+        "cluster_sizes": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "selected_index": 2
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "-- Step 1: Find the traffic source with the highest total transaction revenue in 2017\nWITH source_revenue_2017 AS (\n  SELECT\n    trafficSource.source AS traffic_source,\n    SUM(totals.totalTransactionRevenue) AS total_revenue\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n    AND totals.totalTransactionRevenue IS NOT NULL\n  GROUP BY\n    trafficSource.source\n),\ntop_source AS (\n  SELECT\n    traffic_source\n  FROM\n    source_revenue_2017\n  ORDER BY\n    total_revenue DESC\n  LIMIT 1\n),\n\n-- Step 2: Compute monthly total transaction revenue for that top source\nmonthly_revenue AS (\n  SELECT\n    trafficSource.source AS traffic_source,\n    FORMAT_TIMESTAMP('%Y-%m', TIMESTAMP_SECONDS(visitStartTime)) AS month,\n    SUM(totals.totalTransactionRevenue) AS monthly_total\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n    AND trafficSource.source = (SELECT traffic_source FROM top_source)\n    AND totals.totalTransactionRevenue IS NOT NULL\n  GROUP BY\n    traffic_source,\n    month\n)\n\n-- Step 3: Compute the difference between highest and lowest monthly revenue in millions\nSELECT\n  (SELECT traffic_source FROM top_source) AS top_traffic_source,\n  ROUND(\n    (MAX(monthly_total) - MIN(monthly_total)) / 1000000.0,\n    2\n  ) AS diff_in_millions\nFROM monthly_revenue",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.00788022205233574
+        },
+        {
+          "index": 1,
+          "sql": "WITH\n  -- Step 1: Aggregate total transaction revenue per traffic source for 2017\n  source_revenue AS (\n    SELECT\n      trafficSource.source AS source,\n      SUM(COALESCE(totals.totalTransactionRevenue, 0)) AS total_revenue_micros\n    FROM\n      `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n    WHERE\n      _TABLE_SUFFIX LIKE '2017%'\n      AND totals.totalTransactionRevenue IS NOT NULL\n    GROUP BY\n      source\n  ),\n  -- Step 2: Identify the traffic source with highest total revenue\n  top_source AS (\n    SELECT\n      source,\n      total_revenue_micros\n    FROM\n      source_revenue\n    ORDER BY\n      total_revenue_micros DESC\n    LIMIT 1\n  ),\n  -- Step 3: Compute monthly revenue for the top source in 2017\n  monthly_revenue AS (\n    SELECT\n      EXTRACT(YEAR FROM PARSE_DATE('%Y%m%d', date)) AS year,\n      EXTRACT(MONTH FROM PARSE_DATE('%Y%m%d', date)) AS month,\n      SUM(COALESCE(totals.totalTransactionRevenue, 0)) AS monthly_revenue_micros\n    FROM\n      `bigquery-public-data.google_analytics_sample.ga_sessions_*`,\n      top_source\n    WHERE\n      _TABLE_SUFFIX LIKE '2017%'\n      AND trafficSource.source = top_source.source\n      AND totals.totalTransactionRevenue IS NOT NULL\n    GROUP BY\n      year, month\n  ),\n  -- Step 4: Get highest and lowest monthly revenue\n  monthly_stats AS (\n    SELECT\n      MAX(monthly_revenue_micros) AS max_monthly,\n      MIN(monthly_revenue_micros) AS min_monthly\n    FROM\n      monthly_revenue\n  )\n-- Final answer: top source and the difference in millions\nSELECT\n  top_source.source AS traffic_source,\n  ROUND((max_monthly - min_monthly) / 1000000.0, 2) AS diff_millions\nFROM\n  top_source,\n  monthly_stats",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.008750561624765396
+        },
+        {
+          "index": 2,
+          "sql": "-- CTE: all 2017 sessions with non-null transaction revenue\nWITH revenue_2017 AS (\n  SELECT\n    trafficSource.source AS traffic_source,\n    date,\n    COALESCE(totals.totalTransactionRevenue, 0) AS revenue_micros\n  FROM\n    `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n  WHERE\n    _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n),\n\n-- Find traffic source with highest total revenue in 2017\ntop_source AS (\n  SELECT\n    traffic_source,\n    SUM(revenue_micros) AS total_rev_micros\n  FROM revenue_2017\n  GROUP BY traffic_source\n  ORDER BY total_rev_micros DESC\n  LIMIT 1\n),\n\n-- Monthly revenue for the top traffic source only\nmonthly_top AS (\n  SELECT\n    r.traffic_source,\n    SUBSTR(r.date, 1, 6) AS month,\n    SUM(r.revenue_micros) / 1e6 AS monthly_rev_dollars\n  FROM revenue_2017 r\n  INNER JOIN top_source t\n    ON r.traffic_source = t.traffic_source\n  GROUP BY r.traffic_source, month\n),\n\n-- Highest and lowest monthly revenue\nmonthly_stats AS (\n  SELECT\n    traffic_source,\n    MAX(monthly_rev_dollars) AS max_monthly_dollars,\n    MIN(monthly_rev_dollars) AS min_monthly_dollars\n  FROM monthly_top\n  GROUP BY traffic_source\n)\n\n-- Final answer: top source and difference in millions\nSELECT\n  traffic_source AS top_traffic_source,\n  ROUND((max_monthly_dollars - min_monthly_dollars) / 1e6, 2) AS diff_millions\nFROM monthly_stats",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.008750561624765396
+        },
+        {
+          "index": 3,
+          "sql": "WITH\n  -- Generate all 12 months of 2017 as YYYYMM strings\n  month_list AS (\n    SELECT FORMAT('%04d%02d', 2017, m) AS year_month\n    FROM UNNEST(GENERATE_ARRAY(1, 12)) AS m\n  ),\n\n  -- Extract all sessions from 2017 daily tables\n  sessions_2017 AS (\n    SELECT\n      trafficSource.source AS source,\n      totals.totalTransactionRevenue AS rev_micros,\n      date\n    FROM `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n    WHERE _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n      AND _TABLE_SUFFIX LIKE '2017%'   -- ensures only daily (not intraday) tables\n  ),\n\n  -- Total revenue per traffic source for the whole year (in micros)\n  source_total AS (\n    SELECT\n      source,\n      SUM(IFNULL(rev_micros, 0)) AS total_rev_micros\n    FROM sessions_2017\n    GROUP BY source\n  ),\n\n  -- Identify the traffic source with the highest total revenue\n  top_source AS (\n    SELECT source\n    FROM source_total\n    ORDER BY total_rev_micros DESC\n    LIMIT 1\n  ),\n\n  -- Monthly total revenue for the top source (in micros)\n  monthly_rev_top AS (\n    SELECT\n      SUBSTR(date, 1, 6) AS year_month,\n      SUM(IFNULL(rev_micros, 0)) AS monthly_rev_micros\n    FROM sessions_2017\n    WHERE source = (SELECT source FROM top_source)\n    GROUP BY year_month\n  ),\n\n  -- Ensure all 12 months are present, filling missing months with 0\n  all_months_rev AS (\n    SELECT\n      m.year_month,\n      COALESCE(mr.monthly_rev_micros, 0) AS monthly_rev_micros\n    FROM month_list m\n    LEFT JOIN monthly_rev_top mr\n      ON m.year_month = mr.year_month\n  )\n\n-- Final result: top source and difference in millions of dollars\nSELECT\n  (SELECT source FROM top_source) AS traffic_source,\n  ROUND(\n    (MAX(monthly_rev_micros) - MIN(monthly_rev_micros)) / 1e12,\n    2\n  ) AS difference_millions\nFROM all_months_rev",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.008750561624765396
+        },
+        {
+          "index": 4,
+          "sql": "/*\n * Step 1: Get all sessions in 2017 with non-null transaction revenue.\n * Step 2: Determine the traffic source with the highest total revenue for 2017.\n * Step 3: For that top traffic source, compute monthly revenue totals.\n * Step 4: Find the difference between the highest and lowest monthly totals,\n *         convert from micros to millions of dollars, and round to 2 decimals.\n */\n\nWITH\n  sessions_2017 AS (\n    SELECT\n      trafficSource.source AS traffic_source,\n      date,\n      totals.totalTransactionRevenue AS revenue_micros\n    FROM\n      `bigquery-public-data.google_analytics_sample.ga_sessions_*`\n    WHERE\n      _TABLE_SUFFIX BETWEEN '20170101' AND '20171231'\n      AND totals.totalTransactionRevenue IS NOT NULL\n  ),\n\n  top_traffic_source AS (\n    SELECT\n      traffic_source,\n      SUM(revenue_micros) AS total_revenue_micros\n    FROM\n      sessions_2017\n    GROUP BY\n      traffic_source\n    ORDER BY\n      total_revenue_micros DESC\n    LIMIT 1\n  ),\n\n  monthly_revenues AS (\n    SELECT\n      s.traffic_source,\n      SUBSTR(s.date, 1, 6) AS month,\n      SUM(s.revenue_micros) AS monthly_revenue_micros\n    FROM\n      sessions_2017 s\n    JOIN\n      top_traffic_source t\n    ON\n      s.traffic_source = t.traffic_source\n    GROUP BY\n      s.traffic_source, month\n  )\n\nSELECT\n  traffic_source,\n  ROUND(\n    (MAX(monthly_revenue_micros) - MIN(monthly_revenue_micros)) / 1000000000000.0,\n    2\n  ) AS difference_in_millions\nFROM\n  monthly_revenues\nGROUP BY\n  traffic_source",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.008750561624765396
+        }
+      ]
+    },
+    "sf_bq033": {
+      "instance_id": "sf_bq033",
+      "backend": "snowflake",
+      "db_id": "PATENTS",
+      "selection": {
+        "decision": "unique_plurality_2",
+        "cluster_sizes": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH RECURSIVE\n-- Generate complete month series from Jan 2008 to Dec 2022\nmonth_series AS (\n    SELECT DATE '2008-01-01' AS \"month_start\"\n    UNION ALL\n    SELECT DATEADD('MONTH', 1, \"month_start\")\n    FROM month_series\n    WHERE \"month_start\" < DATE '2022-12-01'\n),\n\n-- Identify IoT-related US publications with English abstracts containing 'internet of things'\niot_publications AS (\n    SELECT DISTINCT\n        p.\"publication_number\",\n        p.\"filing_date\"\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n         LATERAL FLATTEN(INPUT => p.\"abstract_localized\") f\n    WHERE p.\"country_code\" = 'US'\n      AND p.\"filing_date\" > 0\n      AND p.\"filing_date\" BETWEEN 20080101 AND 20221231\n      AND f.value:\"language\"::STRING = 'en'\n      AND f.value:\"text\"::STRING ILIKE '%internet of things%'\n),\n\n-- Aggregate count per month\nmonthly_counts AS (\n    SELECT\n        DATE_TRUNC('MONTH', TO_DATE(TO_VARCHAR(i.\"filing_date\"), 'YYYYMMDD')) AS \"month\",\n        COUNT(DISTINCT i.\"publication_number\") AS cnt\n    FROM iot_publications i\n    GROUP BY \"month\"\n)\n\n-- Final result with zeros for missing months\nSELECT\n    ms.\"month_start\" AS \"filing_month\",\n    COALESCE(mc.cnt, 0) AS \"num_publications\"\nFROM month_series ms\nLEFT JOIN monthly_counts mc ON ms.\"month_start\" = mc.\"month\"\nORDER BY ms.\"month_start\"",
+          "source": "revised",
+          "revisions": 4,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 180,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 1,
+          "sql": "WITH\n    -- Step 1: Identify U.S. publications whose abstract contains \"internet of things\"\n    iot_publications AS (\n        SELECT DISTINCT\n            p.\"publication_number\",\n            p.\"filing_date\"\n        FROM\n            \"PATENTS\".\"PATENTS\".\"PUBLICATIONS\" p,\n            LATERAL FLATTEN(input => p.\"abstract_localized\") f\n        WHERE\n            p.\"country_code\" = 'US'\n            AND p.\"filing_date\" > 0\n            AND p.\"filing_date\" BETWEEN 20080101 AND 20221231\n            AND f.VALUE:\"text\"::STRING ILIKE '%internet of things%'\n    ),\n\n    -- Step 2: Aggregate counts per month (first day of month)\n    monthly_counts AS (\n        SELECT\n            DATE_TRUNC('MONTH', TO_DATE(TO_VARCHAR(NULLIF(\"filing_date\", 0)), 'YYYYMMDD')) AS month_start,\n            COUNT(DISTINCT \"publication_number\") AS cnt\n        FROM iot_publications\n        GROUP BY month_start\n    ),\n\n    -- Step 3: Generate a complete month spine from Jan 2008 to Dec 2022\n    month_spine AS (\n        SELECT '2008-01-01'::DATE AS month_start\n        UNION ALL\n        SELECT DATEADD('MONTH', 1, month_start)\n        FROM month_spine\n        WHERE month_start < '2023-01-01'   -- includes December 2022\n    )\n\n-- Step 4: Left join to include months with zero filings\nSELECT\n    TO_VARCHAR(s.month_start, 'YYYY-MM') AS year_month,\n    COALESCE(m.cnt, 0) AS publication_count\nFROM month_spine s\nLEFT JOIN monthly_counts m ON s.month_start = m.month_start\nORDER BY s.month_start",
+          "source": "revised",
+          "revisions": 4,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 181,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 2,
+          "sql": "WITH RECURSIVE month_spine AS (\n    -- Generate first day of each month from Jan 2008 to Dec 2022\n    SELECT '2008-01-01'::DATE AS month_start\n    UNION ALL\n    SELECT DATEADD('MONTH', 1, month_start)\n    FROM month_spine\n    WHERE month_start < '2022-12-01'::DATE\n),\niot_filings AS (\n    -- U.S. publications with 'internet of things' in any abstract text\n    SELECT DISTINCT\n        p.\"publication_number\" AS pub_num,\n        DATE_TRUNC('MONTH',\n            TO_DATE(TO_VARCHAR(NULLIF(p.\"filing_date\", 0)), 'YYYYMMDD')\n        ) AS filing_month\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n         LATERAL FLATTEN(input => p.\"abstract_localized\") f\n    WHERE p.\"country_code\" = 'US'\n      AND p.\"filing_date\" > 0\n      AND f.value:\"text\"::STRING ILIKE '%internet of things%'\n)\nSELECT\n    ms.month_start AS month,\n    COALESCE(COUNT(DISTINCT iot.pub_num), 0) AS filing_count\nFROM month_spine ms\nLEFT JOIN iot_filings iot ON ms.month_start = iot.filing_month\nGROUP BY ms.month_start\nORDER BY ms.month_start",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 180,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 3,
+          "sql": "WITH RECURSIVE months AS (\n    SELECT '2008-01-01'::DATE AS month_start\n    UNION ALL\n    SELECT DATEADD(MONTH, 1, month_start)\n    FROM months\n    WHERE month_start < '2022-12-01'\n),\n\nflattened_abstracts AS (\n    SELECT p.\"publication_number\",\n           p.\"filing_date\",\n           f.value:\"text\"::STRING AS abstract_text\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n         LATERAL FLATTEN(input => p.\"abstract_localized\") f\n    WHERE p.\"country_code\" = 'US'\n      AND p.\"filing_date\" > 0\n      AND p.\"filing_date\" BETWEEN 20080101 AND 20221231\n),\n\niot_pubs AS (\n    SELECT DISTINCT \"publication_number\", \"filing_date\"\n    FROM flattened_abstracts\n    WHERE abstract_text ILIKE '%internet of things%'\n),\n\nmonthly_counts AS (\n    SELECT DATE_TRUNC('MONTH',\n                      TO_DATE(TO_VARCHAR(ip.\"filing_date\"), 'YYYYMMDD')) AS month_start,\n           COUNT(DISTINCT ip.\"publication_number\") AS pub_count\n    FROM iot_pubs ip\n    GROUP BY month_start\n)\n\nSELECT TO_VARCHAR(m.month_start, 'YYYY-MM') AS filing_month,\n       COALESCE(mc.pub_count, 0) AS num_publications\nFROM months m\nLEFT JOIN monthly_counts mc\n    ON m.month_start = mc.month_start\nORDER BY m.month_start",
+          "source": "revised",
+          "revisions": 2,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 180,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 4,
+          "sql": "WITH\neligible_abstracts AS (\n    SELECT DISTINCT\n        p.\"publication_number\",\n        p.\"filing_date\"\n    FROM PATENTS.PATENTS.PUBLICATIONS p,\n         LATERAL FLATTEN(input => p.\"abstract_localized\") f\n    WHERE p.\"country_code\" = 'US'\n      AND p.\"filing_date\" > 0\n      AND p.\"filing_date\" BETWEEN 20080101 AND 20221231\n      AND f.value:\"language\"::STRING = 'en'\n      AND f.value:\"text\"::STRING ILIKE '%internet of things%'\n),\n\nmonthly_counts AS (\n    SELECT\n        DATE_TRUNC('MONTH',\n            TO_DATE(TO_VARCHAR(NULLIF(\"filing_date\", 0)), 'YYYYMMDD')\n        ) AS month_start,\n        COUNT(DISTINCT \"publication_number\") AS num_filings\n    FROM eligible_abstracts\n    WHERE \"filing_date\" > 0\n    GROUP BY month_start\n),\n\nmonth_series AS (\n    SELECT CAST('2008-01-01' AS DATE) AS month_start\n    UNION ALL\n    SELECT DATEADD(MONTH, 1, month_start)\n    FROM month_series\n    WHERE month_start < '2023-01-01'\n)\n\nSELECT\n    ms.month_start,\n    COALESCE(mc.num_filings, 0) AS num_filings\nFROM month_series ms\nLEFT JOIN monthly_counts mc\n    ON ms.month_start = mc.month_start\nORDER BY ms.month_start",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 181,
+          "error": "",
+          "est_gb": null
+        }
+      ]
+    },
+    "bq235": {
+      "instance_id": "bq235",
+      "backend": "bigquery",
+      "db_id": "cms_data",
+      "selection": {
+        "decision": "unique_plurality_3",
+        "cluster_sizes": [
+          3,
+          1,
+          1
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH combined_costs AS (\n  SELECT provider_name, average_total_payments\n  FROM `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n  UNION ALL\n  SELECT provider_name, average_total_payments\n  FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n)\nSELECT provider_name AS healthcare_provider,\n       AVG(average_total_payments) AS combined_avg_cost\nFROM combined_costs\nGROUP BY provider_name\nORDER BY combined_avg_cost DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.008538169786334038
+        },
+        {
+          "index": 1,
+          "sql": "-- Compute the combined average cost for each provider by averaging the average total payments\n-- across both outpatient and inpatient services in 2014.\nWITH combined_costs AS (\n  SELECT provider_name, average_total_payments\n  FROM `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n  UNION ALL\n  SELECT provider_name, average_total_payments\n  FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n)\nSELECT\n  provider_name AS healthcare_provider,\n  ROUND(AVG(average_total_payments), 2) AS combined_avg_cost\nFROM combined_costs\nGROUP BY provider_name\nORDER BY combined_avg_cost DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.008538169786334038
+        },
+        {
+          "index": 2,
+          "sql": "WITH combined_costs AS (\n  -- Outpatient charges for 2014: each row represents an APC with its average total payment\n  SELECT\n    provider_name,\n    provider_id,\n    average_total_payments\n  FROM `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n\n  UNION ALL\n\n  -- Inpatient charges for 2014: each row represents a DRG with its average total payment\n  SELECT\n    provider_name,\n    provider_id,\n    average_total_payments\n  FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n)\nSELECT\n  provider_name,\n  provider_id,\n  ROUND(AVG(average_total_payments), 2) AS combined_avg_cost\nFROM combined_costs\nGROUP BY provider_name, provider_id\nORDER BY combined_avg_cost DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.010280737653374672
+        },
+        {
+          "index": 3,
+          "sql": "WITH\n  -- Aggregate outpatient costs per provider\n  outpatient_agg AS (\n    SELECT\n      provider_id,\n      SAFE_DIVIDE(\n        SUM(average_total_payments * outpatient_services),\n        SUM(outpatient_services)\n      ) AS avg_outpatient_payment\n    FROM\n      `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n    GROUP BY\n      provider_id\n    HAVING\n      SUM(outpatient_services) > 0\n  ),\n  -- Aggregate inpatient costs per provider\n  inpatient_agg AS (\n    SELECT\n      provider_id,\n      SAFE_DIVIDE(\n        SUM(average_total_payments * total_discharges),\n        SUM(total_discharges)\n      ) AS avg_inpatient_payment\n    FROM\n      `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n    GROUP BY\n      provider_id\n    HAVING\n      SUM(total_discharges) > 0\n  ),\n  -- Combine the two averages per provider\n  combined AS (\n    SELECT\n      o.provider_id,\n      o.avg_outpatient_payment,\n      i.avg_inpatient_payment,\n      o.avg_outpatient_payment + i.avg_inpatient_payment AS combined_avg_cost\n    FROM\n      outpatient_agg o\n      INNER JOIN inpatient_agg i USING (provider_id)\n  ),\n  -- Get provider name from outpatient table\n  provider_info AS (\n    SELECT DISTINCT\n      provider_id,\n      provider_name\n    FROM\n      `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n  )\nSELECT\n  p.provider_name,\n  c.combined_avg_cost\nFROM\n  combined c\n  INNER JOIN provider_info p USING (provider_id)\nORDER BY\n  c.combined_avg_cost DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.006306082010269165
+        },
+        {
+          "index": 4,
+          "sql": "-- Compute total payments and total volume for each provider from the 2014 outpatient and inpatient tables,\n-- then derive a combined average cost per service/discharge, and identify the provider with the highest value.\n\nWITH\n  -- Aggregate outpatient data: for each provider, sum payments and count of services\n  outpatient_agg AS (\n    SELECT\n      provider_name,\n      SUM(outpatient_services * average_total_payments) AS total_outpatient_payments,\n      SUM(outpatient_services) AS total_outpatient_services\n    FROM `bigquery-public-data.cms_medicare.outpatient_charges_2014`\n    GROUP BY provider_name\n  ),\n  -- Aggregate inpatient data: for each provider, sum payments and count of discharges\n  inpatient_agg AS (\n    SELECT\n      provider_name,\n      SUM(total_discharges * average_total_payments) AS total_inpatient_payments,\n      SUM(total_discharges) AS total_inpatient_discharges\n    FROM `bigquery-public-data.cms_medicare.inpatient_charges_2014`\n    GROUP BY provider_name\n  ),\n  -- Combine outpatient and inpatient aggregates per provider\n  combined AS (\n    SELECT\n      COALESCE(o.provider_name, i.provider_name) AS provider_name,\n      COALESCE(o.total_outpatient_payments, 0) + COALESCE(i.total_inpatient_payments, 0) AS total_payments,\n      COALESCE(o.total_outpatient_services, 0) + COALESCE(i.total_inpatient_discharges, 0) AS total_volume\n    FROM outpatient_agg o\n    FULL OUTER JOIN inpatient_agg i\n      ON o.provider_name = i.provider_name\n  ),\n  -- Compute combined average cost per service/discharge and rank\n  ranked AS (\n    SELECT\n      provider_name,\n      total_payments / NULLIF(total_volume, 0) AS combined_avg_cost,\n      RANK() OVER (ORDER BY total_payments / NULLIF(total_volume, 0) DESC) AS rnk\n    FROM combined\n    WHERE total_volume > 0  -- exclude providers with no volume\n  )\n-- Select the top provider\nSELECT provider_name, combined_avg_cost\nFROM ranked\nWHERE rnk = 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.010315513238310814
+        }
+      ]
+    },
+    "sf_bq359": {
+      "instance_id": "sf_bq359",
+      "backend": "snowflake",
+      "db_id": "GITHUB_REPOS",
+      "selection": {
+        "decision": "unique_plurality_5",
+        "cluster_sizes": [
+          5
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH \"commit_counts\" AS (\n  SELECT\n    \"repo_name\",\n    COUNT(*) AS \"commit_count\"\n  FROM \"GITHUB_REPOS\".\"GITHUB_REPOS\".\"SAMPLE_COMMITS\"\n  GROUP BY \"repo_name\"\n),\n\"language_flat\" AS (\n  SELECT\n    l.\"repo_name\",\n    f.value:\"name\"::STRING AS \"lang_name\",\n    f.value:\"bytes\"::NUMBER AS \"lang_bytes\"\n  FROM \"GITHUB_REPOS\".\"GITHUB_REPOS\".\"LANGUAGES\" l,\n  LATERAL FLATTEN(input => l.\"language\") f\n),\n\"primary_languages\" AS (\n  SELECT\n    \"repo_name\",\n    \"lang_name\" AS \"primary_language\"\n  FROM \"language_flat\"\n  QUALIFY ROW_NUMBER() OVER (PARTITION BY \"repo_name\" ORDER BY \"lang_bytes\" DESC) = 1\n)\nSELECT\n  c.\"repo_name\",\n  c.\"commit_count\"\nFROM \"commit_counts\" c\nJOIN \"primary_languages\" p ON c.\"repo_name\" = p.\"repo_name\"\nWHERE p.\"primary_language\" = 'JavaScript'\nORDER BY c.\"commit_count\" DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 1,
+          "sql": "WITH\n-- Step 1: flatten language array and extract name & bytes\nflattened_langs AS (\n    SELECT\n        l.\"repo_name\",\n        f.value:\"name\"::STRING AS lang_name,\n        f.value:\"bytes\"::NUMBER  AS lang_bytes\n    FROM GITHUB_REPOS.GITHUB_REPOS.LANGUAGES l,\n         LATERAL FLATTEN(input => l.\"language\") f\n    WHERE f.value IS NOT NULL\n),\n-- Step 2: rank languages per repo by bytes descending\nranked_langs AS (\n    SELECT\n        \"repo_name\",\n        lang_name,\n        lang_bytes,\n        ROW_NUMBER() OVER (\n            PARTITION BY \"repo_name\"\n            ORDER BY lang_bytes DESC\n        ) AS rn\n    FROM flattened_langs\n),\n-- Step 3: keep only the primary language (rn=1) and filter for JavaScript\nprimary_js_repos AS (\n    SELECT \"repo_name\"\n    FROM ranked_langs\n    WHERE rn = 1 AND lang_name = 'JavaScript'\n),\n-- Step 4: count commits per repo\ncommit_counts AS (\n    SELECT\n        \"repo_name\",\n        COUNT(*) AS commit_count\n    FROM GITHUB_REPOS.GITHUB_REPOS.SAMPLE_COMMITS\n    GROUP BY \"repo_name\"\n)\n-- Step 5: final join, top 2\nSELECT\n    p.\"repo_name\",\n    c.commit_count\nFROM primary_js_repos p\nJOIN commit_counts c ON p.\"repo_name\" = c.\"repo_name\"\nORDER BY c.commit_count DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 2,
+          "sql": "WITH lang_flattened AS (\n    SELECT\n        l.\"repo_name\" AS repo_name,\n        f.value:\"name\"::STRING   AS lang_name,\n        f.value:\"bytes\"::NUMBER  AS lang_bytes\n    FROM GITHUB_REPOS.GITHUB_REPOS.LANGUAGES l,\n         LATERAL FLATTEN(input => l.\"language\") f\n),\nprimary_lang AS (\n    SELECT\n        repo_name,\n        lang_name AS primary_language\n    FROM lang_flattened\n    QUALIFY ROW_NUMBER() OVER (PARTITION BY repo_name ORDER BY lang_bytes DESC NULLS LAST) = 1\n),\njs_repos AS (\n    SELECT repo_name\n    FROM primary_lang\n    WHERE primary_language = 'JavaScript'\n),\ncommit_counts AS (\n    SELECT\n        \"repo_name\" AS repo_name,\n        COUNT(*)    AS commit_count\n    FROM GITHUB_REPOS.GITHUB_REPOS.SAMPLE_COMMITS\n    GROUP BY \"repo_name\"\n)\nSELECT\n    j.repo_name,\n    c.commit_count\nFROM js_repos j\nJOIN commit_counts c ON j.repo_name = c.repo_name\nORDER BY c.commit_count DESC\nLIMIT 2",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 3,
+          "sql": "-- CTE: flatten the language array into rows of language name and byte count\nWITH language_flat AS (\n    SELECT\n        t.\"repo_name\",\n        f.value:\"name\"::STRING AS language_name,\n        f.value:\"bytes\"::NUMBER  AS byte_count\n    FROM GITHUB_REPOS.GITHUB_REPOS.LANGUAGES AS t,\n    LATERAL FLATTEN(input => t.\"language\") f\n),\n-- CTE: rank languages per repo by byte count descending\nranked_languages AS (\n    SELECT\n        \"repo_name\",\n        language_name,\n        byte_count,\n        ROW_NUMBER() OVER (PARTITION BY \"repo_name\" ORDER BY byte_count DESC) AS rn\n    FROM language_flat\n),\n-- CTE: keep only repos whose top language is JavaScript\nprimary_javascript AS (\n    SELECT \"repo_name\"\n    FROM ranked_languages\n    WHERE rn = 1\n      AND language_name = 'JavaScript'\n),\n-- CTE: count commits per repo\ncommit_counts AS (\n    SELECT\n        \"repo_name\",\n        COUNT(*) AS commit_count\n    FROM GITHUB_REPOS.GITHUB_REPOS.SAMPLE_COMMITS\n    GROUP BY \"repo_name\"\n)\n-- Final: join and get top 2 by commit count\nSELECT\n    pj.\"repo_name\",\n    cc.commit_count\nFROM primary_javascript pj\nJOIN commit_counts cc ON pj.\"repo_name\" = cc.\"repo_name\"\nORDER BY cc.commit_count DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 4,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 4,
+          "sql": "WITH\n-- Extract the primary language (the object with the largest bytes) per repository\nprimary_languages AS (\n    SELECT\n        l.\"repo_name\",\n        f.value:\"name\"::STRING AS \"primary_language\"\n    FROM GITHUB_REPOS.GITHUB_REPOS.LANGUAGES l,\n         LATERAL FLATTEN(input => l.\"language\", OUTER => TRUE) f\n    QUALIFY ROW_NUMBER() OVER (\n        PARTITION BY l.\"repo_name\"\n        ORDER BY f.value:\"bytes\"::NUMBER DESC NULLS LAST\n    ) = 1\n),\n\n-- Count commits per repository\ncommit_counts AS (\n    SELECT\n        c.\"repo_name\",\n        COUNT(*) AS \"commit_count\"\n    FROM GITHUB_REPOS.GITHUB_REPOS.SAMPLE_COMMITS c\n    GROUP BY c.\"repo_name\"\n)\n\n-- Join and filter for JavaScript, then take top 2 by count\nSELECT\n    pl.\"repo_name\",\n    cc.\"commit_count\"\nFROM primary_languages pl\nJOIN commit_counts cc ON pl.\"repo_name\" = cc.\"repo_name\"\nWHERE pl.\"primary_language\" = 'JavaScript'\nORDER BY cc.\"commit_count\" DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        }
+      ]
+    },
+    "sf_bq341": {
+      "instance_id": "sf_bq341",
+      "backend": "snowflake",
+      "db_id": "CRYPTO",
+      "selection": {
+        "decision": "unique_plurality_4",
+        "cluster_sizes": [
+          4,
+          1
+        ],
+        "selected_index": 1
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "/* Step 1: Normalize all transfers for the target token into a numeric value */\nWITH \"raw_transfers\" AS (\n  SELECT\n    \"from_address\",\n    \"to_address\",\n    TRY_CAST(\"value\" AS DECIMAL(38, 0)) AS \"token_value\"\n  FROM \"CRYPTO\".\"CRYPTO_ETHEREUM\".\"TOKEN_TRANSFERS\"\n  WHERE\n    \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n    AND NOT TRY_CAST(\"value\" AS DECIMAL(38, 0)) IS NULL\n    AND TRY_CAST(\"value\" AS DECIMAL(38, 0)) > 0 /* only positive amounts matter for balance */\n), \"sent\" /* Step 2: Aggregate outgoing tokens per sender */ AS (\n  SELECT\n    \"from_address\" AS \"address\",\n    SUM(\"token_value\") AS \"sent_amount\"\n  FROM \"raw_transfers\"\n  GROUP BY\n    \"from_address\"\n), \"received\" /* Step 3: Aggregate incoming tokens per receiver */ AS (\n  SELECT\n    \"to_address\" AS \"address\",\n    SUM(\"token_value\") AS \"received_amount\"\n  FROM \"raw_transfers\"\n  GROUP BY\n    \"to_address\"\n), \"balances\" /* Step 4: Combine both sides to compute net balance */ AS (\n  SELECT\n    COALESCE(\"r\".\"address\", \"s\".\"address\") AS \"address\",\n    COALESCE(\"r\".\"received_amount\", 0) - COALESCE(\"s\".\"sent_amount\", 0) AS \"balance\"\n  FROM \"received\" AS \"r\"\n  FULL OUTER JOIN \"sent\" AS \"s\"\n    ON \"r\".\"address\" = \"s\".\"address\"\n), \"positive_balances\" /* Step 5: Keep only positive balances and order */ AS (\n  SELECT\n    \"address\",\n    \"balance\"\n  FROM \"balances\"\n  WHERE\n    \"balance\" > 0\n)\n/* Step 6: Rank and pick top 3 smallest */\nSELECT\n  \"address\"\nFROM (\n  SELECT\n    \"address\",\n    ROW_NUMBER() OVER (ORDER BY \"balance\" ASC, \"address\" ASC) AS \"rnk\"\n  FROM \"positive_balances\"\n) AS \"ranked\"\nWHERE\n  \"rnk\" <= 3",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 3,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 1,
+          "sql": "WITH\n-- All credits (incoming transfers)\nincoming AS (\n    SELECT \n        \"to_address\" AS address,\n        TRY_CAST(\"value\" AS NUMBER(38,0)) AS amount\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n-- All debits (outgoing transfers)\noutgoing AS (\n    SELECT \n        \"from_address\" AS address,\n        -TRY_CAST(\"value\" AS NUMBER(38,0)) AS amount\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n-- Combined flows\nall_flows AS (\n    SELECT * FROM incoming\n    UNION ALL\n    SELECT * FROM outgoing\n),\n-- Net balance per address\nnet_balances AS (\n    SELECT \n        address,\n        SUM(amount) AS balance\n    FROM all_flows\n    WHERE address IS NOT NULL\n    GROUP BY address\n    HAVING balance > 0   -- only positive (token holders)\n)\n-- Top 3 smallest positive balances\nSELECT \n    address,\n    balance\nFROM net_balances\nORDER BY balance ASC\nLIMIT 3",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 3,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 2,
+          "sql": "WITH transfers AS (\n    SELECT \n        \"from_address\" AS address,\n        -TRY_CAST(\"value\" AS NUMBER(38,0)) AS delta\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n        AND \"value\" IS NOT NULL\n\n    UNION ALL\n\n    SELECT \n        \"to_address\" AS address,\n        TRY_CAST(\"value\" AS NUMBER(38,0)) AS delta\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n        AND \"value\" IS NOT NULL\n),\nbalances AS (\n    SELECT \n        address,\n        SUM(delta) AS balance\n    FROM transfers\n    GROUP BY address\n    HAVING SUM(delta) > 0\n)\nSELECT \n    address,\n    balance\nFROM balances\nORDER BY balance ASC\nLIMIT 3",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 3,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 3,
+          "sql": "WITH \"transfers_to\" AS (\n  SELECT\n    \"to_address\" AS \"address\",\n    TO_NUMBER(\"value\") AS \"amount\"\n  FROM \"CRYPTO\".\"CRYPTO_ETHEREUM\".\"TOKEN_TRANSFERS\"\n  WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n\"transfers_from\" AS (\n  SELECT\n    \"from_address\" AS \"address\",\n    -TO_NUMBER(\"value\") AS \"amount\"\n  FROM \"CRYPTO\".\"CRYPTO_ETHEREUM\".\"TOKEN_TRANSFERS\"\n  WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n\"all_flows\" AS (\n  SELECT * FROM \"transfers_to\"\n  UNION ALL\n  SELECT * FROM \"transfers_from\"\n),\n\"balances\" AS (\n  SELECT \"address\", SUM(\"amount\") AS \"token_balance\"\n  FROM \"all_flows\"\n  GROUP BY \"address\"\n)\nSELECT \"address\", \"token_balance\"\nFROM \"balances\"\nWHERE \"token_balance\" > 0\nORDER BY \"token_balance\" ASC\nLIMIT 3",
+          "source": "revised",
+          "revisions": 4,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 3,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 4,
+          "sql": "WITH\n-- Step 1: Filter transfers for the specific token\ntoken_transfers AS (\n    SELECT\n        \"from_address\",\n        \"to_address\",\n        \"value\"::NUMBER AS value_amount\n    FROM CRYPTO.CRYPTO_ETHEREUM.TOKEN_TRANSFERS\n    WHERE \"token_address\" = '0xa92a861fc11b99b24296af880011b47f9cafb5ab'\n),\n\n-- Step 2: Separate inflows (to) and outflows (from)\ninflows AS (\n    SELECT\n        \"to_address\" AS address,\n        value_amount\n    FROM token_transfers\n),\noutflows AS (\n    SELECT\n        \"from_address\" AS address,\n        value_amount\n    FROM token_transfers\n),\n\n-- Step 3: Union all flows with a direction flag\nall_flows AS (\n    SELECT address, value_amount, 'in' AS flow_type FROM inflows\n    UNION ALL\n    SELECT address, value_amount, 'out' AS flow_type FROM outflows\n),\n\n-- Step 4: Compute net balance per address\naddress_balances AS (\n    SELECT\n        address,\n        SUM(\n            CASE WHEN flow_type = 'in' THEN value_amount ELSE -value_amount END\n        ) AS balance\n    FROM all_flows\n    GROUP BY address\n)\n\n-- Step 5: Filter positive balances, order by smallest, limit 3\nSELECT\n    address,\n    balance\nFROM address_balances\nWHERE balance > 0\nORDER BY balance ASC\nLIMIT 3",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 3,
+          "error": "",
+          "est_gb": null
+        }
+      ]
+    },
+    "bq076": {
+      "instance_id": "bq076",
+      "backend": "bigquery",
+      "db_id": "chicago",
+      "selection": {
+        "decision": "unique_plurality_3",
+        "cluster_sizes": [
+          3,
+          2
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH monthly_counts AS (\n  SELECT\n    EXTRACT(YEAR FROM date) AS year,\n    EXTRACT(MONTH FROM date) AS month,\n    COUNT(*) AS num_incidents\n  FROM `bigquery-public-data.chicago_crime.crime`\n  WHERE\n    EXTRACT(YEAR FROM date) = 2016\n    AND primary_type = 'MOTOR VEHICLE THEFT'\n  GROUP BY year, month\n)\nSELECT MAX(num_incidents) AS max_incidents_in_month\nFROM monthly_counts",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.16075155325233936
+        },
+        {
+          "index": 1,
+          "sql": "WITH monthly_counts AS (\n  SELECT\n    EXTRACT(YEAR FROM date) AS year,\n    EXTRACT(MONTH FROM date) AS month,\n    COUNT(*) AS incidents\n  FROM `bigquery-public-data.chicago_crime.crime`\n  WHERE\n    primary_type = 'MOTOR VEHICLE THEFT'\n    AND EXTRACT(YEAR FROM date) = 2016\n  GROUP BY year, month\n)\nSELECT MAX(incidents) AS max_motor_vehicle_thefts_in_single_month_2016\nFROM monthly_counts",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.16075155325233936
+        },
+        {
+          "index": 2,
+          "sql": "SELECT EXTRACT(MONTH FROM date) AS month, COUNT(*) AS incident_count\nFROM `bigquery-public-data.chicago_crime.crime`\nWHERE year = 2016\n  AND primary_type = 'MOTOR VEHICLE THEFT'\nGROUP BY month\nORDER BY incident_count DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.22476432658731937
+        },
+        {
+          "index": 3,
+          "sql": "WITH monthly_counts AS (\n  SELECT\n    EXTRACT(MONTH FROM date) AS month,\n    COUNT(*) AS incidents\n  FROM `bigquery-public-data.chicago_crime.crime`\n  WHERE\n    year = 2016\n    AND primary_type = 'MOTOR VEHICLE THEFT'\n  GROUP BY month\n)\nSELECT incidents AS highest_monthly_count\nFROM monthly_counts\nORDER BY incidents DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.22476432658731937
+        },
+        {
+          "index": 4,
+          "sql": "SELECT\n  EXTRACT(MONTH FROM date) AS month,\n  COUNT(*) AS incident_count\nFROM\n  `bigquery-public-data.chicago_crime.crime`\nWHERE\n  year = 2016\n  AND primary_type = 'MOTOR VEHICLE THEFT'\nGROUP BY\n  month\nORDER BY\n  incident_count DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.22476432658731937
+        }
+      ]
+    },
+    "bq199": {
+      "instance_id": "bq199",
+      "backend": "bigquery",
+      "db_id": "iowa_liquor_sales",
+      "selection": {
+        "decision": "unique_plurality_3",
+        "cluster_sizes": [
+          3,
+          1,
+          1
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH\n  -- Step 1: compute per-liter retail price for each transaction and aggregate by category and year\n  yearly_avg AS (\n    SELECT\n      category_name,\n      EXTRACT(YEAR FROM date) AS year,\n      AVG(state_bottle_retail * 1000.0 / NULLIF(bottle_volume_ml, 0)) AS avg_price_per_liter\n    FROM `bigquery-public-data.iowa_liquor_sales.sales`\n    WHERE EXTRACT(YEAR FROM date) IN (2019, 2020, 2021)\n      AND bottle_volume_ml > 0  -- avoid division by zero\n    GROUP BY category_name, year\n  ),\n\n  -- Step 2: rank categories by 2021 average price\n  ranked_2021 AS (\n    SELECT\n      category_name,\n      avg_price_per_liter AS avg_2021,\n      RANK() OVER (ORDER BY avg_price_per_liter DESC) AS rnk\n    FROM yearly_avg\n    WHERE year = 2021\n  ),\n\n  -- Step 3: keep only the top 10 categories\n  top10 AS (\n    SELECT\n      category_name,\n      avg_2021\n    FROM ranked_2021\n    WHERE rnk <= 10\n  )\n\n-- Step 4: retrieve the 2019, 2020, and 2021 averages for those categories\nSELECT\n  t.category_name,\n  MAX(CASE WHEN y.year = 2019 THEN y.avg_price_per_liter END) AS avg_price_2019,\n  MAX(CASE WHEN y.year = 2020 THEN y.avg_price_per_liter END) AS avg_price_2020,\n  t.avg_2021 AS avg_price_2021\nFROM top10 t\nLEFT JOIN yearly_avg y\n  ON t.category_name = y.category_name\nGROUP BY t.category_name, t.avg_2021\nORDER BY t.avg_2021 DESC",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 10,
+          "error": "",
+          "est_gb": 1.3776305289939046
+        },
+        {
+          "index": 1,
+          "sql": "WITH\n-- Step 1: Clean and compute per-liter price for each transaction.\n-- Exclude rows where volume_sold_liters is zero or negative to avoid division errors.\nclean_sales AS (\n  SELECT\n    date,\n    category_name,\n    SAFE_DIVIDE(sale_dollars, volume_sold_liters) AS per_liter_price\n  FROM\n    `bigquery-public-data.iowa_liquor_sales.sales`\n  WHERE\n    volume_sold_liters > 0\n    AND sale_dollars IS NOT NULL\n),\n\n-- Step 2: Compute average per-liter price per category for each year (2019,2020,2021).\nyearly_avg AS (\n  SELECT\n    category_name,\n    EXTRACT(YEAR FROM date) AS year,\n    AVG(per_liter_price) AS avg_price\n  FROM\n    clean_sales\n  WHERE\n    EXTRACT(YEAR FROM date) IN (2019, 2020, 2021)\n  GROUP BY\n    category_name,\n    year\n),\n\n-- Step 3: For 2021, rank categories by average price descending, keep top 10.\nranked_2021 AS (\n  SELECT\n    category_name,\n    avg_price AS avg_2021,\n    ROW_NUMBER() OVER (ORDER BY avg_price DESC) AS rnk\n  FROM\n    yearly_avg\n  WHERE\n    year = 2021\n),\n\ntop_categories AS (\n  SELECT\n    category_name,\n    avg_2021\n  FROM\n    ranked_2021\n  WHERE\n    rnk <= 10\n)\n\n-- Step 4: Pivot yearly averages for the top categories.\nSELECT\n  t.category_name,\n  y2019.avg_price AS avg_per_liter_2019,\n  y2020.avg_price AS avg_per_liter_2020,\n  t.avg_2021 AS avg_per_liter_2021\nFROM\n  top_categories t\nLEFT JOIN\n  yearly_avg y2019\n  ON t.category_name = y2019.category_name AND y2019.year = 2019\nLEFT JOIN\n  yearly_avg y2020\n  ON t.category_name = y2020.category_name AND y2020.year = 2020\nORDER BY\n  t.avg_2021 DESC",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 10,
+          "error": "",
+          "est_gb": 1.3776305289939046
+        },
+        {
+          "index": 2,
+          "sql": "-- Explanation:\n-- 1. Compute per-liter retail price for each transaction.\n-- 2. Calculate average per-liter price per category per year (2019, 2020, 2021).\n-- 3. Identify top 10 categories in 2021 by average per-liter price.\n-- 4. Retrieve the yearly averages for those top categories and pivot into separate columns.\n\nWITH\n  -- Step 1: Add per-liter price and extract year\n  transaction_prices AS (\n    SELECT\n      category_name,\n      EXTRACT(YEAR FROM date) AS year,\n      state_bottle_retail,\n      bottle_volume_ml,\n      -- Per-liter retail price = price per bottle divided by bottle volume in liters\n      SAFE_DIVIDE(state_bottle_retail, bottle_volume_ml / 1000.0) AS per_liter_price\n    FROM `bigquery-public-data.iowa_liquor_sales.sales`\n    WHERE\n      EXTRACT(YEAR FROM date) IN (2019, 2020, 2021)\n      AND category_name IS NOT NULL\n  ),\n\n  -- Step 2: Average per-liter price per category per year\n  yearly_avg AS (\n    SELECT\n      category_name,\n      year,\n      AVG(per_liter_price) AS avg_price\n    FROM transaction_prices\n    GROUP BY category_name, year\n  ),\n\n  -- Step 3: Top 10 categories in 2021\n  top_2021 AS (\n    SELECT\n      category_name,\n      avg_price AS avg_price_2021\n    FROM yearly_avg\n    WHERE year = 2021\n    ORDER BY avg_price DESC\n    LIMIT 10\n  )\n\n-- Step 4: Pivot yearly averages for top categories\nSELECT\n  t.category_name,\n  -- Use MAX to collapse the single row per year into one column\n  MAX(CASE WHEN y.year = 2019 THEN y.avg_price END) AS avg_price_2019,\n  MAX(CASE WHEN y.year = 2020 THEN y.avg_price END) AS avg_price_2020,\n  t.avg_price_2021\nFROM top_2021 t\nLEFT JOIN yearly_avg y\n  ON t.category_name = y.category_name\nGROUP BY t.category_name, t.avg_price_2021\nORDER BY t.avg_price_2021 DESC",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 10,
+          "error": "",
+          "est_gb": 1.3776305289939046
+        },
+        {
+          "index": 3,
+          "sql": "/*\n  Step-by-step reasoning:\n  1. Compute per-liter retail price for each sales transaction:\n     For each row, liter_price = state_bottle_retail / (bottle_volume_ml / 1000).\n     Exclude rows where volume_sold_liters <= 0 (returns/voids) and bottle_volume_ml = 0.\n  2. Extract year from date.\n  3. For 2021, calculate the unweighted average of liter_price per category_name, rank descending,\n     and keep the top 10 categories (using ROW_NUMBER to get exactly 10).\n  4. For these top 10 categories, compute the same unweighted average liter_price for each year\n     2019, 2020, and 2021.\n  5. Output one row per category with three columns: avg for 2019, 2020, 2021.\n*/\n\nWITH\n  -- Per-transaction per-liter price for all years needed\n  transaction_prices AS (\n    SELECT\n      category_name,\n      EXTRACT(YEAR FROM date) AS year,\n      -- per-liter retail price for this transaction\n      state_bottle_retail / (bottle_volume_ml / 1000) AS liter_price\n    FROM `bigquery-public-data.iowa_liquor_sales.sales`\n    WHERE\n      volume_sold_liters > 0\n      AND bottle_volume_ml > 0\n      AND EXTRACT(YEAR FROM date) IN (2019, 2020, 2021)\n  ),\n\n  -- Average liter price per category for 2021, plus ranking\n  avg_2021 AS (\n    SELECT\n      category_name,\n      AVG(liter_price) AS avg_liter_price_2021\n    FROM transaction_prices\n    WHERE year = 2021\n    GROUP BY category_name\n  ),\n\n  top_10_categories AS (\n    SELECT category_name\n    FROM (\n      SELECT\n        category_name,\n        avg_liter_price_2021,\n        ROW_NUMBER() OVER (ORDER BY avg_liter_price_2021 DESC) AS rn\n      FROM avg_2021\n    )\n    WHERE rn <= 10\n  ),\n\n  -- Averages for the top categories across all three years\n  averages AS (\n    SELECT\n      tp.category_name,\n      tp.year,\n      AVG(tp.liter_price) AS avg_liter_price\n    FROM transaction_prices tp\n    INNER JOIN top_10_categories t10\n      ON tp.category_name = t10.category_name\n    GROUP BY tp.category_name, tp.year\n  )\n\n-- Pivot years into columns\nSELECT\n  category_name,\n  MAX(CASE WHEN year = 2019 THEN avg_liter_price END) AS avg_2019,\n  MAX(CASE WHEN year = 2020 THEN avg_liter_price END) AS avg_2020,\n  MAX(CASE WHEN year = 2021 THEN avg_liter_price END) AS avg_2021\nFROM averages\nGROUP BY category_name\nORDER BY avg_2021 DESC",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 10,
+          "error": "",
+          "est_gb": 1.6310757296159863
+        },
+        {
+          "index": 4,
+          "sql": "WITH\n  -- Compute per-liter price for each transaction in 2019-2021 (positive volume and positive price)\n  yearly_details AS (\n    SELECT\n      category_name,\n      EXTRACT(YEAR FROM date) AS year,\n      state_bottle_retail * 1000.0 / bottle_volume_ml AS per_liter_price\n    FROM\n      `bigquery-public-data.iowa_liquor_sales.sales`\n    WHERE\n      EXTRACT(YEAR FROM date) IN (2019, 2020, 2021)\n      AND volume_sold_liters > 0\n      AND state_bottle_retail > 0\n      AND bottle_volume_ml > 0\n  ),\n\n  -- Average per-liter price per category and per year\n  yearly_avg AS (\n    SELECT\n      category_name,\n      year,\n      AVG(per_liter_price) AS avg_price\n    FROM\n      yearly_details\n    GROUP BY\n      category_name,\n      year\n  ),\n\n  -- Top 10 categories based on their 2021 average per-liter price\n  top_2021 AS (\n    SELECT\n      category_name,\n      avg_price AS avg_2021\n    FROM\n      yearly_avg\n    WHERE\n      year = 2021\n    ORDER BY\n      avg_price DESC\n    LIMIT 10\n  )\n\n-- Retrieve the three yearly averages for the top categories\nSELECT\n  t.category_name,\n  COALESCE(MAX(CASE WHEN y.year = 2019 THEN y.avg_price END), 0) AS avg_price_2019,\n  COALESCE(MAX(CASE WHEN y.year = 2020 THEN y.avg_price END), 0) AS avg_price_2020,\n  t.avg_2021\nFROM\n  top_2021 t\nLEFT JOIN\n  yearly_avg y\n  ON t.category_name = y.category_name\n  AND y.year IN (2019, 2020)\nGROUP BY\n  t.category_name,\n  t.avg_2021\nORDER BY\n  t.avg_2021 DESC",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 10,
+          "error": "",
+          "est_gb": 1.6310757296159863
+        }
+      ]
+    },
+    "sf_bq043": {
+      "instance_id": "sf_bq043",
+      "backend": "snowflake",
+      "db_id": "TCGA",
+      "selection": {
+        "decision": "unique_plurality_2",
+        "cluster_sizes": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "selected_index": 1
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH \"blca_cdkn2a_mut\" AS (\n  SELECT DISTINCT \"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_MC3_2017_02\"\n  WHERE \"project_short_name\" = 'TCGA-BLCA'\n    AND \"Hugo_Symbol\" = 'CDKN2A'\n  UNION\n  SELECT DISTINCT \"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_DCC_2017_02\"\n  WHERE \"project_short_name\" = 'TCGA-BLCA'\n    AND \"Hugo_Symbol\" = 'CDKN2A'\n),\n\"clinical_r39\" AS (\n  SELECT\n    \"c\".\"submitter_id\" AS \"case_barcode\",\n    \"c\".\"demo__gender\" AS \"gender\",\n    \"c\".\"diag__age_at_diagnosis\" AS \"age_at_diagnosis_days\",\n    \"c\".\"demo__vital_status\" AS \"vital_status\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"CLINICAL_GDC_R39\" AS \"c\"\n  WHERE \"c\".\"proj__project_id\" = 'TCGA-BLCA'\n    AND \"c\".\"submitter_id\" IN (SELECT \"case_barcode\" FROM \"blca_cdkn2a_mut\")\n),\n\"rna_r39\" AS (\n  SELECT\n    \"r\".\"case_barcode\",\n    \"r\".\"gene_name\",\n    \"r\".\"fpkm_unstranded\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"RNASEQ_HG38_GDC_R39\" AS \"r\"\n  WHERE \"r\".\"case_barcode\" IN (SELECT \"case_barcode\" FROM \"blca_cdkn2a_mut\")\n    AND \"r\".\"gene_name\" IN ('MDM2', 'TP53', 'CDKN1A', 'CCNE1')\n)\nSELECT\n  \"cl\".\"case_barcode\",\n  \"cl\".\"gender\",\n  \"cl\".\"age_at_diagnosis_days\",\n  \"cl\".\"vital_status\",\n  \"rn\".\"gene_name\",\n  \"rn\".\"fpkm_unstranded\"\nFROM \"clinical_r39\" AS \"cl\"\nLEFT JOIN \"rna_r39\" AS \"rn\" ON \"cl\".\"case_barcode\" = \"rn\".\"case_barcode\"\nORDER BY \"cl\".\"case_barcode\", \"rn\".\"gene_name\"",
+          "source": "revised",
+          "revisions": 3,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 7,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 1,
+          "sql": "WITH \"cdkn2a_mutated_cases\" /* Step 1: Identify bladder cancer cases with CDKN2A mutations (hg19, Feb 2017) */ AS (\n  SELECT DISTINCT\n    \"m\".\"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_DCC_2017_02\" AS \"m\"\n  WHERE\n    \"m\".\"project_short_name\" = 'TCGA-BLCA' AND \"m\".\"Hugo_Symbol\" = 'CDKN2A'\n), \"clinical_info\" /* Step 2: Clinical information from GDC Release 39 */ AS (\n  SELECT\n    \"c\".\"submitter_id\" AS \"case_barcode\",\n    \"c\".\"demo__gender\" AS \"gender\",\n    \"c\".\"diag__age_at_diagnosis\" AS \"age_at_diagnosis_days\",\n    \"c\".\"demo__vital_status\" AS \"vital_status\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"CLINICAL_GDC_R39\" AS \"c\"\n  WHERE\n    \"c\".\"submitter_id\" IN (\n      SELECT\n        \"case_barcode\"\n      FROM \"cdkn2a_mutated_cases\"\n    )\n), \"rna_expression\" /* Step 3: RNA expression (FPKM) for the four target genes in BLCA */ AS (\n  SELECT\n    \"r\".\"case_barcode\",\n    \"r\".\"gene_name\",\n    \"r\".\"fpkm_unstranded\" AS \"fpkm\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"RNASEQ_HG38_GDC_R39\" AS \"r\"\n  WHERE\n    \"r\".\"project_short_name\" = 'TCGA-BLCA'\n    AND \"r\".\"gene_name\" IN ('MDM2', 'TP53', 'CDKN1A', 'CCNE1')\n    AND \"r\".\"case_barcode\" IN (\n      SELECT\n        \"case_barcode\"\n      FROM \"cdkn2a_mutated_cases\"\n    )\n), \"expression_pivot\" /* Step 4: Pivot expression to one row per case */ AS (\n  SELECT\n    \"case_barcode\",\n    MAX(CASE WHEN \"gene_name\" = 'MDM2' THEN \"fpkm\" END) AS \"mdm2_fpkm\",\n    MAX(CASE WHEN \"gene_name\" = 'TP53' THEN \"fpkm\" END) AS \"tp53_fpkm\",\n    MAX(CASE WHEN \"gene_name\" = 'CDKN1A' THEN \"fpkm\" END) AS \"cdkn1a_fpkm\",\n    MAX(CASE WHEN \"gene_name\" = 'CCNE1' THEN \"fpkm\" END) AS \"ccne1_fpkm\"\n  FROM \"rna_expression\"\n  GROUP BY\n    \"case_barcode\"\n)\n/* Final output: clinical info + expression levels */\nSELECT\n  \"ci\".\"case_barcode\",\n  \"ci\".\"gender\",\n  \"ci\".\"age_at_diagnosis_days\",\n  \"ci\".\"vital_status\",\n  \"ep\".\"mdm2_fpkm\",\n  \"ep\".\"tp53_fpkm\",\n  \"ep\".\"cdkn1a_fpkm\",\n  \"ep\".\"ccne1_fpkm\"\nFROM \"clinical_info\" AS \"ci\"\nLEFT JOIN \"expression_pivot\" AS \"ep\"\n  ON \"ci\".\"case_barcode\" = \"ep\".\"case_barcode\"\nORDER BY\n  \"ci\".\"case_barcode\"",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 4,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 2,
+          "sql": "WITH \"mutated_cases\" AS (\n  SELECT DISTINCT\n    \"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_MC3_2017_02\"\n  WHERE\n    \"project_short_name\" = 'TCGA-BLCA'\n    AND \"Hugo_Symbol\" = 'CDKN2A'\n),\n\"rna_expression\" AS (\n  SELECT\n    \"case_barcode\",\n    \"HGNC_gene_symbol\" AS \"gene_name\",\n    MAX(\"normalized_count\") AS \"rna_expression_fpkm\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"RNASEQ_HG19_GDC_2017_02\"\n  WHERE\n    \"project_short_name\" = 'TCGA-BLCA'\n    AND \"HGNC_gene_symbol\" IN ('MDM2', 'TP53', 'CDKN1A', 'CCNE1')\n    AND \"case_barcode\" IN (SELECT \"case_barcode\" FROM \"mutated_cases\")\n  GROUP BY \"case_barcode\", \"HGNC_gene_symbol\"\n),\n\"clinical\" AS (\n  SELECT\n    \"submitter_id\" AS \"case_barcode\",\n    \"demo__gender\",\n    \"demo__vital_status\",\n    \"diag__age_at_diagnosis\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"CLINICAL_GDC_R39\"\n  WHERE \"proj__project_id\" = 'TCGA-BLCA'\n)\nSELECT\n  \"r\".\"case_barcode\",\n  \"r\".\"gene_name\",\n  \"r\".\"rna_expression_fpkm\",\n  \"c\".\"demo__gender\",\n  \"c\".\"demo__vital_status\",\n  \"c\".\"diag__age_at_diagnosis\"\nFROM \"rna_expression\" AS \"r\"\nLEFT JOIN \"clinical\" AS \"c\" ON \"r\".\"case_barcode\" = \"c\".\"case_barcode\"\nORDER BY \"r\".\"case_barcode\", \"r\".\"gene_name\"",
+          "source": "revised",
+          "revisions": 4,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 3,
+          "sql": "WITH \"cdkn2a_mut\" /* Patients with CDKN2A mutation in TCGA-BLCA (hg19 DCC Feb 2017) */ AS (\n  SELECT DISTINCT\n    \"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_DCC_2017_02\"\n  WHERE\n    \"project_short_name\" = 'TCGA-BLCA' AND \"Hugo_Symbol\" = 'CDKN2A'\n), \"clinical\" /* Clinical data from GDC Release 39 */ AS (\n  SELECT\n    \"submitter_id\" AS \"case_barcode\",\n    \"demo__gender\",\n    \"diag__age_at_diagnosis\",\n    \"demo__vital_status\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"CLINICAL_GDC_R39\"\n  WHERE\n    NOT \"submitter_id\" IS NULL\n), \"rna_avg\" /* Average RNA expression (FPKM) per case and gene */ AS (\n  SELECT\n    \"case_barcode\",\n    \"gene_name\",\n    AVG(\"fpkm_unstranded\") AS \"avg_fpkm\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"RNASEQ_HG38_GDC_R39\"\n  WHERE\n    \"gene_name\" IN ('MDM2', 'TP53', 'CDKN1A', 'CCNE1')\n    AND \"case_barcode\" IN (\n      SELECT\n        \"case_barcode\"\n      FROM \"cdkn2a_mut\"\n    )\n  GROUP BY\n    \"case_barcode\",\n    \"gene_name\"\n)\n/* Final result: one row per patient with clinical info and four expression columns */\nSELECT\n  \"cl\".\"case_barcode\",\n  \"cl\".\"demo__gender\",\n  \"cl\".\"diag__age_at_diagnosis\",\n  \"cl\".\"demo__vital_status\",\n  MAX(CASE WHEN \"r\".\"gene_name\" = 'MDM2' THEN \"r\".\"avg_fpkm\" END) AS \"MDM2_fpkm\",\n  MAX(CASE WHEN \"r\".\"gene_name\" = 'TP53' THEN \"r\".\"avg_fpkm\" END) AS \"TP53_fpkm\",\n  MAX(CASE WHEN \"r\".\"gene_name\" = 'CDKN1A' THEN \"r\".\"avg_fpkm\" END) AS \"CDKN1A_fpkm\",\n  MAX(CASE WHEN \"r\".\"gene_name\" = 'CCNE1' THEN \"r\".\"avg_fpkm\" END) AS \"CCNE1_fpkm\"\nFROM \"clinical\" AS \"cl\"\nLEFT JOIN \"rna_avg\" AS \"r\"\n  ON \"cl\".\"case_barcode\" = \"r\".\"case_barcode\"\nWHERE\n  \"cl\".\"case_barcode\" IN (\n    SELECT\n      \"case_barcode\"\n    FROM \"cdkn2a_mut\"\n  )\nGROUP BY\n  \"cl\".\"case_barcode\",\n  \"cl\".\"demo__gender\",\n  \"cl\".\"diag__age_at_diagnosis\",\n  \"cl\".\"demo__vital_status\"\nORDER BY\n  \"cl\".\"case_barcode\"",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 4,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 4,
+          "sql": "/* Step 1: Identify bladder cancer patients with at least one CDKN2A mutation */\nWITH \"cdkn2a_mut_cases\" AS (\n  SELECT DISTINCT\n    \"m\".\"case_barcode\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"SOMATIC_MUTATION_HG19_MC3_2017_02\" AS \"m\"\n  WHERE\n    \"m\".\"project_short_name\" = 'TCGA-BLCA' AND \"m\".\"Hugo_Symbol\" = 'CDKN2A'\n), \"rna_raw\" /* Step 2: Get RNA expression for the four genes of interest for those cases */ AS (\n  SELECT\n    \"r\".\"case_barcode\",\n    \"r\".\"HGNC_gene_symbol\",\n    \"r\".\"normalized_count\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"RNASEQ_HG19_GDC_2017_02\" AS \"r\"\n  INNER JOIN \"cdkn2a_mut_cases\" AS \"c\"\n    ON \"r\".\"case_barcode\" = \"c\".\"case_barcode\"\n  WHERE\n    \"r\".\"project_short_name\" = 'TCGA-BLCA'\n    AND \"r\".\"HGNC_gene_symbol\" IN ('MDM2', 'TP53', 'CDKN1A', 'CCNE1')\n), \"rna_dedup\" /* Step 2b: Deduplicate if multiple aliquots per case+gene (pick one by aliquot_barcode) */ AS (\n  SELECT\n    \"case_barcode\",\n    \"HGNC_gene_symbol\",\n    \"normalized_count\",\n    ROW_NUMBER() OVER (\n      PARTITION BY \"case_barcode\", \"HGNC_gene_symbol\"\n      ORDER BY \"normalized_count\" DESC /* if ties, highest expression as representative */\n    ) AS \"rn\"\n  FROM \"rna_raw\"\n), \"rna_pivot\" /* Step 3: Pivot expression per gene into separate columns */ AS (\n  SELECT\n    \"case_barcode\",\n    MAX(CASE WHEN \"HGNC_gene_symbol\" = 'MDM2' THEN \"normalized_count\" END) AS \"mdm2_expression\",\n    MAX(CASE WHEN \"HGNC_gene_symbol\" = 'TP53' THEN \"normalized_count\" END) AS \"tp53_expression\",\n    MAX(CASE WHEN \"HGNC_gene_symbol\" = 'CDKN1A' THEN \"normalized_count\" END) AS \"cdkn1a_expression\",\n    MAX(CASE WHEN \"HGNC_gene_symbol\" = 'CCNE1' THEN \"normalized_count\" END) AS \"ccne1_expression\"\n  FROM \"rna_dedup\"\n  WHERE\n    \"rn\" = 1\n  GROUP BY\n    \"case_barcode\"\n), \"clinical\" /* Step 4: Clinical data from GDC Release 39 (only TCGA-BLCA cases) */ AS (\n  SELECT\n    \"cl\".\"submitter_id\" AS \"case_barcode\",\n    \"cl\".\"demo__gender\" AS \"gender\",\n    \"cl\".\"diag__age_at_diagnosis\" AS \"age_at_diagnosis_days\",\n    \"cl\".\"demo__vital_status\" AS \"vital_status\"\n  FROM \"TCGA\".\"TCGA_VERSIONED\".\"CLINICAL_GDC_R39\" AS \"cl\"\n  WHERE\n    \"cl\".\"proj__project_id\" = 'TCGA-BLCA'\n)\n/* Final combination */\nSELECT\n  \"c\".\"case_barcode\",\n  \"cl\".\"gender\",\n  \"cl\".\"age_at_diagnosis_days\",\n  \"cl\".\"vital_status\",\n  \"r\".\"mdm2_expression\",\n  \"r\".\"tp53_expression\",\n  \"r\".\"cdkn1a_expression\",\n  \"r\".\"ccne1_expression\"\nFROM \"cdkn2a_mut_cases\" AS \"c\"\nLEFT JOIN \"rna_pivot\" AS \"r\"\n  ON \"c\".\"case_barcode\" = \"r\".\"case_barcode\"\nLEFT JOIN \"clinical\" AS \"cl\"\n  ON \"c\".\"case_barcode\" = \"cl\".\"case_barcode\"\nORDER BY\n  \"c\".\"case_barcode\"",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 3,
+          "error": "",
+          "est_gb": null
+        }
+      ]
+    },
+    "sf_bq254": {
+      "instance_id": "sf_bq254",
+      "backend": "snowflake",
+      "db_id": "GEO_OPENSTREETMAP",
+      "selection": {
+        "decision": "reasoner_tie_3",
+        "cluster_sizes": [
+          1,
+          1,
+          1
+        ],
+        "selected_index": 1
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "-- Step 1: Get the geography of the Q191 multipolygon\nWITH q191_geom AS (\n    SELECT TO_GEOGRAPHY(f.\"geometry\") AS geom\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES f,\n         LATERAL FLATTEN(input => f.\"all_tags\") t\n    WHERE f.\"feature_type\" = 'multipolygons'\n      AND t.value:\"key\"::STRING = 'wikidata'\n      AND t.value:\"value\"::STRING = 'Q191'\n    LIMIT 1\n),\n\n-- Step 2: Collect all nodes that lie inside the Q191 polygon (reduces later joins)\nnodes_in_q191 AS (\n    SELECT n.\"id\", n.\"longitude\", n.\"latitude\"\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_NODES n,\n         q191_geom q\n    WHERE ST_WITHIN(ST_MAKEPOINT(n.\"longitude\", n.\"latitude\"), q.geom)\n),\n\n-- Step 3: Candidate multipolygons (within Q191, no wikidata, with name)\ncandidates AS (\n    SELECT\n        TO_GEOGRAPHY(f.\"geometry\") AS geom,\n        f.\"osm_way_id\"\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES f,\n         LATERAL FLATTEN(input => f.\"all_tags\") tf,\n         q191_geom q\n    WHERE f.\"feature_type\" = 'multipolygons'\n      AND ST_WITHIN(TO_GEOGRAPHY(f.\"geometry\"), q.geom)\n    GROUP BY f.\"osm_way_id\", f.\"geometry\"\n    HAVING MAX(CASE WHEN tf.value:\"key\"::STRING = 'wikidata' THEN 1 ELSE 0 END) = 0\n),\n\n-- Step 4: For each candidate, extract its name (separate flatten to avoid GROUP BY conflict)\ncandidate_names AS (\n    SELECT\n        f.\"osm_way_id\",\n        MAX(CASE WHEN t.value:\"key\"::STRING = 'name' THEN t.value:\"value\"::STRING END) AS name\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES f,\n         LATERAL FLATTEN(input => f.\"all_tags\") t\n    WHERE f.\"feature_type\" = 'multipolygons'\n    GROUP BY f.\"osm_way_id\"\n),\n\n-- Step 5: Count nodes inside each candidate (only nodes already inside Q191)\npoint_counts AS (\n    SELECT\n        c.\"osm_way_id\",\n        cn.name,\n        COUNT(*) AS point_count\n    FROM candidates c\n    INNER JOIN candidate_names cn ON c.\"osm_way_id\" = cn.\"osm_way_id\"\n    INNER JOIN nodes_in_q191 n\n        ON ST_WITHIN(ST_MAKEPOINT(n.\"longitude\", n.\"latitude\"), c.geom)\n    WHERE cn.name IS NOT NULL\n    GROUP BY c.\"osm_way_id\", cn.name\n),\n\n-- Step 6: Rank by count descending\nranked AS (\n    SELECT\n        name,\n        point_count,\n        ROW_NUMBER() OVER (ORDER BY point_count DESC) AS rnk\n    FROM point_counts\n)\n\n-- Final result: top 2\nSELECT name, point_count\nFROM ranked\nWHERE rnk <= 2\nORDER BY rnk",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 1,
+          "sql": "WITH ref_geom AS (\n    SELECT ST_GEOGRAPHYFROMWKB(pf.\"geometry\") AS geom\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES pf\n       , LATERAL FLATTEN(input => pf.\"all_tags\") f\n    WHERE pf.\"feature_type\" = 'multipolygons'\n      AND f.value:\"key\"::STRING = 'wikidata'\n      AND f.value:\"value\"::STRING = 'Q191'\n    QUALIFY ROW_NUMBER() OVER (ORDER BY pf.\"osm_way_id\") = 1\n),\n\ncandidate_tags AS (\n    SELECT\n        pf.\"osm_way_id\",\n        ST_GEOGRAPHYFROMWKB(pf.\"geometry\") AS geom,\n        IFF(MAX(CASE WHEN ft.value:\"key\"::STRING = 'wikidata' THEN 1 ELSE 0 END) = 1, TRUE, FALSE) AS has_wikidata,\n        MAX(CASE WHEN ft.value:\"key\"::STRING = 'name' THEN ft.value:\"value\"::STRING END) AS name\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES pf\n       , LATERAL FLATTEN(input => pf.\"all_tags\") ft\n    WHERE pf.\"feature_type\" = 'multipolygons'\n    GROUP BY pf.\"osm_way_id\", pf.\"geometry\"\n),\n\ncandidates AS (\n    SELECT ct.\"osm_way_id\", ct.geom, ct.name\n    FROM candidate_tags ct\n       , ref_geom rg\n    WHERE ST_WITHIN(ct.geom, rg.geom)\n      AND ct.has_wikidata = FALSE\n      AND ct.name IS NOT NULL\n),\n\nnode_counts AS (\n    SELECT\n        c.\"osm_way_id\",\n        c.name,\n        COUNT(*) AS point_count\n    FROM candidates c\n    INNER JOIN GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_NODES n\n        ON ST_WITHIN(ST_MAKEPOINT(n.\"longitude\", n.\"latitude\"), c.geom)\n    GROUP BY c.\"osm_way_id\", c.name\n)\n\nSELECT name, point_count\nFROM node_counts\nORDER BY point_count DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 2,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 2,
+          "sql": "WITH multipolygons AS (\n    SELECT\n        \"osm_way_id\"  AS way_id,\n        \"geometry\"    AS geom,\n        \"all_tags\"\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES\n    WHERE \"feature_type\" = 'multipolygons'\n      AND \"geometry\" IS NOT NULL\n\n    UNION ALL\n\n    SELECT\n        \"osm_way_id\"  AS way_id,\n        \"geometry\"    AS geom,\n        \"all_tags\"\n    FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_LAYERS\n    WHERE \"gdal_type\" = 'multipolygons'\n      AND \"geometry\" IS NOT NULL\n),\n\nextracted AS (\n    SELECT\n        m.way_id,\n        m.geom,\n        MAX(CASE WHEN t.\"KEY\" = 'wikidata' THEN t.\"VALUE\" END) AS wikidata_value,\n        MAX(CASE WHEN t.\"KEY\" = 'name'     THEN t.\"VALUE\" END) AS name_value\n    FROM multipolygons m,\n         LATERAL FLATTEN(input => m.\"all_tags\") t\n    GROUP BY m.way_id, m.geom\n),\n\nwith_geog AS (\n    SELECT\n        way_id,\n        geom,\n        ST_GEOGRAPHYFROMWKB(geom) AS geog,\n        wikidata_value,\n        name_value\n    FROM extracted\n),\n\nreference AS (\n    SELECT way_id, geog\n    FROM with_geog\n    WHERE wikidata_value = 'Q191'\n),\n\ncandidates AS (\n    SELECT\n        w.way_id,\n        w.geom,\n        w.geog,\n        w.name_value\n    FROM with_geog w\n    CROSS JOIN reference r\n    WHERE w.way_id != r.way_id\n      AND w.wikidata_value IS NULL\n      AND ST_INTERSECTS(w.geog, r.geog)\n),\n\npoint_counts AS (\n    SELECT\n        c.way_id,\n        c.name_value,\n        COUNT(*) AS point_count\n    FROM candidates c\n    INNER JOIN GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_NODES n\n        ON ST_WITHIN(ST_MAKEPOINT(n.\"longitude\", n.\"latitude\"), c.geog)\n    GROUP BY c.way_id, c.name_value\n)\n\nSELECT\n    name_value AS multipolygon_name,\n    point_count\nFROM point_counts\nORDER BY point_count DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 0,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 3,
+          "sql": "WITH\n-- Flatten all_tags for relations, extract flags\nrel_tags AS (\n    SELECT\n        r.\"id\",\n        MAX(CASE WHEN t.value:\"key\"::STRING = 'wikidata' THEN 1 ELSE 0 END) AS has_wikidata,\n        MAX(CASE WHEN t.value:\"key\"::STRING = 'wikidata' AND t.value:\"value\"::STRING = 'Q191' THEN 1 ELSE 0 END) AS is_q191,\n        MAX(CASE WHEN t.value:\"key\"::STRING = 'name' THEN t.value:\"value\"::STRING ELSE NULL END) AS name\n    FROM\n        GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_RELATIONS r\n        CROSS JOIN LATERAL FLATTEN(input => r.\"all_tags\") t\n    GROUP BY r.\"id\"\n),\n\n-- Reference relation (any type) with wikidata Q191\nref AS (\n    SELECT\n        r.\"id\",\n        ST_GEOGRAPHYFROMWKB(r.\"geometry\") AS ref_geog\n    FROM\n        GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_RELATIONS r\n        JOIN rel_tags t ON r.\"id\" = t.\"id\"\n    WHERE t.is_q191 = 1\n    LIMIT 1\n),\n\n-- Candidate relations that are multipolygons (geometry type MULTIPOLYGON) and lack any wikidata tag\ncandidates AS (\n    SELECT\n        r.\"id\",\n        t.name,\n        ST_GEOGRAPHYFROMWKB(r.\"geometry\") AS cand_geog\n    FROM\n        GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_RELATIONS r\n        JOIN rel_tags t ON r.\"id\" = t.\"id\"\n    WHERE\n        t.has_wikidata = 0\n        AND r.\"id\" != (SELECT \"id\" FROM ref)\n        AND ST_INTERSECTS(ST_GEOGRAPHYFROMWKB(r.\"geometry\"), (SELECT ref_geog FROM ref))\n        -- Ensure geometry is a multipolygon (polygon-like). We check geometry type.\n        AND ST_GEOMETRYTYPE(ST_GEOGRAPHYFROMWKB(r.\"geometry\")) IN ('MULTIPOLYGON', 'POLYGON')\n),\n\n-- Count nodes strictly inside each candidate polygon\npoint_counts AS (\n    SELECT\n        c.\"id\",\n        c.name,\n        COUNT(*) AS point_count\n    FROM\n        candidates c\n        INNER JOIN GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_NODES n\n            ON ST_CONTAINS(c.cand_geog, ST_MAKEPOINT(n.\"longitude\", n.\"latitude\"))\n    GROUP BY c.\"id\", c.name\n)\n\n-- Return the two candidates with the most interior points\nSELECT\n    name,\n    point_count\nFROM\n    point_counts\nORDER BY\n    point_count DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": false,
+          "rows": 0,
+          "error": "002139 (02000): SQL compilation error:\nUnknown function ST_GEOMETRYTYPE.",
+          "est_gb": null
+        },
+        {
+          "index": 4,
+          "sql": "WITH\n    -- Step 1: Identify the Russia multipolygon (Wikidata Q191)\n    russia_polygon AS (\n        SELECT ST_GEOGRAPHYFROMWKB(pf.\"geometry\") AS russia_geom\n        FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES pf\n        , LATERAL FLATTEN(input => pf.\"all_tags\") f\n        WHERE pf.\"feature_type\" = 'multipolygons'\n          AND f.value:\"key\"::STRING = 'wikidata'\n          AND f.value:\"value\"::STRING = 'Q191'\n        QUALIFY ROW_NUMBER() OVER (ORDER BY pf.\"osm_way_id\") = 1\n    ),\n\n    -- Step 2: Extract all multipolygon features, their name, and wikidata presence\n    features_with_tags AS (\n        SELECT\n            pf.\"osm_way_id\",\n            ST_GEOGRAPHYFROMWKB(pf.\"geometry\") AS poly_geom,\n            MAX(CASE WHEN f.value:\"key\"::STRING = 'name'     THEN f.value:\"value\"::STRING END) AS feature_name,\n            MAX(CASE WHEN f.value:\"key\"::STRING = 'wikidata' THEN 1 ELSE 0 END)                AS has_wikidata\n        FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_FEATURES pf\n        , LATERAL FLATTEN(input => pf.\"all_tags\") f\n        WHERE pf.\"feature_type\" = 'multipolygons'\n        GROUP BY pf.\"osm_way_id\", pf.\"geometry\"\n    ),\n\n    -- Step 3: Filter to features inside Russia and without a wikidata tag\n    candidate_features AS (\n        SELECT\n            ft.\"osm_way_id\",\n            ft.feature_name,\n            ft.poly_geom\n        FROM features_with_tags ft\n        CROSS JOIN russia_polygon rp\n        WHERE ft.has_wikidata = 0\n          AND ST_WITHIN(ft.poly_geom, rp.russia_geom)\n    ),\n\n    -- Step 4: All nodes that lie inside Russia (pre‑filter for performance)\n    nodes_in_russia AS (\n        SELECT\n            pn.\"id\",\n            ST_MAKEPOINT(pn.\"longitude\", pn.\"latitude\") AS node_geom\n        FROM GEO_OPENSTREETMAP.GEO_OPENSTREETMAP.PLANET_NODES pn\n        CROSS JOIN russia_polygon rp\n        WHERE pn.\"longitude\" IS NOT NULL AND pn.\"latitude\" IS NOT NULL\n          AND ST_WITHIN(ST_MAKEPOINT(pn.\"longitude\", pn.\"latitude\"), rp.russia_geom)\n    ),\n\n    -- Step 5: Count points inside each candidate multipolygon\n    point_counts AS (\n        SELECT\n            cf.\"osm_way_id\",\n            cf.feature_name,\n            COUNT(nr.\"id\") AS point_count\n        FROM candidate_features cf\n        JOIN nodes_in_russia nr\n            ON ST_WITHIN(nr.node_geom, cf.poly_geom)\n        GROUP BY cf.\"osm_way_id\", cf.feature_name\n    )\n\n-- Step 6: Return the top two by point count\nSELECT\n    feature_name,\n    point_count\nFROM point_counts\nORDER BY point_count DESC\nLIMIT 2",
+          "source": "revised",
+          "revisions": 3,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 2,
+          "error": "",
+          "est_gb": null
+        }
+      ]
+    },
+    "bq151": {
+      "instance_id": "bq151",
+      "backend": "bigquery",
+      "db_id": "pancancer_atlas_2",
+      "selection": {
+        "decision": "unique_plurality_2",
+        "cluster_sizes": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH\n  -- PAAD patients from clinical follow-up table (original)\n  paad_clinical AS (\n    SELECT DISTINCT bcr_patient_barcode AS ParticipantBarcode\n    FROM `isb-cgc-bq.pancancer_atlas.Original_clinical_PANCAN_patient_with_followup`\n    WHERE acronym = 'PAAD'\n  ),\n  -- PAAD tumor samples from BarcodeMap to ensure sequencing data exists\n  paad_tumor_samples AS (\n    SELECT DISTINCT ParticipantBarcode\n    FROM `isb-cgc-bq.pancancer_atlas.BarcodeMap`\n    WHERE Study = 'PAAD'\n      AND SampleTypeLetterCode = 'TP'   -- primary solid tumor\n  ),\n  -- PAAD patients with both clinical record and tumor sequencing sample\n  cohort AS (\n    SELECT c.ParticipantBarcode\n    FROM paad_clinical c\n    INNER JOIN paad_tumor_samples s\n      ON c.ParticipantBarcode = s.ParticipantBarcode\n  ),\n  -- High-quality somatic mutations (non-silent, PASS) for KRAS and TP53\n  mutation_status AS (\n    SELECT\n      ParticipantBarcode,\n      MAX(CASE WHEN Hugo_Symbol = 'KRAS' THEN 1 ELSE 0 END) AS kras_mut,\n      MAX(CASE WHEN Hugo_Symbol = 'TP53' THEN 1 ELSE 0 END) AS tp53_mut\n    FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample`\n    WHERE Study = 'PAAD'\n      AND FILTER = 'PASS'\n      AND Variant_Classification IN (\n        'Missense_Mutation', 'Nonsense_Mutation',\n        'Frame_Shift_Ins', 'Frame_Shift_Del',\n        'In_Frame_Ins', 'In_Frame_Del',\n        'Splice_Site', 'Translation_Start_Site', 'Nonstop_Mutation'\n      )\n    GROUP BY ParticipantBarcode\n  ),\n  -- Combine cohort with mutation data (left join: patients with no mutations get 0)\n  patient_mutation AS (\n    SELECT\n      c.ParticipantBarcode,\n      COALESCE(m.kras_mut, 0) AS kras_mut,\n      COALESCE(m.tp53_mut, 0) AS tp53_mut\n    FROM cohort c\n    LEFT JOIN mutation_status m\n      ON c.ParticipantBarcode = m.ParticipantBarcode\n  ),\n  -- Contingency table counts\n  contingency AS (\n    SELECT\n      COUNTIF(kras_mut = 1 AND tp53_mut = 1) AS a,   -- both\n      COUNTIF(kras_mut = 1 AND tp53_mut = 0) AS b,   -- KRAS only\n      COUNTIF(kras_mut = 0 AND tp53_mut = 1) AS c,   -- TP53 only\n      COUNTIF(kras_mut = 0 AND tp53_mut = 0) AS d    -- neither\n    FROM patient_mutation\n  )\n-- Compute chi-squared statistic\nSELECT\n  ROUND(\n    ( (a + b + c + d) * (a * d - b * c) * (a * d - b * c) )\n    / NULLIF( (a + b) * (c + d) * (a + c) * (b + d), 0 ),\n    4\n  ) AS chi_squared_statistic\nFROM contingency",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.10673097614198923
+        },
+        {
+          "index": 1,
+          "sql": "-- Step 1: Identify PAAD patients from clinical data with follow-up\nWITH\n  paad_patients AS (\n    SELECT DISTINCT bcr_patient_barcode AS patient_barcode\n    FROM `isb-cgc-bq.pancancer_atlas.Original_clinical_PANCAN_patient_with_followup`\n    WHERE acronym = 'PAAD'\n      AND bcr_patient_barcode IS NOT NULL\n  ),\n\n  -- Step 2: High-quality somatic mutations from MC3 MAF for KRAS and TP53\n  kras_mutations AS (\n    SELECT DISTINCT ParticipantBarcode AS patient_barcode\n    FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample`\n    WHERE Study = 'PAAD'\n      AND Hugo_Symbol = 'KRAS'\n      AND FILTER = 'PASS'\n  ),\n\n  tp53_mutations AS (\n    SELECT DISTINCT ParticipantBarcode AS patient_barcode\n    FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample`\n    WHERE Study = 'PAAD'\n      AND Hugo_Symbol = 'TP53'\n      AND FILTER = 'PASS'\n  ),\n\n  -- Step 3: Combine to get mutation flags per patient\n  patient_flags AS (\n    SELECT\n      p.patient_barcode,\n      CASE WHEN k.patient_barcode IS NOT NULL THEN 1 ELSE 0 END AS has_kras_mut,\n      CASE WHEN t.patient_barcode IS NOT NULL THEN 1 ELSE 0 END AS has_tp53_mut\n    FROM paad_patients p\n    LEFT JOIN kras_mutations k ON p.patient_barcode = k.patient_barcode\n    LEFT JOIN tp53_mutations t ON p.patient_barcode = t.patient_barcode\n  ),\n\n  -- Step 4: Build 2x2 contingency table\n  contingency AS (\n    SELECT\n      has_kras_mut,\n      has_tp53_mut,\n      COUNT(*) AS obs_count\n    FROM patient_flags\n    GROUP BY has_kras_mut, has_tp53_mut\n  ),\n\n  -- Step 5: Compute margins and chi-squared statistic\n  totals AS (\n    SELECT SUM(obs_count) AS N FROM contingency\n  ),\n  row_margins AS (\n    SELECT has_kras_mut, SUM(obs_count) AS row_total\n    FROM contingency GROUP BY has_kras_mut\n  ),\n  col_margins AS (\n    SELECT has_tp53_mut, SUM(obs_count) AS col_total\n    FROM contingency GROUP BY has_tp53_mut\n  ),\n  expected_and_obs AS (\n    SELECT\n      c.has_kras_mut,\n      c.has_tp53_mut,\n      c.obs_count,\n      (r.row_total * col.col_total) / t.N AS exp_count\n    FROM contingency c\n    CROSS JOIN totals t\n    JOIN row_margins r ON c.has_kras_mut = r.has_kras_mut\n    JOIN col_margins col ON c.has_tp53_mut = col.has_tp53_mut\n  ),\n  chi_sq_components AS (\n    SELECT\n      POW(obs_count - exp_count, 2) / exp_count AS component\n    FROM expected_and_obs\n  )\n-- Step 6: Final chi-squared statistic\nSELECT\n  ROUND(SUM(component), 4) AS chi_squared_statistic\nFROM chi_sq_components",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.0662980554625392
+        },
+        {
+          "index": 2,
+          "sql": "-- Step 1: Identify PAAD patients from clinical follow-up data\nWITH paad_patients AS (\n  SELECT DISTINCT bcr_patient_barcode AS patient\n  FROM `isb-cgc-bq.pancancer_atlas.Original_clinical_PANCAN_patient_with_followup`\n  WHERE acronym = 'PAAD'\n    AND bcr_patient_barcode IS NOT NULL\n),\n\n-- Step 2: Retrieve high-quality somatic mutations for KRAS and TP53 in PAAD patients\nmutations AS (\n  SELECT\n    m.ParticipantBarcode AS patient,\n    m.Hugo_Symbol,\n    m.Variant_Classification\n  FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample` m\n  INNER JOIN paad_patients p\n    ON m.ParticipantBarcode = p.patient\n  WHERE m.Hugo_Symbol IN ('KRAS', 'TP53')\n    -- Standard non-silent mutation classifications\n    AND m.Variant_Classification IN (\n      'Frame_Shift_Del', 'Frame_Shift_Ins', 'In_Frame_Del', 'In_Frame_Ins',\n      'Missense_Mutation', 'Nonsense_Mutation', 'Nonstop_Mutation',\n      'Splice_Site', 'Translation_Start_Site'\n    )\n),\n\n-- Step 3: Per-patient mutation flags (1 if at least one qualifying mutation)\npatient_mutation_flags AS (\n  SELECT\n    patient,\n    MAX(CASE WHEN Hugo_Symbol = 'KRAS' THEN 1 ELSE 0 END) AS has_kras,\n    MAX(CASE WHEN Hugo_Symbol = 'TP53' THEN 1 ELSE 0 END) AS has_tp53\n  FROM mutations\n  GROUP BY patient\n),\n\n-- Step 4: Build 2x2 contingency table counts\ncontingency AS (\n  SELECT\n    has_kras,\n    has_tp53,\n    COUNT(DISTINCT patient) AS num_patients\n  FROM patient_mutation_flags\n  GROUP BY has_kras, has_tp53\n),\n\n-- Step 5: Compute row, column, and grand totals needed for expected counts\ntotals AS (\n  SELECT\n    SUM(num_patients) AS grand_total,\n    SUM(CASE WHEN has_kras = 1 THEN num_patients ELSE 0 END) AS kras_mut_total,\n    SUM(CASE WHEN has_kras = 0 THEN num_patients ELSE 0 END) AS kras_wt_total,\n    SUM(CASE WHEN has_tp53 = 1 THEN num_patients ELSE 0 END) AS tp53_mut_total,\n    SUM(CASE WHEN has_tp53 = 0 THEN num_patients ELSE 0 END) AS tp53_wt_total\n  FROM contingency\n),\n\n-- Step 6: Calculate observed and expected values, then chi-squared components\nchi_sq_components AS (\n  SELECT\n    c.has_kras,\n    c.has_tp53,\n    c.num_patients AS observed,\n    CASE\n      WHEN c.has_kras = 1 AND c.has_tp53 = 1\n        THEN (t.kras_mut_total * t.tp53_mut_total) / t.grand_total\n      WHEN c.has_kras = 1 AND c.has_tp53 = 0\n        THEN (t.kras_mut_total * t.tp53_wt_total) / t.grand_total\n      WHEN c.has_kras = 0 AND c.has_tp53 = 1\n        THEN (t.kras_wt_total * t.tp53_mut_total) / t.grand_total\n      WHEN c.has_kras = 0 AND c.has_tp53 = 0\n        THEN (t.kras_wt_total * t.tp53_wt_total) / t.grand_total\n    END AS expected\n  FROM contingency c, totals t\n)\n\n-- Final: compute chi-squared statistic (sum of (obs - exp)^2 / exp)\nSELECT\n  ROUND(SUM(POW(observed - expected, 2) / expected), 4) AS chi_squared_statistic\nFROM chi_sq_components",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.07968964520841837
+        },
+        {
+          "index": 3,
+          "sql": "-- Step 1: PAAD patients from clinical data with follow-up\nWITH paad_patients AS (\n  SELECT DISTINCT\n    bcr_patient_barcode AS ParticipantBarcode\n  FROM `isb-cgc-bq.pancancer_atlas.Original_clinical_PANCAN_patient_with_followup`\n  WHERE acronym = 'PAAD'  -- PAAD study abbreviation\n),\n\n-- Step 2: High-quality somatic mutations in KRAS or TP53 from MC3 MAF\nmc3_mutations AS (\n  SELECT\n    ParticipantBarcode,\n    MAX(CASE WHEN Hugo_Symbol = 'KRAS' THEN 1 ELSE 0 END) AS has_kras_mut,\n    MAX(CASE WHEN Hugo_Symbol = 'TP53' THEN 1 ELSE 0 END) AS has_tp53_mut\n  FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample`\n  WHERE Study = 'PAAD'\n    AND FILTER = 'PASS'\n    AND Hugo_Symbol IN ('KRAS', 'TP53')\n  GROUP BY ParticipantBarcode\n),\n\n-- Step 3: Combine to get per-patient mutation status\npatient_status AS (\n  SELECT\n    p.ParticipantBarcode,\n    COALESCE(m.has_kras_mut, 0) AS kras_mut,\n    COALESCE(m.has_tp53_mut, 0) AS tp53_mut\n  FROM paad_patients p\n  LEFT JOIN mc3_mutations m\n    ON p.ParticipantBarcode = m.ParticipantBarcode\n),\n\n-- Step 4: Contingency table counts\ncontingency AS (\n  SELECT\n    kras_mut,\n    tp53_mut,\n    COUNT(*) AS observed\n  FROM patient_status\n  GROUP BY kras_mut, tp53_mut\n),\n\n-- Step 5: Pivot counts for chi-squared calculation\npivot_counts AS (\n  SELECT\n    SUM(CASE WHEN kras_mut = 1 AND tp53_mut = 1 THEN observed ELSE 0 END) AS both_mut,\n    SUM(CASE WHEN kras_mut = 1 AND tp53_mut = 0 THEN observed ELSE 0 END) AS kras_only,\n    SUM(CASE WHEN kras_mut = 0 AND tp53_mut = 1 THEN observed ELSE 0 END) AS tp53_only,\n    SUM(CASE WHEN kras_mut = 0 AND tp53_mut = 0 THEN observed ELSE 0 END) AS neither,\n    SUM(observed) AS total\n  FROM contingency\n),\n\n-- Step 6: Compute expected frequencies and chi-squared statistic\nstats AS (\n  SELECT\n    both_mut,\n    kras_only,\n    tp53_only,\n    neither,\n    total,\n    -- row and column totals (optional, for verification)\n    (both_mut + kras_only) AS kras_total,\n    (both_mut + tp53_only) AS tp53_total,\n    (kras_only + neither) AS no_kras_total,\n    (tp53_only + neither) AS no_tp53_total,\n    -- expected values calculated directly (no alias references within same SELECT)\n    ROUND((both_mut + kras_only) * (both_mut + tp53_only) / total, 4) AS exp_both,\n    ROUND((both_mut + kras_only) * (tp53_only + neither) / total, 4) AS exp_kras_only,\n    ROUND((kras_only + neither) * (both_mut + tp53_only) / total, 4) AS exp_tp53_only,\n    ROUND((kras_only + neither) * (tp53_only + neither) / total, 4) AS exp_neither\n  FROM pivot_counts\n)\n\n-- Final chi-squared value\nSELECT\n  both_mut,\n  kras_only,\n  tp53_only,\n  neither,\n  total,\n  ROUND(\n    ((both_mut - exp_both) * (both_mut - exp_both) / exp_both) +\n    ((kras_only - exp_kras_only) * (kras_only - exp_kras_only) / exp_kras_only) +\n    ((tp53_only - exp_tp53_only) * (tp53_only - exp_tp53_only) / exp_tp53_only) +\n    ((neither - exp_neither) * (neither - exp_neither) / exp_neither)\n  , 4) AS chi_squared_statistic\nFROM stats",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.0662980554625392
+        },
+        {
+          "index": 4,
+          "sql": "WITH\n-- Step 1: Get whitelisted PAAD patients from clinical table\npaad_patients AS (\n  SELECT DISTINCT bcr_patient_barcode\n  FROM `isb-cgc-bq.pancancer_atlas.Original_clinical_PANCAN_patient_with_followup`\n  WHERE acronym = 'PAAD'\n    AND bcr_patient_barcode IS NOT NULL\n),\nwhitelisted_patients AS (\n  SELECT p.bcr_patient_barcode\n  FROM paad_patients p\n  INNER JOIN `isb-cgc-bq.pancancer_atlas.Whitelist_ParticipantBarcodes` w\n    ON p.bcr_patient_barcode = w.ParticipantBarcode\n),\n-- Step 2: Collect high-quality mutation calls for KRAS and TP53 per patient from MC3\npatient_mutations AS (\n  SELECT\n    ParticipantBarcode,\n    LOGICAL_OR(Hugo_Symbol = 'KRAS') AS kras_mut,\n    LOGICAL_OR(Hugo_Symbol = 'TP53') AS tp53_mut\n  FROM `isb-cgc-bq.pancancer_atlas.Filtered_MC3_MAF_V5_one_per_tumor_sample`\n  WHERE Study = 'PAAD'\n    AND FILTER = 'PASS'\n  GROUP BY ParticipantBarcode\n),\n-- Step 3: Combine whitelisted patients with mutation data (inner join ensures only patients with sequencing data)\npatient_status AS (\n  SELECT\n    w.bcr_patient_barcode,\n    m.kras_mut,\n    m.tp53_mut\n  FROM whitelisted_patients w\n  INNER JOIN patient_mutations m\n    ON w.bcr_patient_barcode = m.ParticipantBarcode\n),\n-- Step 4: Build 2x2 contingency table\ncontingency AS (\n  SELECT\n    COUNTIF(kras_mut AND tp53_mut) AS both_mut,\n    COUNTIF(kras_mut AND NOT tp53_mut) AS kras_only,\n    COUNTIF(NOT kras_mut AND tp53_mut) AS tp53_only,\n    COUNTIF(NOT kras_mut AND NOT tp53_mut) AS neither,\n    COUNT(*) AS total\n  FROM patient_status\n),\n-- Step 5: Compute expected frequencies and chi-squared statistic\nchi_sq_prep AS (\n  SELECT\n    both_mut,\n    kras_only,\n    tp53_only,\n    neither,\n    total,\n    (both_mut + kras_only) AS kras_total,\n    (both_mut + tp53_only) AS tp53_total,\n    (kras_only + neither) AS no_kras_total,\n    (tp53_only + neither) AS no_tp53_total\n  FROM contingency\n)\nSELECT\n  ROUND(\n    (POW(both_mut - (kras_total * tp53_total) / total, 2) / ((kras_total * tp53_total) / total) +\n     POW(kras_only - (kras_total * no_tp53_total) / total, 2) / ((kras_total * no_tp53_total) / total) +\n     POW(tp53_only - (no_kras_total * tp53_total) / total, 2) / ((no_kras_total * tp53_total) / total) +\n     POW(neither - (no_kras_total * no_tp53_total) / total, 2) / ((no_kras_total * no_tp53_total) / total)\n    ), 4\n  ) AS chi_squared_statistic\nFROM chi_sq_prep",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": 0.06644254829734564
+        }
+      ]
+    },
+    "sf014": {
+      "instance_id": "sf014",
+      "backend": "snowflake",
+      "db_id": "CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE",
+      "selection": {
+        "decision": "unique_plurality_3",
+        "cluster_sizes": [
+          3,
+          1,
+          1
+        ],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "WITH \"zip_commuters\" AS (\n  SELECT\n    \"f\".\"ZipCode\",\n    SUM(\"f\".\"CensusValueByZip\") AS \"total_commuters_over_1hr\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_CensusValues_ACS2021_ByZip\" AS \"f\"\n  JOIN \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"LU_GeographyExpanded\" AS \"g\"\n    ON \"f\".\"ZipCode\" = \"g\".\"ZipCode\"\n  WHERE\n    \"g\".\"PreferredStateAbbrev\" = 'NY'\n    AND \"f\".\"MetricID\" IN ('B08303_011E', 'B08303_012E')\n  GROUP BY\n    \"f\".\"ZipCode\"\n)\nSELECT\n  \"z\".\"ZipCode\",\n  \"z\".\"total_commuters_over_1hr\",\n  (\n    SELECT COALESCE(SUM(\"StateBenchmarkValue\"), 0)\n    FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n    WHERE \"StateAbbrev\" = 'NY'\n      AND \"MetricID\" IN ('B08303_011E', 'B08303_012E')\n  ) AS \"state_benchmark_over_1hr\",\n  (\n    SELECT COALESCE(\"StateBenchmarkValue\", 0)\n    FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n    WHERE \"StateAbbrev\" = 'NY'\n      AND \"MetricID\" = 'B01003_001E'\n    LIMIT 1\n  ) AS \"state_population\"\nFROM \"zip_commuters\" AS \"z\"\nORDER BY \"z\".\"total_commuters_over_1hr\" DESC\nLIMIT 1",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 1,
+          "sql": "/* CTE: New York ZIP codes from geography lookup */\nWITH \"ny_zips\" AS (\n  SELECT DISTINCT\n    \"ZipCode\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"LU_GeographyExpanded\"\n  WHERE\n    \"PreferredStateAbbrev\" = 'NY'\n), \"zip_commuters\" /* CTE: Total commuters >1 hour per New York ZIP code */ AS (\n  SELECT\n    \"f\".\"ZipCode\",\n    SUM(\"f\".\"CensusValueByZip\") AS \"total_commuters_over_1hr\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_CensusValues_ACS2021_ByZip\" AS \"f\"\n  JOIN \"ny_zips\" AS \"g\"\n    ON \"f\".\"ZipCode\" = \"g\".\"ZipCode\"\n  WHERE\n    \"f\".\"MetricID\" IN ('B08303_011E', 'B08303_012E')\n  GROUP BY\n    \"f\".\"ZipCode\"\n), \"state_bench\" /* CTE: State benchmark (sum of the same metrics) and total state population */ AS (\n  SELECT\n    SUM(\n      CASE\n        WHEN \"MetricID\" IN ('B08303_011E', 'B08303_012E')\n        THEN \"StateBenchmarkValue\"\n        ELSE 0\n      END\n    ) AS \"state_benchmark_over_1hr\",\n    MAX(CASE WHEN \"MetricID\" = 'B01003_001E' THEN \"TotalStatePopulation\" END) AS \"state_population\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n  WHERE\n    \"StateAbbrev\" = 'NY'\n)\n/* Final selection: highest commuter ZIP in New York */\nSELECT\n  \"z\".\"ZipCode\",\n  \"z\".\"total_commuters_over_1hr\",\n  \"s\".\"state_benchmark_over_1hr\",\n  \"s\".\"state_population\"\nFROM \"zip_commuters\" AS \"z\"\nCROSS JOIN \"state_bench\" AS \"s\"\nORDER BY\n  \"z\".\"total_commuters_over_1hr\" DESC\nLIMIT 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 2,
+          "sql": "/* CTE: All ZIP codes in New York State */\nWITH \"ny_zip_codes\" AS (\n  SELECT DISTINCT\n    \"ZipCode\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"LU_GeographyExpanded\"\n  WHERE\n    \"PreferredStateAbbrev\" = 'NY'\n),\n\n/* CTE: Commute over 1 hour values for New York ZIPs */\n\"commute_values\" AS (\n  SELECT\n    \"fcv\".\"ZipCode\",\n    \"fcv\".\"CensusValueByZip\",\n    \"fcv\".\"MetricID\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_CensusValues_ACS2021_ByZip\" AS \"fcv\"\n  INNER JOIN \"ny_zip_codes\" AS \"nz\"\n    ON \"fcv\".\"ZipCode\" = \"nz\".\"ZipCode\"\n  WHERE\n    \"fcv\".\"MetricID\" IN ('B08303_011E', 'B08303_012E') /* 60–89 min and 90+ min */\n),\n\n/* CTE: Aggregate by ZIP */\n\"zip_summary\" AS (\n  SELECT\n    \"ZipCode\",\n    SUM(\"CensusValueByZip\") AS \"total_commuters_over_1hr\"\n  FROM \"commute_values\"\n  GROUP BY\n    \"ZipCode\"\n),\n\n/* CTE: Top ZIP (highest commuters over 1 hour) */\n\"top_zip\" AS (\n  SELECT\n    \"ZipCode\",\n    \"total_commuters_over_1hr\"\n  FROM \"zip_summary\"\n  ORDER BY\n    \"total_commuters_over_1hr\" DESC\n  LIMIT 1\n),\n\n/* CTE: State benchmark for the same commute metrics (always returns one row) */\n\"state_benchmark\" AS (\n  SELECT\n    SUM(\"StateBenchmarkValue\") AS \"state_benchmark_commuters_over_1hr\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n  WHERE\n    \"StateAbbrev\" = 'NY' AND \"MetricID\" IN ('B08303_011E', 'B08303_012E')\n),\n\n/* CTE: New York State population total (always returns one row via SUM) */\n\"state_population\" AS (\n  SELECT\n    SUM(\"StateBenchmarkValue\") AS \"total_state_population\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\"\n  WHERE\n    \"StateAbbrev\" = 'NY' AND \"MetricID\" = 'B01003_001E'\n)\n\n/* Final output */\nSELECT\n  \"tz\".\"ZipCode\",\n  \"tz\".\"total_commuters_over_1hr\",\n  \"sb\".\"state_benchmark_commuters_over_1hr\",\n  \"sp\".\"total_state_population\"\nFROM \"top_zip\" AS \"tz\"\nCROSS JOIN \"state_benchmark\" AS \"sb\"\nCROSS JOIN \"state_population\" AS \"sp\"",
+          "source": "revised",
+          "revisions": 1,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 3,
+          "sql": "WITH \"commuters_by_zip\" /* aggregate commuters >60 minutes per ZIP in New York */ AS (\n  SELECT\n    \"f\".\"ZipCode\",\n    SUM(\"f\".\"CensusValueByZip\") AS \"total_commuters_over_1hr\"\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_CensusValues_ACS2021_ByZip\" AS \"f\"\n  JOIN \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"LU_GeographyExpanded\" AS \"g\"\n    ON \"f\".\"ZipCode\" = \"g\".\"ZipCode\"\n  WHERE\n    \"g\".\"PreferredStateAbbrev\" = 'NY'\n    AND \"f\".\"MetricID\" IN ('B08303_011E', 'B08303_012E')\n  GROUP BY\n    \"f\".\"ZipCode\"\n), \"ranked_zip\" /* rank ZIPs by commuter count */ AS (\n  SELECT\n    \"ZipCode\",\n    \"total_commuters_over_1hr\",\n    ROW_NUMBER() OVER (ORDER BY \"total_commuters_over_1hr\" DESC) AS \"rn\"\n  FROM \"commuters_by_zip\"\n), \"state_benchmark\" /* state-level benchmark (sum of same metrics) and population */ AS (\n  SELECT\n    SUM(\n      CASE\n        WHEN \"sb\".\"MetricID\" IN ('B08303_011E', 'B08303_012E')\n        THEN \"sb\".\"StateBenchmarkValue\"\n        ELSE 0\n      END\n    ) AS \"state_commuters_over_1hr\",\n    MAX(\"sb\".\"TotalStatePopulation\") AS \"state_population\" /* same value for all rows */\n  FROM \"CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE\".\"PUBLIC\".\"Fact_StateBenchmark_ACS2021\" AS \"sb\"\n  WHERE\n    \"sb\".\"StateAbbrev\" = 'NY'\n)\nSELECT\n  \"rz\".\"ZipCode\",\n  \"rz\".\"total_commuters_over_1hr\",\n  \"sb\".\"state_commuters_over_1hr\",\n  \"sb\".\"state_population\"\nFROM \"ranked_zip\" AS \"rz\"\nCROSS JOIN \"state_benchmark\" AS \"sb\"\nWHERE\n  \"rz\".\"rn\" = 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": true,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": null
+        },
+        {
+          "index": 4,
+          "sql": "WITH ny_zip_commuters AS (\n    SELECT \n        f.\"ZipCode\",\n        f.\"CensusValueByZip\" AS total_commuters_over_one_hour\n    FROM CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE.PUBLIC.\"Fact_CensusValues_ACS2021_ByZip\" f\n    JOIN CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE.PUBLIC.\"LU_GeographyExpanded\" g\n        ON f.\"ZipCode\" = g.\"ZipCode\"\n    WHERE g.\"PreferredStateAbbrev\" = 'NY'\n      AND f.\"MetricID\" = 'B08303_011E'   -- 60+ minute travel time\n),\nranked AS (\n    SELECT \n        \"ZipCode\",\n        total_commuters_over_one_hour,\n        ROW_NUMBER() OVER (ORDER BY total_commuters_over_one_hour DESC) AS rn\n    FROM ny_zip_commuters\n),\nstate_bench AS (\n    SELECT \n        \"StateBenchmarkValue\",\n        \"TotalStatePopulation\"\n    FROM CENSUS_GALAXY__AIML_MODEL_DATA_ENRICHMENT_SAMPLE.PUBLIC.\"Fact_StateBenchmark_ACS2021\"\n    WHERE \"StateAbbrev\" = 'NY'\n      AND \"MetricID\" = 'B08303_011E'   -- same metric\n)\nSELECT \n    r.\"ZipCode\",\n    r.total_commuters_over_one_hour AS total_commuters,\n    sb.\"StateBenchmarkValue\" AS state_benchmark_for_duration,\n    sb.\"TotalStatePopulation\" AS state_population\nFROM ranked r\nCROSS JOIN state_bench sb\nWHERE r.rn = 1",
+          "source": "generated",
+          "revisions": 0,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 1,
+          "error": "",
+          "est_gb": null
+        }
+      ]
+    },
+    "ga003": {
+      "instance_id": "ga003",
+      "backend": "bigquery",
+      "db_id": "firebase",
+      "selection": {
+        "decision": "all_failed",
+        "cluster_sizes": [],
+        "selected_index": 0
+      },
+      "candidates": [
+        {
+          "index": 0,
+          "sql": "SELECT\n  board_type,\n  AVG(score) AS avg_score\nFROM (\n  SELECT\n    COALESCE(\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board_type'),\n      SAFE_CAST((SELECT value.int_value    FROM UNNEST(event_params) WHERE key = 'board_type') AS STRING),\n      SAFE_CAST((SELECT value.float_value  FROM UNNEST(event_params) WHERE key = 'board_type') AS STRING),\n      SAFE_CAST((SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'board_type') AS STRING)\n    ) AS board_type,\n    COALESCE(\n      (SELECT value.float_value  FROM UNNEST(event_params) WHERE key = 'score'),\n      (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'score'),\n      SAFE_CAST((SELECT value.int_value    FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64),\n      SAFE_CAST((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64)\n    ) AS score\n  FROM `firebase-public-project.analytics_153293282.events_20180915`\n  WHERE event_name = 'level_end_quickplay'\n)\nWHERE board_type IS NOT NULL\n  AND score IS NOT NULL\nGROUP BY board_type\nORDER BY avg_score DESC",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 0,
+          "error": "",
+          "est_gb": 0.007515246979892254
+        },
+        {
+          "index": 1,
+          "sql": "WITH event_params_pivot AS (\n  SELECT\n    event_timestamp,\n    user_pseudo_id,\n    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board_type') AS board_type,\n    COALESCE(\n      (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'score'),\n      (SELECT value.float_value FROM UNNEST(event_params) WHERE key = 'score'),\n      (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'score'),\n      SAFE_CAST((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64)\n    ) AS score\n  FROM\n    `firebase-public-project.analytics_153293282.events_20180915`\n  WHERE\n    event_name = 'level_end_quickplay'\n)\nSELECT\n  board_type,\n  AVG(score) AS avg_score\nFROM\n  event_params_pivot\nWHERE\n  board_type IS NOT NULL\n  AND score IS NOT NULL\nGROUP BY\n  board_type\nORDER BY\n  board_type",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 0,
+          "error": "",
+          "est_gb": 0.007515246979892254
+        },
+        {
+          "index": 2,
+          "sql": "WITH quickplay_completions AS (\n  SELECT\n    event_timestamp,\n    user_pseudo_id,\n    MAX(IF(LOWER(param.key) = 'board_type',\n          COALESCE(param.value.string_value, CAST(param.value.int_value AS STRING), CAST(param.value.float_value AS STRING), CAST(param.value.double_value AS STRING)),\n          NULL)) AS board_type,\n    MAX(IF(LOWER(param.key) = 'score',\n          COALESCE(SAFE_CAST(param.value.string_value AS FLOAT64), param.value.int_value, param.value.float_value, param.value.double_value),\n          NULL)) AS score\n  FROM `firebase-public-project.analytics_153293282.events_20180915`\n  CROSS JOIN UNNEST(event_params) AS param\n  WHERE LOWER(event_name) LIKE '%level_end_quickplay%'\n     OR LOWER(event_name) LIKE '%level_complete_quickplay%'\n     OR LOWER(event_name) LIKE '%level_success_quickplay%'\n  GROUP BY event_timestamp, user_pseudo_id\n)\nSELECT board_type, AVG(score) AS average_score\nFROM quickplay_completions\nWHERE board_type IS NOT NULL AND score IS NOT NULL\nGROUP BY board_type\nORDER BY average_score DESC",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 0,
+          "error": "",
+          "est_gb": 0.009471024386584759
+        },
+        {
+          "index": 3,
+          "sql": "WITH\n  quickplay_completions AS (\n    SELECT\n      e.event_timestamp,\n      MAX(CASE\n        WHEN p.key IN ('board_type', 'boardType', 'board', 'level_type') THEN p.value.string_value\n      END) AS board_type,\n      MAX(CASE\n        WHEN p.key IN ('score', 'level_score', 'points', 'final_score')\n          THEN COALESCE(p.value.int_value, p.value.float_value, p.value.double_value, SAFE_CAST(p.value.string_value AS FLOAT64))\n      END) AS score,\n      MAX(CASE\n        WHEN p.key IN ('mode', 'game_mode', 'game_type') THEN p.value.string_value\n      END) AS game_mode\n    FROM\n      `firebase-public-project.analytics_153293282.events_*` AS e,\n      UNNEST(event_params) AS p\n    WHERE\n      _TABLE_SUFFIX = '20180915'\n      AND e.event_name IN (\n        'level_end_quickplay',\n        'level_complete_quickplay',\n        'quickplay_end',\n        'quickplay_complete',\n        'level_end',\n        'level_complete'\n      )\n    GROUP BY\n      e.event_timestamp\n  )\nSELECT\n  IFNULL(board_type, 'unknown') AS board_type,\n  ROUND(AVG(score), 2) AS avg_score,\n  COUNT(*) AS num_completions\nFROM\n  quickplay_completions\nWHERE\n  score IS NOT NULL\n  AND (board_type IS NOT NULL OR game_mode = 'quickplay' OR game_mode IS NULL)\nGROUP BY\n  board_type\nORDER BY\n  avg_score DESC",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 0,
+          "error": "",
+          "est_gb": 0.007887776009738445
+        },
+        {
+          "index": 4,
+          "sql": "WITH extracted AS (\n  SELECT\n    COALESCE(\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board_type'),\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'board'),\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'level_name'),\n      (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'level'),\n      'Unknown'\n    ) AS board_type,\n    COALESCE(\n      (SELECT value.float_value FROM UNNEST(event_params) WHERE key = 'score'),\n      (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'score'),\n      CAST((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64),\n      SAFE_CAST((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'score') AS FLOAT64),\n      (SELECT value.float_value FROM UNNEST(event_params) WHERE key = 'points'),\n      (SELECT value.double_value FROM UNNEST(event_params) WHERE key = 'points'),\n      CAST((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'points') AS FLOAT64),\n      SAFE_CAST((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'points') AS FLOAT64)\n    ) AS score,\n    event_name\n  FROM `firebase-public-project.analytics_153293282.events_20180915`\n  WHERE event_name LIKE '%quickplay%'\n     OR event_name LIKE '%level_end%'\n     OR event_name LIKE '%level_complete%'\n     OR event_name LIKE '%level_success%'\n     OR event_name LIKE '%finish%'\n)\nSELECT\n  board_type,\n  AVG(score) AS average_score\nFROM extracted\nWHERE score IS NOT NULL\nGROUP BY board_type\nORDER BY average_score DESC",
+          "source": "revised",
+          "revisions": 5,
+          "quote_fixed": false,
+          "ok": true,
+          "rows": 0,
+          "error": "",
+          "est_gb": 0.007515246979892254
+        }
+      ]
+    }
+  },
+  "official_eval": {
+    "raw_tail": ". More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/\n  warnings.warn(warning, PythonDeprecationWarning)\n\n100%|██████████| 12/12 [00:50<00:00,  4.73s/it]\n100%|██████████| 12/12 [00:50<00:00,  4.18s/it]\nFinal score: 0.4166666666666667, Correct examples: 5, Total examples: 12\nReal score: 0.009140767824497258, Correct examples: 5, Total examples: 547\nTOTAL_GB_PROCESSED:  0.008750561624765396\n\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/api_core/_python_version_support.py:242: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.\n  warnings.warn(eol_message.format(\"3.9\"), FutureWarning)\n/Users/bytedance/Library/Python/3.9/lib/python/site-packages/snowflake/connector/vendored/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n",
+    "ex": 41.66666666666667,
+    "correct": 5,
+    "scored": 12
+  },
+  "llm_stats": {
+    "num_calls": 146,
+    "input_tokens": 2047438,
+    "output_tokens": 355461
+  },
+  "elapsed_sec": 3881.4
+}

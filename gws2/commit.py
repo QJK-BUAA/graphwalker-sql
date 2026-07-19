@@ -412,7 +412,8 @@ def structural_feedback(sql: str, skeleton: dict) -> list[str]:
 def generate_sql(question: str, schema: Schema, linked_tables: list[str],
                  join_conditions: list[str], hints: str, llm: LLM,
                  dialect: str = "SQLite", schema_context: str | None = None,
-                 evidence: str = "", skeleton: dict | None = None) -> str:
+                 evidence: str = "", skeleton: dict | None = None,
+                 fewshot_block: str = "") -> str:
     schema_text = schema_context or schema.to_ddl_text(linked_tables)
     join_str = "\n".join(join_conditions) if join_conditions else \
         "(no explicit join; tables may be standalone)"
@@ -420,6 +421,10 @@ def generate_sql(question: str, schema: Schema, linked_tables: list[str],
         dialect=dialect, schema=schema_text, join_path=join_str,
         evidence=evidence.strip() or "(none)", hints=hints,
         skeleton=_skeleton_text(skeleton or {}), question=question)
+    # Retrieval-based few-shot exemplars: inject just before the Question block so
+    # they sit close to the query (adds no LLM call; retrieved via BM25 offline).
+    if fewshot_block:
+        system = system.replace("Question:\n", fewshot_block.rstrip() + "\n\nQuestion:\n", 1)
     resp = llm.complete(system, f"Question: {question}", temperature=0.0)
     return _extract_sql(resp)
 
@@ -492,7 +497,7 @@ def _result_sig(ex: dict):
 def _generate_consensus(question: str, schema: Schema, linked: list[str],
                         joins: list[str], hints: str, llm: LLM, dialect: str,
                         ctx: str, ev: str, skeleton: dict, sqlite_path: str,
-                        k: int) -> tuple[str, dict, list[str]]:
+                        k: int, fewshot_block: str = "") -> tuple[str, dict, list[str]]:
     """Multi-candidate generation + execution-result majority vote (ReFoRCE/SOMA
     style). Draws k candidate SQLs (LLM run-to-run variance supplies diversity,
     which matters for reasoning models that ignore temperature), executes each,
@@ -503,7 +508,7 @@ def _generate_consensus(question: str, schema: Schema, linked: list[str],
     for _ in range(k):
         sql = generate_sql(question, schema, linked, joins, hints, llm,
                            dialect=dialect, schema_context=ctx, evidence=ev,
-                           skeleton=skeleton)
+                           skeleton=skeleton, fewshot_block=fewshot_block)
         ex = run_query(sqlite_path, sql)
         cands.append((sql, ex, _result_sig(ex)))
     votes = Counter(s for _, _, s in cands if s is not None)
@@ -533,7 +538,13 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
            concept_bindings: dict | None = None,
            use_adaptive_schema: bool = True,
            soft_structure: bool = True,
-           n_candidates: int = 1) -> CommitResult:
+           n_candidates: int = 1,
+           gen_llm: LLM | None = None,
+           fewshot_block: str = "") -> CommitResult:
+    # Optional hybrid: a stronger model for the reasoning-heavy SQL generation /
+    # repair / consensus, while the cheap aux calls (joinability, anchor, propose,
+    # structure plan) keep using ``llm``. Falls back to ``llm`` when unset.
+    glm = gen_llm or llm
     steps: list[str] = []
     linked = list(explore_res.linked_tables)
     joins = list(explore_res.join_conditions)
@@ -605,13 +616,13 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
 
     if n_candidates and n_candidates > 1:
         sql, ex, cons_steps = _generate_consensus(
-            question, schema, linked, joins, hints, llm, dialect, ctx, ev,
-            skeleton, sqlite_path, n_candidates)
+            question, schema, linked, joins, hints, glm, dialect, ctx, ev,
+            skeleton, sqlite_path, n_candidates, fewshot_block=fewshot_block)
         steps.extend(cons_steps)
     else:
-        sql = generate_sql(question, schema, linked, joins, hints, llm,
+        sql = generate_sql(question, schema, linked, joins, hints, glm,
                            dialect=dialect, schema_context=ctx, evidence=ev,
-                           skeleton=skeleton)
+                           skeleton=skeleton, fewshot_block=fewshot_block)
         ex = run_query(sqlite_path, sql)
     struct_feedback = structural_feedback(sql, skeleton) if use_structure_plan else []
     steps.append(f"generate -> ok={ex.get('ok')} "
@@ -640,7 +651,7 @@ def commit(question: str, schema: Schema, graph_obj: SchemaGraph,
             else:  # structural-only trigger (hardstruct ablation)
                 problem = "does not match the planned query skeleton"
                 feedback = "; ".join(struct_feedback)
-            sql2 = _repair(question, schema, linked, sql, problem, feedback, llm,
+            sql2 = _repair(question, schema, linked, sql, problem, feedback, glm,
                            dialect, schema_context=ctx, evidence=ev,
                            skeleton=skeleton)
             ex2 = run_query(sqlite_path, sql2)

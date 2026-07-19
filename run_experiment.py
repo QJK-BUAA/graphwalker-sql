@@ -82,12 +82,21 @@ def main():
                     help="run the ENTIRE dataset (ignore --limit)")
     ap.add_argument("--seed", type=int, default=config.DEFAULT_SEED)
     ap.add_argument("--model", default=config.DEFAULT_MODEL)
+    ap.add_argument("--gen-model", default="",
+                    help="optional stronger model for SQL generation/repair/"
+                         "consensus only (aux calls keep --model). Hybrid setup.")
     ap.add_argument("--ablation", default="full", choices=list(ABLATION_PRESETS))
     ap.add_argument("--workers", type=int, default=1,
                     help="concurrent worker threads (LLM calls are IO-bound)")
     ap.add_argument("--candidates", type=int, default=1,
                     help="multi-candidate generation + result-consensus at Commit "
                          "(1 = single SQL; >1 = majority vote over K executions)")
+    ap.add_argument("--fewshot", type=int, default=0,
+                    help="retrieval-based few-shot: inject K similar train "
+                         "(question->SQL) exemplars into generation (0 = off)")
+    ap.add_argument("--no-coldesc", action="store_true",
+                    help="disable injecting BIRD-style column descriptions/value "
+                         "notes into the schema (default: on when available)")
     ap.add_argument("--outdir", default="outputs")
     ap.add_argument("--no-eval", action="store_true", help="skip official eval")
     ap.add_argument("--with-snapshot", action="store_true",
@@ -99,11 +108,26 @@ def main():
     if args.candidates and args.candidates > 1:
         ablation.n_candidates = args.candidates
     llm = LLM(model=args.model, seed=args.seed)
+    gen_llm = LLM(model=args.gen_model, seed=args.seed) if args.gen_model else None
     limit = None if args.full else args.limit
     examples = load_and_sample(args.dataset, limit, seed=args.seed)
     dialect = "SQLite"
 
+    fewshot_retriever = None
+    if args.fewshot > 0:
+        from gws2.fewshot import build_retriever
+        fewshot_retriever = build_retriever(args.dataset)
+        if fewshot_retriever is None:
+            print(f"[warn] --fewshot={args.fewshot} requested but no exemplar "
+                  f"library for dataset {args.dataset!r}; running WITHOUT few-shot.")
+        else:
+            print(f"[fewshot] loaded {len(fewshot_retriever.examples)} train "
+                  f"exemplars for {args.dataset}; k={args.fewshot}")
+
     run_id = (f"{args.dataset}_{ablation.tag()}_{args.model}"
+              + (f"_gen-{args.gen_model}" if args.gen_model else "")
+              + (f"_fs{args.fewshot}" if args.fewshot else "")
+              + ("_nocoldesc" if args.no_coldesc else "")
               + (f"_{args.tag}" if args.tag else "")
               + f"_seed{args.seed}")
     outdir = os.path.abspath(args.outdir)
@@ -121,7 +145,8 @@ def main():
         with cache_lock:
             sc = schema_cache.get(sqlite_path)
         if sc is None:
-            sc = load_db(sqlite_path, with_stats=True)
+            sc = load_db(sqlite_path, with_stats=True,
+                         with_descriptions=not args.no_coldesc)
             with cache_lock:
                 schema_cache[sqlite_path] = sc
         return sc
@@ -133,6 +158,8 @@ def main():
                 schema, ex.sqlite_path, ex.question, llm,
                 evidence=ex.evidence, ablation=ablation, dialect=dialect,
                 prefer_declared=True, with_snapshot=args.with_snapshot,
+                gen_llm=gen_llm,
+                fewshot_retriever=fewshot_retriever, fewshot_k=args.fewshot,
             )
             rec = {
                 "instance_id": ex.instance_id, "db_id": ex.db_id,
@@ -213,6 +240,7 @@ def main():
         "n_questions": len(examples),
         "elapsed_sec": round(elapsed, 1),
         "llm_stats": llm.stats(),
+        "gen_llm_stats": gen_llm.stats() if gen_llm else None,
         "official_eval": eval_result,
         "records": records,
     }

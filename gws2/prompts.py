@@ -193,6 +193,21 @@ Output Format:
 -- one query
 ```"""
 
+# Injected ONLY for FK-sparse / inferred-graph schemas (Spider2-like), where the
+# gold SQL is a multi-step analytical pipeline (77% use CTEs, median ~41 lines).
+# NOT used on declared-FK schemas (BIRD/Spider1), whose questions are simpler and
+# are hurt by over-complex SQL (cf. the R1 overthinking regression).
+PROMPT_ANALYTICAL_HINT = (
+    "Analytical decomposition (this is likely a MULTI-STEP analytical question):\n"
+    "- Prefer a PIPELINE OF NAMED CTEs -- WITH step1 AS (...), step2 AS (...), ... -- "
+    "that builds the answer step by step, instead of one flat query.\n"
+    "- Use WINDOW FUNCTIONS (OVER (PARTITION BY ... ORDER BY ...)) for rankings, "
+    "running totals, moving averages and top-N-per-group.\n"
+    "- Do NOT oversimplify: reproduce every computation, filter and definition the "
+    "question implies, even if it needs several CTEs. A one-line query is usually wrong."
+)
+
+
 # --------------------------------------------------------------------------- #
 # Commit: single targeted repair (execution error OR empty result).
 # By design at most once; NOT an unbounded self-refine loop.
@@ -290,11 +305,23 @@ Use LATERAL FLATTEN for VARIANT arrays/objects. Avoid correlated subqueries Snow
 cannot evaluate; prefer JOINs or window functions.
 - Apply external knowledge literally, including formulas, mappings, date ranges, and \
 domain-specific definitions.
-- Return only the requested columns. Do not add helper columns.
-- If the question asks for top/most/highest/lowest, use ORDER BY and LIMIT unless a \
-subquery is clearly required.
+- The FINAL SELECT must return only the requested columns (no helper columns), but \
+intermediate CTEs MAY compute any helper columns they need.
+- If the question asks for top/most/highest/lowest, use ORDER BY + LIMIT, or a window \
+function (ROW_NUMBER()/RANK() OVER (...)) for top-N-per-group.
 - If the question asks for both A and B as separate membership conditions, consider \
 INTERSECT or grouped HAVING.
+
+Analytical decomposition (these questions are usually MULTI-STEP; match the gold style):
+- Prefer a PIPELINE OF NAMED CTEs -- WITH step1 AS (...), step2 AS (...), ... -- that \
+builds the answer up step by step, rather than one flat query. Most correct answers \
+here use several CTEs, not a single SELECT.
+- Use WINDOW FUNCTIONS (OVER (PARTITION BY ... ORDER BY ...)) for rankings, running \
+totals, period-over-period changes, moving averages and top-N-per-group.
+- Use explicit DATE functions for any date bucketing, ranges or differences.
+- Do NOT oversimplify: reproduce EVERY computation, unit conversion, filter and \
+definition the question and external knowledge imply -- even if it takes many CTEs. A \
+one-line query is almost always wrong for these tasks.
 
 SQL:"""
 
@@ -329,6 +356,41 @@ _TABLE_SUFFIX, WHERE, or a narrower table) so the scan is smaller.
 - Keep the answer's column shape aligned with what the question asks.
 
 SQL:"""
+
+
+# Result-driven self-refinement (P4): the query RAN, but "runs" != "correct" on
+# Spider2. Feed the actual result preview back and let the model confirm or fix.
+PROMPT_SPIDER2_SELF_REFINE = """You wrote a {dialect} query that RAN successfully. On these \
+hard analytical questions a query that merely runs is often still WRONG. Critically review \
+it against the question using the ACTUAL result preview, then confirm or fix it.
+
+Schema / DDL context:
+{schema_context}
+
+External knowledge:
+{external_knowledge}
+
+Question:
+{question}
+
+Your SQL:
+{sql}
+
+Execution result preview (columns, then up to a few rows):
+{result_preview}
+
+Checklist:
+- Does the result answer EXACTLY what the question asks (right entity, metric, granularity, \
+and column shape/order -- no extra or missing columns)?
+- Did you apply every definition/formula/filter/date-range from the external knowledge?
+- Are the aggregations, GROUP BY keys, JOINs, DISTINCT and window frames correct?
+- Is the magnitude / row count plausible (not a cartesian blow-up, not an accidental single \
+row, not NULLs where numbers are expected)?
+
+Respond with EXACTLY one of:
+- If it is already correct: output the single token CONFIRM (and nothing else).
+- If it is wrong: output ONE corrected {dialect} SQL query only (no markdown fences, no prose).
+"""
 
 
 # Snowflake dialect cheat-sheet. Injected into generate + repair prompts for the
